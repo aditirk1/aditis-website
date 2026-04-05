@@ -1,0 +1,190 @@
+---
+/**
+ * Layout.astro — global shell for every page
+ *
+ * Responsibilities (this layer):
+ * - Load global CSS + sensible default fonts (you can swap families later).
+ * - Initialize Lenis smooth scrolling when motion is allowed.
+ * - Register GSAP ScrollTrigger and connect it to Lenis (so future sections can animate on scroll).
+ * - Provide the dual-theme system via <html data-theme="..."> + a small toggle button.
+ * - Mount the Universe star field behind everything.
+ *
+ * Files paired with this layout:
+ * - src/styles/global.css — Tailwind + CSS variables for both themes
+ * - src/components/StarFieldUniverse.astro — Three.js background (dark theme)
+ */
+import '../styles/global.css';
+import StarFieldUniverse from '../components/StarFieldUniverse.astro';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const { title = "aditi's universe", description = 'Biomedical engineer, researcher, freelancer, writer — aditirk.me' } =
+	Astro.props;
+---
+
+<!doctype html>
+<html lang="en" data-theme="universe">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content={description} />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+
+		<!--
+			Font stack (all open fonts via Google Fonts — swap later if you self-host into /public/fonts).
+			- Syne: geometric, sharp display for headings
+			- Source Sans 3: warm, readable body
+		-->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+			rel="stylesheet"
+		/>
+
+		<style is:global>
+			:root {
+				--font-display: 'Syne', system-ui, sans-serif;
+				--font-body: 'Source Sans 3', system-ui, sans-serif;
+			}
+		</style>
+	</head>
+	<body class="relative antialiased">
+		<!-- Soft nebula edge wash (Universe only — hidden in Beach via global.css) -->
+		<div class="universe-nebula-overlay" aria-hidden="true"></div>
+
+		<StarFieldUniverse />
+
+		<!--
+			Main content shell sits above the canvas.
+			pointer-events: auto ensures buttons/links stay clickable even though the canvas also listens for the secret star.
+		-->
+		<!--
+			pointer-events: The canvas sits under this shell. We use pointer-events-none on the shell
+			so clicks pass through "empty" viewport space to the star field (secret amber star).
+			Interactive regions opt back in with pointer-events-auto (header + page sections).
+		-->
+		<div id="site-shell" class="relative z-10 flex min-h-dvh flex-col pointer-events-none">
+			<header
+				class="pointer-events-auto flex items-center justify-between gap-4 px-6 py-5 text-sm transition-[padding,backdrop-filter] duration-300 md:px-10"
+				data-site-header
+			>
+				<a href="/" class="font-semibold tracking-tight text-[var(--page-fg)]" style="font-family: var(--font-display)">
+					aditi's universe
+				</a>
+
+				<div class="flex items-center gap-3">
+					<button
+						type="button"
+						class="rounded-full border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_70%,transparent)] px-3 py-1 text-xs font-medium text-[var(--page-fg)] backdrop-blur-sm transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)]"
+						data-theme-toggle
+						aria-label="Toggle light and dark theme"
+					>
+						<span data-theme-toggle-label>Universe</span>
+					</button>
+				</div>
+			</header>
+
+			<main class="pointer-events-none flex-1 px-6 pb-16 md:px-10">
+				<slot />
+			</main>
+		</div>
+
+		<script>
+			import Lenis from 'lenis';
+			import 'lenis/dist/lenis.css';
+			import { gsap } from 'gsap';
+			import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+			const html = document.documentElement;
+			const THEME_KEY = 'aditi-theme';
+
+			function getStoredTheme(): 'universe' | 'beach' {
+				const v = localStorage.getItem(THEME_KEY);
+				return v === 'beach' ? 'beach' : 'universe';
+			}
+
+			function applyTheme(theme: 'universe' | 'beach') {
+				html.setAttribute('data-theme', theme);
+				localStorage.setItem(THEME_KEY, theme);
+				const label = document.querySelector('[data-theme-toggle-label]');
+				if (label) label.textContent = theme === 'universe' ? 'Universe' : 'Beach';
+			}
+
+			// Restore saved theme (defaults to Universe in HTML)
+			applyTheme(getStoredTheme());
+
+			const toggle = document.querySelector('[data-theme-toggle]');
+			toggle?.addEventListener('click', () => {
+				const next = html.getAttribute('data-theme') === 'universe' ? 'beach' : 'universe';
+				applyTheme(next);
+			});
+
+			const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+			/** Lenis + ScrollTrigger: only when motion is OK */
+			if (!reduceMotion) {
+				gsap.registerPlugin(ScrollTrigger);
+
+				const lenis = new Lenis({
+					duration: 1.15,
+					smoothWheel: true,
+					touchMultiplier: 1.35,
+				});
+
+				ScrollTrigger.scrollerProxy(document.body, {
+					scrollTop(value) {
+						if (arguments.length && typeof value === 'number') {
+							lenis.scrollTo(value, { immediate: true });
+						}
+						return lenis.scroll;
+					},
+					getBoundingClientRect() {
+						return {
+							top: 0,
+							left: 0,
+							width: window.innerWidth,
+							height: window.innerHeight,
+						};
+					},
+				});
+
+				lenis.on('scroll', ScrollTrigger.update);
+
+				gsap.ticker.add((time) => {
+					lenis.raf(time * 1000);
+				});
+				gsap.ticker.lagSmoothing(0);
+			}
+
+			/** Nav shrink + subtle blur on scroll (lightweight; GSAP not required here) */
+			const header = document.querySelector('[data-site-header]') as HTMLElement | null;
+			function onScrollHeader() {
+				if (!header) return;
+				const y = window.scrollY;
+				if (y > 24) {
+					header.style.paddingTop = '0.65rem';
+					header.style.paddingBottom = '0.65rem';
+					header.style.backdropFilter = 'blur(10px)';
+					header.style.backgroundColor =
+						html.getAttribute('data-theme') === 'beach'
+							? 'color-mix(in srgb, var(--color-beach-bg) 72%, transparent)'
+							: 'color-mix(in srgb, var(--color-universe-bg) 55%, transparent)';
+				} else {
+					header.style.paddingTop = '';
+					header.style.paddingBottom = '';
+					header.style.backdropFilter = '';
+					header.style.backgroundColor = '';
+				}
+			}
+			window.addEventListener('scroll', onScrollHeader, { passive: true });
+			onScrollHeader();
+		</script>
+	</body>
+</html>

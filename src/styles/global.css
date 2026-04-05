@@ -1,0 +1,78 @@
+/**
+ * Global styles + Tailwind v4 entry.
+ * Theme tokens live on :root and switch when <html data-theme="..."> changes.
+ */
+@import 'tailwindcss';
+
+/* --- Design tokens (Universe = dark, Beach = light) --- */
+@theme {
+	/* Shared accent */
+	--color-amber: #ffaa00;
+
+	/* Universe */
+	--color-universe-bg: #0a0a0f;
+	--color-universe-fg: #f0ede6;
+	--color-universe-muted: color-mix(in srgb, #f0ede6 55%, transparent);
+
+	/* Beach */
+	--color-beach-bg: #fdf8f0;
+	--color-beach-fg: #1a3a5c;
+	--color-beach-muted: color-mix(in srgb, #1a3a5c 55%, transparent);
+}
+
+/* Default = Universe until JS runs (matches our script default) */
+:root {
+	color-scheme: dark;
+	--page-bg: var(--color-universe-bg);
+	--page-fg: var(--color-universe-fg);
+	--page-muted: var(--color-universe-muted);
+}
+
+html[data-theme='beach'] {
+	color-scheme: light;
+	--page-bg: var(--color-beach-bg);
+	--page-fg: var(--color-beach-fg);
+	--page-muted: var(--color-beach-muted);
+}
+
+html {
+	background-color: var(--page-bg);
+}
+
+body {
+	min-height: 100dvh;
+	background-color: var(--page-bg);
+	color: var(--page-fg);
+	font-family: var(--font-body, system-ui, sans-serif);
+	transition:
+		background-color 0.6s ease,
+		color 0.6s ease;
+}
+
+/* Subtle nebula wash behind the canvas in Universe mode (never overpowers the stars) */
+.universe-nebula-overlay {
+	pointer-events: none;
+	position: fixed;
+	inset: 0;
+	z-index: -5;
+	opacity: 0.45;
+	background:
+		radial-gradient(ellipse 80% 50% at 0% 100%, rgba(45, 27, 78, 0.55), transparent 55%),
+		radial-gradient(ellipse 70% 45% at 100% 0%, rgba(20, 40, 90, 0.45), transparent 50%);
+	mix-blend-mode: screen;
+}
+
+html[data-theme='beach'] .universe-nebula-overlay {
+	opacity: 0;
+}
+
+/* Respect users who prefer reduced motion (Lenis + heavy canvas slow down in JS too) */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}
