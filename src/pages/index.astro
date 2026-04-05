@@ -1,17 +1,20 @@
 ---
-
+/**
+ * Home page (minimal for this first build layer).
+ * Later: hero typography, rotating taglines, CTAs, scroll cue — wired to GSAP.
+ */
+import Layout from '../layouts/Layout.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="aditi's universe · aditirk.me">
+	<section class="pointer-events-auto mx-auto flex max-w-3xl flex-col gap-4 pt-10 md:pt-16">
+		<p class="text-sm text-[var(--page-muted)]">Layer 1 scaffold — star field + theme + smooth scroll are live.</p>
+		<h1 class="text-4xl font-semibold leading-tight md:text-5xl" style="font-family: var(--font-display)">
+			aditi's universe
+		</h1>
+		<p class="max-w-prose text-lg text-[var(--page-muted)]">
+			Try the theme toggle. In Universe mode, move the mouse and scroll — the field reacts. Look for a slightly warmer
+			amber star: it is the hidden Dream Journal trigger (the tab wiring comes in a later layer).
+		</p>
+	</section>
+</Layout>

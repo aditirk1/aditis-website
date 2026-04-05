@@ -1,0 +1,43 @@
+---
+/**
+ * StarFieldUniverse.astro
+ *
+ * What it is:
+ * - A fixed, full-screen WebGL canvas used only in the "Universe" (dark) theme.
+ * - The actual Three.js logic lives in src/scripts/universe-star-field.ts so this file stays readable.
+ *
+ * How it behaves:
+ * - The canvas sits behind page content (z-index below the main shell).
+ * - Pointer events stay enabled on the canvas so the secret amber star remains clickable.
+ * - When <html data-theme="beach">, the script pauses rendering to save battery/GPU.
+ */
+---
+
+<div
+	class="pointer-events-auto fixed inset-0 z-0"
+	data-universe-canvas
+	aria-hidden="true"
+>
+	<canvas id="universe-star-field-canvas" class="block h-full w-full"></canvas>
+</div>
+
+<script>
+	import { initUniverseStarField } from '../scripts/universe-star-field.ts';
+
+	// One initializer per page load; cleanup runs if the module is ever re-executed (dev HMR edge cases).
+	let dispose: (() => void) | undefined;
+
+	function boot() {
+		dispose?.();
+		dispose = initUniverseStarField();
+	}
+
+	boot();
+
+	// Astro may re-run this module during development; re-bind cleanly.
+	if (import.meta.hot) {
+		import.meta.hot.dispose(() => {
+			dispose?.();
+		});
+	}
+</script>
