@@ -1,0 +1,66 @@
+---
+/**
+ * Custom visitor globe (globe.gl) + total from Cloudflare Pages Functions + KV.
+ *
+ * Deploy: bind KV as VISITOR_KV, set secret ADMIN_STATS_SECRET for /api/admin/stats.
+ * Optional PUBLIC_VISITOR_API_BASE if the browser must call another origin (rare).
+ */
+const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '');
+---
+
+<aside
+	class="pointer-events-auto mt-8 rounded-xl border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_85%,transparent)] p-4 shadow-[0_0_28px_color-mix(in_srgb,var(--color-amber)_14%,transparent)] backdrop-blur-md md:mt-10"
+	data-live-visitor-map
+	data-api-base={apiBase}
+	aria-label="Live visitors"
+>
+	<div class="mb-3 flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-[var(--page-muted)]">
+		<span class="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--color-amber)]" aria-hidden="true"
+		></span>
+		<span>Live reach</span>
+	</div>
+
+	<div class="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
+		<div class="flex flex-col items-center gap-2">
+			<span class="text-[9px] uppercase tracking-wider text-[var(--page-muted)]">Visitors by region</span>
+			<div
+				class="relative h-[200px] w-[200px] shrink-0 overflow-hidden rounded-full border border-[color-mix(in_srgb,var(--color-amber)_45%,transparent)] shadow-[0_0_40px_color-mix(in_srgb,var(--color-amber)_18%,transparent)] sm:h-[220px] sm:w-[220px]"
+			>
+				<div
+					data-visitor-globe
+					class="absolute inset-0 [&_canvas]:!block"
+					role="img"
+					aria-label="Rotating globe with visitor regions"
+				>
+				</div>
+			</div>
+		</div>
+
+		<div class="flex w-full min-w-0 flex-1 flex-col items-center gap-2 sm:items-start">
+			<span class="text-[9px] uppercase tracking-wider text-[var(--page-muted)]">Total visits</span>
+			<div
+				class="flex min-h-[72px] w-full max-w-[260px] flex-col justify-center gap-1 rounded-lg border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,#000_35%,transparent)] px-4 py-3"
+			>
+				<span class="text-[9px] uppercase tracking-wider text-[var(--page-muted)]">All-time (recorded)</span>
+				<span
+					data-visitor-total
+					class="text-2xl font-semibold tabular-nums text-[var(--color-amber)]"
+					style="font-family: var(--font-mono, ui-monospace, monospace)">—</span>
+			</div>
+			<p data-visitor-note class="max-w-xs text-[10px] leading-snug text-[var(--page-muted)] opacity-90"></p>
+		</div>
+	</div>
+</aside>
+
+<script>
+	import { bootLiveVisitorMap } from '../scripts/live-visitor-map';
+
+	const root = document.querySelector('[data-live-visitor-map]');
+	let stop: (() => void) | undefined;
+	if (root instanceof HTMLElement) {
+		stop = bootLiveVisitorMap(root);
+	}
+	if (import.meta.hot) {
+		import.meta.hot.dispose(() => stop?.());
+	}
+</script>

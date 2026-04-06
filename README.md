@@ -1,43 +1,49 @@
-# Astro Starter Kit: Minimal
+# aditi's universe
 
-```sh
-npm create astro@latest -- --template minimal
+Personal site for **aditirk.me**: Astro 6, Tailwind v4, content-driven pages, dual themes (Universe / Beach), and optional Cloudflare-backed visitor analytics with a WebGL globe.
+
+## Requirements
+
+- **Node.js** ≥ 22.12
+
+## Quick start
+
+```bash
+npm install
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+- Local dev: [http://localhost:4321](http://localhost:4321)
+- Production build output: **`dist/`** (static HTML + assets)
 
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```bash
+npm run build
+npm run preview   # optional: serve dist locally
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Documentation
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+| Resource | Description |
+| -------- | ----------- |
+| [**Website guide**](docs/website-guide.md) | Full documentation: architecture, content, theming, env vars, deployment, visitor APIs |
+| [**Docs index**](docs/README.md) | Short map of all doc topics |
+| [`public/visitor-map/README.txt`](public/visitor-map/README.txt) | Visitor globe + KV setup cheat sheet |
 
-Any static assets, like images, can be placed in the `public/` directory.
+## Tech stack (short)
 
-## 🧞 Commands
+- [Astro](https://astro.build/) 6 — static site, islands-friendly
+- [Tailwind CSS](https://tailwindcss.com/) 4 — `@tailwindcss/vite`
+- [GSAP](https://greensock.com/gsap/) + [Lenis](https://lenis.darkroom.engineering/) — motion and smooth scroll
+- [globe.gl](https://github.com/vasturiano/globe.gl) / [three.js](https://threejs.org/) — homepage visitor globe
+- [Cloudflare Pages Functions](https://developers.cloudflare.com/pages/functions/) + **KV** — `/api/visit`, `/api/stats`, `/api/admin/stats`
 
-All commands are run from the root of the project, from a terminal:
+## Deploy (Cloudflare Pages)
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+1. Connect the repo (or upload **`dist`** + **`functions/`**).
+2. Build command: **`npm run build`**, output directory: **`dist`**.
+3. Bind **KV** as **`VISITOR_KV`**; set secret **`ADMIN_STATS_SECRET`** for the private admin stats page.
+4. See [docs/website-guide.md § Deployment](docs/website-guide.md#deployment-cloudflare-pages) for details.
 
-## 👀 Want to learn more?
+## License
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Private / personal project unless otherwise noted by the owner.

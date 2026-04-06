@@ -45,6 +45,8 @@ const dreams = defineCollection({
 		date: z.coerce.date(),
 		mood: z.string().optional(),
 		'highlight-words': z.array(z.string()).optional(),
+		/** Per-word comic style: amber (default), violet, or burst */
+		'word-styles': z.record(z.string(), z.enum(['amber', 'violet', 'burst'])).optional(),
 		draft: z.boolean().optional(),
 	}),
 });
