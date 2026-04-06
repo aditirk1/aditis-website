@@ -1,0 +1,71 @@
+---
+/**
+ * First homepage visit per session: brief shooting-star streak, then reveal.
+ * No flash on refresh: inline script marks html before paint when already seen.
+ */
+---
+
+<!-- Runs before first paint when splash already completed this session -->
+<script is:inline>
+	try {
+		if (sessionStorage.getItem('aditi-splash-seen') === '1') {
+			document.documentElement.setAttribute('data-splash-skip', '1');
+		}
+	} catch (e) {}
+</script>
+
+<style is:global>
+	html[data-splash-skip='1'] #splash-intro {
+		display: none !important;
+		pointer-events: none !important;
+		visibility: hidden !important;
+	}
+</style>
+
+<div
+	id="splash-intro"
+	class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[var(--page-bg)]"
+	aria-hidden="true"
+>
+	<div class="splash-starfield pointer-events-none absolute inset-0" aria-hidden="true"></div>
+	<div
+		class="splash-shooting-star pointer-events-none absolute h-0.5 w-32 rounded-full bg-gradient-to-r from-transparent via-white to-transparent opacity-90 shadow-[0_0_12px_2px_rgba(255,200,120,0.9)]"
+		aria-hidden="true"
+	></div>
+</div>
+
+<style>
+	.splash-shooting-star {
+		top: 18%;
+		left: -20%;
+		transform: rotate(-32deg);
+		animation: splash-star-streak 1.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+	}
+	@keyframes splash-star-streak {
+		0% {
+			transform: translate(0, 0) rotate(-32deg) scaleX(0.4);
+			opacity: 0;
+		}
+		12% {
+			opacity: 1;
+		}
+		100% {
+			transform: translate(calc(100vw + 40%), calc(55vh)) rotate(-32deg) scaleX(1.2);
+			opacity: 0;
+		}
+	}
+	.splash-starfield {
+		background-image:
+			radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.45), transparent),
+			radial-gradient(1px 1px at 60% 70%, rgba(255, 255, 255, 0.35), transparent),
+			radial-gradient(1px 1px at 80% 20%, rgba(255, 220, 180, 0.5), transparent),
+			radial-gradient(1px 1px at 40% 85%, rgba(255, 255, 255, 0.3), transparent);
+		background-size: 100% 100%;
+		opacity: 0.55;
+	}
+</style>
+
+<script>
+	import { initSplashIntro } from '../scripts/splash-intro';
+	initSplashIntro();
+</script>
