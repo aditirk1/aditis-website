@@ -1,0 +1,345 @@
+---
+/**
+ * Beach: CSS gradient + animated SVG waves; optional /beach/waves.mp4; palm photo or SVG palm;
+ * photo starfish (Dream Journal) + shell images on the sand.
+ */
+const STARFISH_FALLBACK =
+	'https://images.unsplash.com/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=400&q=80';
+const SHELL_A = 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5d?auto=format&fit=crop&w=200&q=80';
+const SHELL_B = 'https://images.unsplash.com/photo-1507525428034-9040b037703b?auto=format&fit=crop&w=200&q=80';
+---
+
+<div
+	class="beach-background pointer-events-none fixed inset-0 z-0 overflow-hidden"
+	data-beach-canvas
+	aria-hidden="true"
+	hidden
+>
+	<div class="beach-gradient-ocean absolute inset-0" aria-hidden="true"></div>
+
+	<!-- Animated wave layers (always on — reads as moving water without video) -->
+	<div class="beach-waves pointer-events-none absolute inset-x-0 bottom-0 top-[18%] overflow-hidden opacity-90" aria-hidden="true">
+		<svg
+			class="beach-wave-svg beach-wave-svg--1 absolute -left-[5%] bottom-[32%] w-[130%] max-w-none text-[#4a90b8]"
+			viewBox="0 0 1200 120"
+			preserveAspectRatio="none"
+		>
+			<path
+				fill="currentColor"
+				fill-opacity="0.35"
+				d="M0,60 C200,20 400,100 600,55 C800,10 1000,90 1200,50 L1200,120 L0,120 Z"></path>
+		</svg>
+		<svg
+			class="beach-wave-svg beach-wave-svg--2 absolute -left-[8%] bottom-[28%] w-[135%] max-w-none text-[#5ba3c9]"
+			viewBox="0 0 1200 120"
+			preserveAspectRatio="none"
+		>
+			<path
+				fill="currentColor"
+				fill-opacity="0.45"
+				d="M0,70 C250,30 450,110 650,60 C850,15 1050,95 1200,55 L1200,120 L0,120 Z"></path>
+		</svg>
+		<svg
+			class="beach-wave-svg beach-wave-svg--3 absolute -left-[3%] bottom-[24%] w-[125%] max-w-none text-[#7ec8e3]"
+			viewBox="0 0 1200 120"
+			preserveAspectRatio="none"
+		>
+			<path
+				fill="currentColor"
+				fill-opacity="0.5"
+				d="M0,80 C180,40 380,100 580,65 C780,25 980,100 1200,70 L1200,120 L0,120 Z"></path>
+		</svg>
+	</div>
+
+	<div class="beach-video-shell absolute inset-0" data-beach-parallax="0.3">
+		<video
+			class="beach-video h-full w-full object-cover opacity-0 transition-opacity duration-700"
+			autoplay
+			muted
+			loop
+			playsinline
+			poster="/beach/ocean.jpg"
+			data-beach-video
+		>
+			<source src="/beach/waves.mp4" type="video/mp4" />
+		</video>
+		<div
+			class="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#dceaf8]/55 via-transparent to-[#fdf8f0]/88"
+			aria-hidden="true"
+		></div>
+	</div>
+
+	<!-- Palm: photo or animated SVG coconut tree -->
+	<div
+		class="beach-palm-sway pointer-events-none absolute -left-[2%] bottom-0 top-[6%] w-[min(52vw,440px)] max-w-none"
+		data-beach-palm-sway
+	>
+		<div class="relative h-full w-full" data-beach-parallax="0.55">
+			<img
+				src="/beach/palm.webp"
+				alt=""
+				class="beach-palm-photo relative z-[1] h-full w-full object-contain object-bottom opacity-95 drop-shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
+				data-beach-palm-img
+				decoding="async"
+			/>
+			<div class="beach-palm-svg-fallback absolute inset-0 z-[2] hidden" data-beach-palm-fallback aria-hidden="true">
+				<svg class="h-full w-full object-contain object-bottom" viewBox="0 0 200 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path
+						class="palm-trunk"
+						d="M98 318 L102 318 L108 180 L104 175 L96 175 L92 180 Z"
+						fill="#5c4033"
+						stroke="#3d2918"
+						stroke-width="0.5"
+					/>
+					<g class="palm-frond palm-frond--1" style="transform-origin: 100px 175px">
+						<path d="M100 175 Q40 120 15 60 Q55 100 100 175" fill="#2d6a4f" opacity="0.95"/>
+						<path d="M100 175 Q30 130 5 85 Q50 140 100 175" fill="#40916c" opacity="0.85"/>
+					</g>
+					<g class="palm-frond palm-frond--2" style="transform-origin: 100px 175px">
+						<path d="M100 175 Q160 110 185 45 Q145 95 100 175" fill="#2d6a4f" opacity="0.95"/>
+						<path d="M100 175 Q175 125 195 75 Q150 130 100 175" fill="#52b788" opacity="0.8"/>
+					</g>
+					<g class="palm-frond palm-frond--3" style="transform-origin: 100px 175px">
+						<path d="M100 175 Q100 80 95 15 Q98 100 100 175" fill="#1b4332" opacity="0.9"/>
+						<path d="M100 175 Q85 95 70 35 Q85 120 100 175" fill="#40916c" opacity="0.75"/>
+					</g>
+					<g class="palm-frond palm-frond--4" style="transform-origin: 100px 175px">
+						<path d="M100 175 Q55 150 20 195 Q60 170 100 175" fill="#2d6a4f" opacity="0.88"/>
+					</g>
+					<g class="palm-frond palm-frond--5" style="transform-origin: 100px 175px">
+						<path d="M100 175 Q145 150 178 200 Q135 172 100 175" fill="#40916c" opacity="0.85"/>
+					</g>
+					<circle cx="118" cy="52" r="14" fill="#6a994e" opacity="0.9"/>
+					<circle cx="108" cy="48" r="11" fill="#95d5b2" opacity="0.85"/>
+				</svg>
+			</div>
+		</div>
+	</div>
+
+	<div
+		class="pointer-events-none absolute inset-x-0 bottom-0 h-[32%] bg-gradient-to-t from-[#f0dcc4] via-[#faf0e6]/96 to-transparent"
+		aria-hidden="true"
+	></div>
+
+	<img
+		src={SHELL_A}
+		alt=""
+		class="pointer-events-none absolute bottom-[5.5%] left-[16%] z-[1] h-9 w-9 rotate-[-18deg] object-cover opacity-70 drop-shadow-md"
+		decoding="async"
+		loading="lazy"
+	/>
+	<img
+		src={SHELL_B}
+		alt=""
+		class="pointer-events-none absolute bottom-[4%] left-[40%] z-[1] h-7 w-7 rotate-[12deg] object-cover opacity-55 drop-shadow"
+		decoding="async"
+		loading="lazy"
+	/>
+
+	<button
+		type="button"
+		class="beach-starfish pointer-events-auto absolute bottom-[8%] right-[10%] z-[2] cursor-pointer border-0 bg-transparent p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffaa00]"
+		style="width: 88px; height: 88px;"
+		aria-label="Enter Dream Journal"
+		data-beach-starfish
+		title="Dream Journal"
+	>
+		<img
+			src="/beach/starfish.webp"
+			alt=""
+			width="88"
+			height="88"
+			class="beach-starfish-img h-full w-full rounded-full object-cover object-center shadow-[0_0_20px_rgba(255,170,0,0.45)]"
+			data-beach-starfish-img
+			data-fallback-src={STARFISH_FALLBACK}
+			decoding="async"
+		/>
+	</button>
+</div>
+
+<style>
+	.beach-gradient-ocean {
+		background: linear-gradient(
+			180deg,
+			#87ceeb 0%,
+			#a8d8ea 16%,
+			#6db3d4 32%,
+			#4a9aba 44%,
+			#6eb8d6 54%,
+			#a8cfc4 65%,
+			#e8dcc8 78%,
+			#f5e6d3 100%
+		);
+	}
+	.beach-gradient-ocean::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: repeating-linear-gradient(175deg, transparent 0%, rgba(255, 255, 255, 0.07) 2%, transparent 4%);
+		animation: beach-shimmer 10s ease-in-out infinite alternate;
+	}
+	@keyframes beach-shimmer {
+		0% {
+			transform: translateX(-6%);
+			opacity: 0.55;
+		}
+		100% {
+			transform: translateX(6%);
+			opacity: 0.95;
+		}
+	}
+
+	.beach-wave-svg--1 {
+		animation: beach-wave-slide 14s linear infinite;
+	}
+	.beach-wave-svg--2 {
+		animation: beach-wave-slide 19s linear infinite reverse;
+		opacity: 0.92;
+	}
+	.beach-wave-svg--3 {
+		animation: beach-wave-slide 11s linear infinite;
+		opacity: 0.88;
+	}
+	@keyframes beach-wave-slide {
+		0% {
+			transform: translateX(0);
+		}
+		100% {
+			transform: translateX(-8%);
+		}
+	}
+
+	.palm-frond--1 {
+		animation: palm-flutter 3.8s ease-in-out infinite;
+	}
+	.palm-frond--2 {
+		animation: palm-flutter 4.2s ease-in-out infinite 0.4s;
+	}
+	.palm-frond--3 {
+		animation: palm-flutter 3.5s ease-in-out infinite 0.2s;
+	}
+	.palm-frond--4 {
+		animation: palm-flutter 4s ease-in-out infinite 0.6s;
+	}
+	.palm-frond--5 {
+		animation: palm-flutter 3.7s ease-in-out infinite 0.3s;
+	}
+	@keyframes palm-flutter {
+		0%,
+		100% {
+			transform: rotate(0deg);
+		}
+		50% {
+			transform: rotate(4deg);
+		}
+	}
+
+	.beach-starfish-img {
+		animation: starfish-tilt 4.5s ease-in-out infinite;
+	}
+	@keyframes starfish-tilt {
+		0%,
+		100% {
+			transform: rotate(-4deg) scale(1);
+		}
+		50% {
+			transform: rotate(5deg) scale(1.04);
+		}
+	}
+	.beach-starfish:hover .beach-starfish-img {
+		animation: none;
+		transform: scale(1.1) rotate(0deg);
+		box-shadow: 0 0 28px rgba(255, 170, 0, 0.75);
+	}
+</style>
+
+<script>
+	import { gsap } from 'gsap';
+
+	const root = document.querySelector('[data-beach-canvas]') as HTMLElement | null;
+	const starfish = document.querySelector('[data-beach-starfish]') as HTMLButtonElement | null;
+	const video = document.querySelector('[data-beach-video]') as HTMLVideoElement | null;
+	const palmImg = document.querySelector('[data-beach-palm-img]') as HTMLImageElement | null;
+	const palmFallback = document.querySelector('[data-beach-palm-fallback]') as HTMLElement | null;
+	const starfishImg = document.querySelector('[data-beach-starfish-img]') as HTMLImageElement | null;
+	const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	function applyThemeVisibility() {
+		const t = document.documentElement.getAttribute('data-theme');
+		if (!root) return;
+		if (t === 'beach') {
+			root.hidden = false;
+			root.style.visibility = 'visible';
+			video?.play().catch(() => {});
+		} else {
+			root.hidden = true;
+			root.style.visibility = 'hidden';
+			video?.pause();
+		}
+	}
+
+	applyThemeVisibility();
+	const mo = new MutationObserver(applyThemeVisibility);
+	mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+	starfish?.addEventListener('click', () => {
+		window.location.href = '/dream-journal';
+	});
+
+	video?.addEventListener('loadeddata', () => {
+		video.style.opacity = '0.88';
+	});
+	video?.addEventListener('error', () => {
+		video.style.display = 'none';
+	});
+
+	palmImg?.addEventListener('error', () => {
+		palmImg.style.visibility = 'hidden';
+		palmFallback?.classList.remove('hidden');
+	});
+
+	starfishImg?.addEventListener('error', () => {
+		const fb = starfishImg.dataset.fallbackSrc;
+		if (fb && !starfishImg.dataset.usedFallback) {
+			starfishImg.dataset.usedFallback = '1';
+			starfishImg.src = fb;
+		}
+	});
+
+	if (root && !reduce) {
+		let px = 0;
+		let py = 0;
+		let tx = 0;
+		let ty = 0;
+		window.addEventListener(
+			'pointermove',
+			(e) => {
+				tx = (e.clientX / window.innerWidth - 0.5) * 2;
+				ty = (e.clientY / window.innerHeight - 0.5) * 2;
+			},
+			{ passive: true },
+		);
+		gsap.ticker.add(() => {
+			px += (tx - px) * 0.06;
+			py += (ty - py) * 0.06;
+			root.querySelectorAll<HTMLElement>('[data-beach-parallax]').forEach((el) => {
+				const m = Number(el.dataset.beachParallax || '0.4');
+				gsap.set(el, { x: px * 14 * m, y: py * 10 * m, rotateZ: px * 0.6 * m });
+			});
+		});
+	}
+
+	if (!reduce && root) {
+		const sway = root.querySelector('[data-beach-palm-sway]');
+		if (sway) {
+			gsap.to(sway, {
+				rotateZ: '+=2.2',
+				transformOrigin: '50% 100%',
+				duration: 4.5,
+				repeat: -1,
+				yoyo: true,
+				ease: 'sine.inOut',
+			});
+		}
+	}
+</script>
