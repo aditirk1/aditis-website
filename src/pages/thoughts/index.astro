@@ -1,0 +1,40 @@
+---
+import { getCollection, render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+const thoughts = await getCollection('thoughts', ({ data }) => data.draft !== true);
+const sorted = thoughts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const bodies = await Promise.all(
+	sorted.map(async (t) => {
+		const { Content } = await render(t);
+		return { entry: t, Content };
+	}),
+);
+---
+
+<Layout title="Thoughts · aditi's universe">
+	<div class="pointer-events-auto mx-auto max-w-xl" data-reveal-stagger>
+		<h1 class="mb-8 text-4xl font-light" style="font-family: var(--font-display)" data-reveal-child>Thoughts</h1>
+		{
+			bodies.length === 0 ? (
+				<p class="prose-shell px-6 py-8 text-[var(--page-muted)]">
+					Add short entries as Markdown in <code class="text-[var(--color-amber)]">src/content/thoughts/</code>.
+				</p>
+			) : (
+				<ul class="flex flex-col gap-5">
+					{bodies.map(({ entry, Content }) => (
+						<li class="prose-shell px-5 py-4" data-reveal-child>
+							<p class="mb-2 text-xs uppercase tracking-wider text-[var(--page-muted)]">
+								{entry.data.date.toLocaleString()}
+							</p>
+							<div class="text-[var(--page-fg)] [&_p]:mb-0 [&_p]:leading-relaxed">
+								<Content />
+							</div>
+						</li>
+					))}
+				</ul>
+			)
+		}
+	</div>
+</Layout>

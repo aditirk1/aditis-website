@@ -1,0 +1,84 @@
+---
+/**
+ * Services: hover-reveal lines, Stripe checkout links (optional env), Web3Forms contact modal.
+ */
+import Layout from '../../layouts/Layout.astro';
+import ContactModal from '../../components/ContactModal.astro';
+
+const stripeConsult = import.meta.env.PUBLIC_STRIPE_LINK_CONSULT ?? '';
+const stripeWriting = import.meta.env.PUBLIC_STRIPE_LINK_WRITING ?? '';
+const stripeDesign = import.meta.env.PUBLIC_STRIPE_LINK_DESIGN ?? '';
+
+const services = [
+	{
+		title: 'Research consulting',
+		teaser: 'Literature synthesis, experiment design, signal & systems thinking.',
+		detail: 'Scoped engagements from a single deep-dive memo to multi-week support. From $800 / sprint — final scope after a short call.',
+		stripe: stripeConsult,
+	},
+	{
+		title: 'Technical writing',
+		teaser: 'Grants, reports, and explainers that stay precise without going cold.',
+		detail: 'Per document or monthly retainer. From $400 / article-equivalent.',
+		stripe: stripeWriting,
+	},
+	{
+		title: 'Design + prototyping',
+		teaser: 'Interfaces, diagrams, and small interactive proofs-of-concept.',
+		detail: 'Figma + light front-end. From $600 / milestone.',
+		stripe: stripeDesign,
+	},
+] as const;
+---
+
+<Layout title="Services · aditi's universe">
+	<div class="pointer-events-auto mx-auto max-w-2xl">
+		<div data-reveal-stagger class="mb-8">
+			<h1 class="text-4xl font-light" style="font-family: var(--font-display)" data-reveal-child>Services</h1>
+			<p class="mt-3 text-lg text-[var(--page-muted)]" data-reveal-child>
+				Hover a line to see scope hints. Stripe links appear when you set{' '}
+				<code class="text-[var(--color-amber)]">PUBLIC_STRIPE_LINK_*</code> in your environment.
+			</p>
+		</div>
+
+		<ul class="flex flex-col gap-4">
+			{
+				services.map((s) => (
+					<li class="group card-3d-pop prose-shell cursor-default overflow-hidden px-5 py-4" data-reveal-child>
+						<div class="flex flex-wrap items-start justify-between gap-3">
+							<h2 class="text-xl font-light" style="font-family: var(--font-display)">
+								{s.title}
+							</h2>
+							{s.stripe ? (
+								<a
+									href={s.stripe}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="rounded-full border border-[var(--color-amber)] px-3 py-1 text-xs font-bold text-[var(--color-amber)] hover:bg-[color-mix(in_srgb,var(--color-amber)_12%,transparent)]"
+								>
+									Pay / book
+								</a>
+							) : null}
+						</div>
+						<p class="mt-2 text-[var(--page-muted)]">{s.teaser}</p>
+						<div class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-out group-hover:grid-rows-[1fr]">
+							<div class="min-h-0 overflow-hidden">
+								<p class="pb-1 pt-3 text-sm leading-relaxed text-[var(--page-fg)]">{s.detail}</p>
+							</div>
+						</div>
+					</li>
+				))
+			}
+		</ul>
+
+		<button
+			type="button"
+			class="mt-10 rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_12%,transparent)] px-6 py-3 text-sm font-bold text-[var(--color-amber)] transition hover:scale-[1.03]"
+			data-contact-open
+		>
+			Work with me
+		</button>
+	</div>
+
+	<ContactModal />
+</Layout>
