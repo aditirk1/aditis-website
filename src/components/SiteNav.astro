@@ -1,0 +1,111 @@
+---
+/**
+ * SiteNav — primary tabs with a GSAP-powered amber underline that slides to the active link.
+ * Dream Journal is only reachable via the universe Earth or beach starfish (not linked here).
+ */
+const pathname = Astro.url.pathname;
+
+const links = [
+	{ href: '/projects', label: 'Projects' },
+	{ href: '/blog', label: 'Blog' },
+	{ href: '/photo-dump', label: 'Photo Dump' },
+	{ href: '/thoughts', label: 'Thoughts' },
+	{ href: '/services', label: 'Services' },
+] as const;
+
+function isActive(href: string): boolean {
+	if (href === '/') return pathname === '/';
+	return pathname === href || pathname.startsWith(`${href}/`);
+}
+---
+
+<nav class="relative hidden md:block" aria-label="Primary" data-site-nav>
+	<ul class="relative flex flex-wrap items-center justify-end gap-x-6 gap-y-2 text-sm font-medium">
+		{
+			links.map(({ href, label }) => (
+				<li>
+					<a
+						href={href}
+						class:list={[
+							'nav-tab text-[var(--page-fg)] transition-colors hover:text-[var(--color-amber)]',
+							isActive(href) && 'text-[var(--color-amber)]',
+						]}
+						data-nav-href={href}
+					>
+						{label}
+					</a>
+				</li>
+			))
+		}
+	</ul>
+	<span
+		class="pointer-events-none absolute -bottom-1 left-0 h-0.5 rounded-full bg-[var(--color-amber)]"
+		data-nav-underline
+		aria-hidden="true"></span>
+</nav>
+
+<!-- Compact nav for small screens -->
+<nav class="mt-3 md:hidden" aria-label="Primary mobile">
+	<ul class="flex flex-wrap gap-2 text-xs">
+		{
+			links.map(({ href, label }) => (
+				<li>
+					<a
+						href={href}
+						class:list={[
+							'rounded-full border border-[color-mix(in_srgb,var(--page-fg)_22%,transparent)] px-2.5 py-1',
+							isActive(href) && 'border-[var(--color-amber)] text-[var(--color-amber)]',
+						]}
+					>
+						{label}
+					</a>
+				</li>
+			))
+		}
+	</ul>
+</nav>
+
+<script>
+	import { gsap } from 'gsap';
+
+	const nav = document.querySelector('[data-site-nav]');
+	const underline = document.querySelector('[data-nav-underline]') as HTMLElement | null;
+
+	function positionUnderline() {
+		if (!nav || !underline) return;
+		const path = window.location.pathname;
+		const tabs = nav.querySelectorAll<HTMLAnchorElement>('.nav-tab');
+		let best: HTMLAnchorElement | undefined;
+		let bestLen = -1;
+		tabs.forEach((a) => {
+			if (!a.offsetParent) return;
+			const href = a.getAttribute('href') || '';
+			const match =
+				href === '/' ? path === '/' : path === href || (href !== '/' && path.startsWith(href + '/'));
+			if (match && href.length > bestLen) {
+				best = a;
+				bestLen = href.length;
+			}
+		});
+		const active = best;
+		if (!active) return;
+		const navRect = nav.getBoundingClientRect();
+		const r = active.getBoundingClientRect();
+		const left = r.left - navRect.left;
+		gsap.to(underline, {
+			width: r.width,
+			x: left,
+			duration: 0.45,
+			ease: 'power3.out',
+		});
+	}
+
+	positionUnderline();
+	window.addEventListener('resize', positionUnderline);
+
+	nav?.querySelectorAll('a[data-nav-href]').forEach((a) => {
+		a.addEventListener('click', () => {
+			requestAnimationFrame(() => positionUnderline());
+		});
+	});
+</script>

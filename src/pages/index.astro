@@ -1,20 +1,73 @@
 ---
-/**
- * Home page (minimal for this first build layer).
- * Later: hero typography, rotating taglines, CTAs, scroll cue — wired to GSAP.
- */
 import Layout from '../layouts/Layout.astro';
+import LiveVisitorMap from '../components/LiveVisitorMap.astro';
+import SplashIntro from '../components/SplashIntro.astro';
+
+const siteTitle = "aditi's universe";
+const chars = siteTitle.split('');
 ---
 
 <Layout title="aditi's universe · aditirk.me">
-	<section class="pointer-events-auto mx-auto flex max-w-3xl flex-col gap-4 pt-10 md:pt-16">
-		<p class="text-sm text-[var(--page-muted)]">Layer 1 scaffold — star field + theme + smooth scroll are live.</p>
-		<h1 class="text-4xl font-semibold leading-tight md:text-5xl" style="font-family: var(--font-display)">
-			aditi's universe
-		</h1>
-		<p class="max-w-prose text-lg text-[var(--page-muted)]">
-			Try the theme toggle. In Universe mode, move the mouse and scroll — the field reacts. Look for a slightly warmer
-			amber star: it is the hidden Dream Journal trigger (the tab wiring comes in a later layer).
-		</p>
+	<SplashIntro />
+	<section
+		class="pointer-events-auto mx-auto flex max-w-3xl flex-col gap-6 pt-6 md:pt-12"
+		data-reveal-stagger
+	>
+		<div class="prose-shell px-6 py-10 md:px-10 md:py-12">
+			<h1
+				class="text-4xl font-light leading-tight tracking-[0.08em] md:text-6xl"
+				style="font-family: var(--font-display)"
+				data-hero-title
+			>
+				{
+					chars.map((ch) => (
+						<span class="hero-char inline-block will-change-transform">
+							{ch === ' ' ? '\u00a0' : ch}
+						</span>
+					))
+				}
+			</h1>
+			<p
+				class="mt-5 min-h-[1.6em] text-lg font-semibold text-[var(--color-amber)] md:text-xl"
+				style="font-family: var(--font-display)"
+				data-hero-tagline
+			>
+				biomedical engineer
+			</p>
+			<p class="mt-6 max-w-prose text-lg leading-relaxed text-[var(--page-muted)]" data-reveal-child>
+				Universe: the small Earth (lower right) opens the Dream Journal. Beach: waves, palm, and the starfish on the
+				sand do the same. Below: visitor globe + total when deployed with Cloudflare KV.
+			</p>
+			<div class="mt-8 flex flex-wrap gap-4" data-reveal-child>
+				<a
+					href="/projects"
+					class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_14%,transparent)] px-5 py-2.5 text-sm font-bold text-[var(--page-fg)] transition hover:scale-105 hover:shadow-[0_0_20px_color-mix(in_srgb,var(--color-amber)_35%,transparent)]"
+				>
+					See my work
+				</a>
+				<a
+					href="/services"
+					class="rounded-full border border-[color-mix(in_srgb,var(--page-fg)_25%,transparent)] px-5 py-2.5 text-sm font-bold text-[var(--page-fg)] transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)]"
+				>
+					Let's talk
+				</a>
+			</div>
+			<div data-reveal-child>
+				<LiveVisitorMap />
+			</div>
+		</div>
+		<div class="flex justify-center pb-8" aria-hidden="true">
+			<span class="inline-block text-2xl text-[var(--color-amber)]" data-hero-chevron>⌄</span>
+		</div>
 	</section>
 </Layout>
+
+<script>
+	import { initHomeHero } from '../scripts/home-hero.ts';
+
+	const stop = initHomeHero();
+
+	if (import.meta.hot) {
+		import.meta.hot.dispose(() => stop());
+	}
+</script>
