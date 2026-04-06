@@ -1,0 +1,105 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import Layout from '../../layouts/Layout.astro';
+
+const dir = path.join(process.cwd(), 'public', 'photos');
+let files: string[] = [];
+try {
+	files = fs.readdirSync(dir).filter((f) => /\.(png|jpe?g|webp|gif)$/i.test(f));
+} catch {
+	files = [];
+}
+const urls = files.map((f) => `/photos/${f}`);
+---
+
+<Layout title="Photo dump · aditi's universe">
+	<div class="pointer-events-auto mx-auto max-w-6xl">
+		<div data-reveal-stagger class="mb-8">
+			<h1 class="text-4xl font-light" style="font-family: var(--font-display)" data-reveal-child>Photo dump</h1>
+		</div>
+		{
+			urls.length === 0 ? (
+				<p class="prose-shell px-6 py-8 text-[var(--page-muted)]">
+					Drop images into <code class="text-[var(--color-amber)]">public/photos/</code>.
+				</p>
+			) : (
+				<>
+					<ul class="columns-2 gap-4 sm:columns-3 md:columns-4">
+						{urls.map((src, i) => (
+							<li class="mb-4 break-inside-avoid">
+								<button
+									type="button"
+									class="group w-full overflow-hidden rounded-lg border-0 bg-transparent p-0 text-left shadow-md"
+									data-photo-open={i}
+								>
+									<img
+										src={src}
+										alt=""
+										class="photo-thumb h-auto w-full object-cover transition group-hover:brightness-110"
+										loading="lazy"
+										decoding="async"
+										data-photo-img
+									/>
+								</button>
+							</li>
+						))}
+					</ul>
+					<div
+						class="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+						hidden
+						data-photo-lightbox
+						role="dialog"
+						aria-modal="true"
+						aria-label="Photo"
+					>
+						<button
+							type="button"
+							class="absolute right-4 top-4 rounded-full border border-white/40 px-3 py-1 text-sm text-white"
+							data-photo-close
+						>
+							Close
+						</button>
+						<button
+							type="button"
+							class="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-white/30 px-3 py-2 text-white md:left-6"
+							data-photo-prev
+							aria-label="Previous"
+						>
+							‹
+						</button>
+						<img
+							src=""
+							alt=""
+							class="max-h-[85dvh] max-w-full rounded-lg object-contain shadow-2xl transition duration-500"
+							data-photo-lightbox-img
+						/>
+						<button
+							type="button"
+							class="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-white/30 px-3 py-2 text-white md:right-6"
+							data-photo-next
+							aria-label="Next"
+						>
+							›
+						</button>
+					</div>
+					<script define:vars={{ urlsJson: JSON.stringify(urls) }}>
+						import { initPhotoLightbox } from '../../scripts/photo-lightbox.ts';
+
+						const sources = JSON.parse(urlsJson) as string[];
+						const stop = initPhotoLightbox(sources);
+
+						document.querySelectorAll<HTMLImageElement>('[data-photo-img]').forEach((img) => {
+							if (img.complete) img.classList.add('is-loaded');
+							else img.addEventListener('load', () => img.classList.add('is-loaded'), { once: true });
+						});
+
+						if (import.meta.hot) {
+							import.meta.hot.dispose(() => stop());
+						}
+					</script>
+				</>
+			)
+		}
+	</div>
+</Layout>
