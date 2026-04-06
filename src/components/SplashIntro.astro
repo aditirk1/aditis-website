@@ -1,8 +1,13 @@
 ---
 /**
- * First homepage visit per session: brief shooting-star streak, then reveal.
+ * First homepage visit per session: "aditi's universe" text fades in, holds briefly,
+ * then each letter scatters outward (GSAP stagger with random trajectories).
+ * Overlay fades to transparent and is removed — revealing the real site.
+ *
  * No flash on refresh: inline script marks html before paint when already seen.
  */
+const splashText = "aditi's universe";
+const chars = splashText.split('');
 ---
 
 <!-- Runs before first paint when splash already completed this session -->
@@ -28,38 +33,28 @@
 	aria-hidden="true"
 >
 	<div class="splash-starfield pointer-events-none absolute inset-0" aria-hidden="true"></div>
-	<div
-		class="splash-shooting-star pointer-events-none absolute h-0.5 w-32 rounded-full bg-gradient-to-r from-transparent via-white to-transparent opacity-90 shadow-[0_0_12px_2px_rgba(255,200,120,0.9)]"
-		aria-hidden="true"
-	></div>
+	<p
+		class="splash-title relative z-10 select-none text-center text-4xl font-light tracking-[0.35em] text-[var(--page-fg)] opacity-0 md:text-6xl lg:text-7xl"
+		style="font-family: var(--font-display)"
+		data-splash-title
+	>
+		{chars.map((ch) => (
+			<span class="splash-char inline-block will-change-transform">
+				{ch === ' ' ? '\u00a0' : ch}
+			</span>
+		))}
+	</p>
 </div>
 
 <style>
-	.splash-shooting-star {
-		top: 18%;
-		left: -20%;
-		transform: rotate(-32deg);
-		animation: splash-star-streak 1.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-	}
-	@keyframes splash-star-streak {
-		0% {
-			transform: translate(0, 0) rotate(-32deg) scaleX(0.4);
-			opacity: 0;
-		}
-		12% {
-			opacity: 1;
-		}
-		100% {
-			transform: translate(calc(100vw + 40%), calc(55vh)) rotate(-32deg) scaleX(1.2);
-			opacity: 0;
-		}
-	}
 	.splash-starfield {
 		background-image:
 			radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.45), transparent),
 			radial-gradient(1px 1px at 60% 70%, rgba(255, 255, 255, 0.35), transparent),
 			radial-gradient(1px 1px at 80% 20%, rgba(255, 220, 180, 0.5), transparent),
-			radial-gradient(1px 1px at 40% 85%, rgba(255, 255, 255, 0.3), transparent);
+			radial-gradient(1px 1px at 40% 85%, rgba(255, 255, 255, 0.3), transparent),
+			radial-gradient(1px 1px at 10% 60%, rgba(255, 200, 140, 0.4), transparent),
+			radial-gradient(1px 1px at 90% 45%, rgba(255, 255, 255, 0.3), transparent);
 		background-size: 100% 100%;
 		opacity: 0.55;
 	}

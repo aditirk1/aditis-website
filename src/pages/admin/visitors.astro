@@ -1,0 +1,134 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '');
+---
+
+<Layout title="Visitor geography (private)" noindex>
+	<section
+		class="pointer-events-auto mx-auto max-w-4xl px-4 py-10 md:px-8"
+		data-admin-visitors
+		data-api-base={apiBase}
+	>
+		<h1 class="text-2xl font-bold text-[var(--page-fg)]" style="font-family: var(--font-display)">
+			Visitor geography
+		</h1>
+		<p class="mt-2 max-w-prose text-sm text-[var(--page-muted)]">
+			Paste the same <code class="text-[var(--color-amber)]">ADMIN_STATS_SECRET</code> you configured in Cloudflare
+			(Pages → Settings → Environment variables → Secrets). It is never stored on the server by this page — only sent
+			as a Bearer token when you click Load.
+		</p>
+
+		<div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end">
+			<label class="flex min-w-0 flex-1 flex-col gap-1 text-xs text-[var(--page-muted)]">
+				<span>Admin token</span>
+				<input
+					type="password"
+					data-admin-token
+					autocomplete="off"
+					class="rounded-lg border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_80%,transparent)] px-3 py-2 text-sm text-[var(--page-fg)]"
+					placeholder="Bearer secret"
+				/>
+			</label>
+			<button
+				type="button"
+				data-admin-load
+				class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_14%,transparent)] px-5 py-2 text-sm font-semibold text-[var(--page-fg)] transition hover:shadow-[0_0_16px_color-mix(in_srgb,var(--color-amber)_30%,transparent)]"
+			>
+				Load stats
+			</button>
+		</div>
+
+		<p data-admin-status class="mt-3 min-h-[1.25em] text-xs text-[var(--page-muted)]"></p>
+
+		<div class="mt-8 grid gap-8 md:grid-cols-2">
+			<div>
+				<h2 class="text-sm font-semibold uppercase tracking-wider text-[var(--page-muted)]">By country</h2>
+				<div data-admin-countries class="mt-3 overflow-x-auto"></div>
+			</div>
+			<div>
+				<h2 class="text-sm font-semibold uppercase tracking-wider text-[var(--page-muted)]">By city (when known)</h2>
+				<div data-admin-cities class="mt-3 overflow-x-auto"></div>
+			</div>
+		</div>
+	</section>
+</Layout>
+
+<script>
+	function apiUrl(base: string, path: string): string {
+		const b = base.replace(/\/$/, '');
+		return b ? `${b}${path}` : path;
+	}
+
+	function esc(s: string): string {
+		return s
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;');
+	}
+
+	function tableHtml(headers: string[], rows: string[][]): string {
+		const th = headers.map((h) => `<th class="px-2 py-1.5 text-left font-semibold">${esc(h)}</th>`).join('');
+		const body = rows
+			.map(
+				(cells) =>
+					`<tr class="border-t border-[color-mix(in_srgb,var(--page-muted)_25%,transparent)]">${cells.map((c) => `<td class="px-2 py-1.5">${esc(c)}</td>`).join('')}</tr>`,
+			)
+			.join('');
+		return `<table class="w-full min-w-[200px] text-sm text-[var(--page-fg)]"><thead><tr class="text-[var(--page-muted)]">${th}</tr></thead><tbody>${body}</tbody></table>`;
+	}
+
+	const section = document.querySelector('[data-admin-visitors]');
+	if (section instanceof HTMLElement) {
+		const base = (section.dataset.apiBase ?? '').trim();
+		const tokenInput = section.querySelector<HTMLInputElement>('[data-admin-token]');
+		const loadBtn = section.querySelector<HTMLButtonElement>('[data-admin-load]');
+		const status = section.querySelector<HTMLElement>('[data-admin-status]');
+		const countriesEl = section.querySelector<HTMLElement>('[data-admin-countries]');
+		const citiesEl = section.querySelector<HTMLElement>('[data-admin-cities]');
+
+		loadBtn?.addEventListener('click', async () => {
+			const token = tokenInput?.value.trim() ?? '';
+			if (!token) {
+				if (status) status.textContent = 'Enter your admin token.';
+				return;
+			}
+			if (status) status.textContent = 'Loading…';
+			try {
+				const r = await fetch(apiUrl(base, '/api/admin/stats'), {
+					headers: {
+						Authorization: `Bearer ${token}`,
+						Accept: 'application/json',
+					},
+				});
+				if (!r.ok) {
+					if (status) status.textContent = r.status === 401 ? 'Unauthorized — check your secret.' : `Error ${r.status}`;
+					return;
+				}
+				const d = (await r.json()) as {
+					total: number;
+					countries: { code: string; count: number }[];
+					cities: { country: string; city: string; count: number }[];
+				};
+				if (status) {
+					status.textContent = `Total recorded visits: ${d.total}`;
+				}
+				if (countriesEl) {
+					const rows = d.countries.map((c) => [c.code, String(c.count)]);
+					countriesEl.innerHTML =
+						rows.length > 0 ? tableHtml(['Country', 'Visits'], rows) : '<p class="text-sm text-[var(--page-muted)]">No data yet.</p>';
+				}
+				if (citiesEl) {
+					const rows = d.cities.map((c) => [c.country, c.city, String(c.count)]);
+					citiesEl.innerHTML =
+						rows.length > 0
+							? tableHtml(['Country', 'City', 'Visits'], rows)
+							: '<p class="text-sm text-[var(--page-muted)]">No city-level rows yet (Cloudflare often provides country only).</p>';
+				}
+			} catch {
+				if (status) status.textContent = 'Network error — are Pages Functions deployed?';
+			}
+		});
+	}
+</script>

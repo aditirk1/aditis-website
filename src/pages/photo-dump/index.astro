@@ -14,13 +14,20 @@ const urls = files.map((f) => `/photos/${f}`);
 ---
 
 <Layout title="Photo dump · aditi's universe">
-	<div class="pointer-events-auto mx-auto max-w-6xl">
-		<div data-reveal-stagger class="mb-8">
-			<h1 class="text-4xl font-light" style="font-family: var(--font-display)" data-reveal-child>Photo dump</h1>
+	<div class="pointer-events-auto mx-auto max-w-6xl px-2">
+		<div data-reveal-stagger class="mb-12">
+			<h1
+				class="text-4xl font-semibold tracking-tight md:text-5xl"
+				style="font-family: var(--font-display)"
+				data-reveal-child
+			>
+				Photo dump
+			</h1>
+			<div class="mt-2 h-0.5 w-12 rounded-full bg-[var(--color-amber)]" data-reveal-child></div>
 		</div>
 		{
 			urls.length === 0 ? (
-				<p class="prose-shell px-6 py-8 text-[var(--page-muted)]">
+				<p class="text-[var(--page-muted)]">
 					Drop images into <code class="text-[var(--color-amber)]">public/photos/</code>.
 				</p>
 			) : (
@@ -30,7 +37,7 @@ const urls = files.map((f) => `/photos/${f}`);
 							<li class="mb-4 break-inside-avoid">
 								<button
 									type="button"
-									class="group w-full overflow-hidden rounded-lg border-0 bg-transparent p-0 text-left shadow-md"
+									class="group w-full overflow-hidden rounded-xl border-0 bg-transparent p-0 text-left shadow-md transition-shadow hover:shadow-[0_0_20px_color-mix(in_srgb,var(--color-amber)_20%,transparent)]"
 									data-photo-open={i}
 								>
 									<img
@@ -83,23 +90,27 @@ const urls = files.map((f) => `/photos/${f}`);
 							›
 						</button>
 					</div>
-					<script define:vars={{ urlsJson: JSON.stringify(urls) }}>
-						import { initPhotoLightbox } from '../../scripts/photo-lightbox.ts';
-
-						const sources = JSON.parse(urlsJson) as string[];
-						const stop = initPhotoLightbox(sources);
-
-						document.querySelectorAll<HTMLImageElement>('[data-photo-img]').forEach((img) => {
-							if (img.complete) img.classList.add('is-loaded');
-							else img.addEventListener('load', () => img.classList.add('is-loaded'), { once: true });
-						});
-
-						if (import.meta.hot) {
-							import.meta.hot.dispose(() => stop());
-						}
-					</script>
 				</>
 			)
 		}
 	</div>
 </Layout>
+
+<script is:inline data-photo-urls={JSON.stringify(urls)}>
+</script>
+<script>
+	import { initPhotoLightbox } from '../../scripts/photo-lightbox.ts';
+
+	const urlScript = document.querySelector('script[data-photo-urls]');
+	const sources = urlScript ? JSON.parse(urlScript.getAttribute('data-photo-urls') || '[]') : [];
+	const stop = initPhotoLightbox(sources);
+
+	document.querySelectorAll('[data-photo-img]').forEach((img) => {
+		if ((img as HTMLImageElement).complete) img.classList.add('is-loaded');
+		else img.addEventListener('load', () => img.classList.add('is-loaded'), { once: true });
+	});
+
+	if (import.meta.hot) {
+		import.meta.hot.dispose(() => stop());
+	}
+</script>

@@ -5,7 +5,7 @@
 const collapseKey = 'aditi-ambient-panel-collapsed';
 ---
 
-<div class="pointer-events-auto fixed bottom-5 right-5 z-[60] flex flex-col items-end gap-1" data-ambient-root>
+<div class="pointer-events-auto fixed bottom-5 right-5 z-[60] flex flex-col items-end gap-1" data-ambient-root transition:persist>
 	<button
 		type="button"
 		class="rounded-full border border-[color-mix(in_srgb,var(--color-amber)_40%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_90%,transparent)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--page-fg)] shadow backdrop-blur-sm transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)]"
@@ -48,23 +48,23 @@ const collapseKey = 'aditi-ambient-panel-collapsed';
 </div>
 
 <script define:vars={{ collapseKey }}>
-	const root = document.querySelector('[data-ambient-root]');
-	const panel = document.querySelector('[data-ambient-panel]') as HTMLElement | null;
-	const toggle = document.querySelector('[data-ambient-toggle]') as HTMLButtonElement | null;
-	const label = document.querySelector('[data-ambient-toggle-label]') as HTMLElement | null;
+	var root = document.querySelector('[data-ambient-root]');
+	var panel = document.querySelector('[data-ambient-panel]');
+	var toggle = document.querySelector('[data-ambient-toggle]');
+	var label = document.querySelector('[data-ambient-toggle-label]');
 
-	function readCollapsed(): boolean {
+	function readCollapsed() {
 		try {
 			return localStorage.getItem(collapseKey) === '1';
-		} catch {
+		} catch (e) {
 			return false;
 		}
 	}
 
-	function setCollapsed(collapsed: boolean) {
+	function setCollapsed(collapsed) {
 		try {
 			localStorage.setItem(collapseKey, collapsed ? '1' : '0');
-		} catch {
+		} catch (e) {
 			/* ignore */
 		}
 		if (!panel || !toggle || !label) return;
@@ -76,8 +76,8 @@ const collapseKey = 'aditi-ambient-panel-collapsed';
 
 	if (root && panel && toggle) {
 		setCollapsed(readCollapsed());
-		toggle.addEventListener('click', () => {
-			const isHidden = panel.style.display === 'none';
+		toggle.addEventListener('click', function () {
+			var isHidden = panel.style.display === 'none';
 			setCollapsed(!isHidden);
 		});
 	}

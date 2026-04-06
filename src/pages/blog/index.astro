@@ -25,30 +25,49 @@ const enriched = sorted.map((post) => {
 ---
 
 <Layout title="Blog · aditi's universe">
-	<div class="pointer-events-auto mx-auto max-w-2xl">
-		<div data-reveal-stagger class="mb-8">
-			<h1 class="text-4xl font-light" style="font-family: var(--font-display)" data-reveal-child>Blog</h1>
+	<div class="pointer-events-auto mx-auto max-w-3xl px-2">
+		<div data-reveal-stagger class="mb-12">
+			<h1
+				class="text-4xl font-semibold tracking-tight md:text-5xl"
+				style="font-family: var(--font-display)"
+				data-reveal-child
+			>
+				Blog
+			</h1>
+			<div class="mt-2 h-0.5 w-12 rounded-full bg-[var(--color-amber)]" data-reveal-child></div>
 		</div>
-		<ul class="flex flex-col gap-5">
-			{
-				enriched.map(({ post, minutes, excerpt }) => (
-					<li class="overflow-hidden rounded-2xl" data-blog-wipe>
-						<div data-blog-wipe-inner>
-							<a href={`/blog/${post.id}`} class="group block">
-								<div class="card-3d-pop prose-shell px-5 py-5">
-									<h2 class="text-xl font-light text-[var(--page-fg)] group-hover:text-[var(--color-amber)]">
-										{post.data.title}
-									</h2>
-									<p class="mt-1 text-sm text-[var(--page-muted)]">
-										{post.data.date.toLocaleDateString()} · {minutes} min read
-									</p>
-									<p class="mt-3 line-clamp-2 text-sm leading-relaxed text-[var(--page-muted)]">{excerpt}</p>
-								</div>
-							</a>
+		{enriched.length === 0 ? (
+			<p class="text-[var(--page-muted)]">
+				Add Markdown to <code class="text-[var(--color-amber)]">src/content/blog/</code>.
+			</p>
+		) : (
+			<div class="flex flex-col gap-0 divide-y divide-[color-mix(in_srgb,var(--page-fg)_10%,transparent)]">
+				{enriched.map(({ post, minutes, excerpt }) => (
+					<a
+						href={`/blog/${post.id}`}
+						class="group block py-8 transition-colors first:pt-0"
+						data-reveal-child
+					>
+						<div class="flex items-baseline justify-between gap-4">
+							<h2
+								class="text-xl font-semibold text-[var(--page-fg)] transition-colors group-hover:text-[var(--color-amber)] md:text-2xl"
+								style="font-family: var(--font-display)"
+							>
+								{post.data.title}
+							</h2>
+							<span class="shrink-0 text-xs tracking-wide text-[var(--page-muted)]">
+								{minutes} min
+							</span>
 						</div>
-					</li>
-				))
-			}
-		</ul>
+						<p class="mt-1 text-xs uppercase tracking-wider text-[var(--page-muted)]">
+							{post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+						</p>
+						<p class="mt-3 line-clamp-2 text-base leading-relaxed text-[var(--page-muted)] transition-colors group-hover:text-[var(--page-fg)]">
+							{excerpt}
+						</p>
+					</a>
+				))}
+			</div>
+		)}
 	</div>
 </Layout>

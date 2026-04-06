@@ -1,8 +1,14 @@
 ---
 /**
- * Beach: CSS gradient + animated SVG waves; optional /beach/waves.mp4; palm photo or SVG palm;
- * photo starfish (Dream Journal) + shell images on the sand.
+ * Beach: CSS gradient backdrop, animated SVG wave layers, SVG coconut palm (always
+ * visible), optional local photo overlays, Unsplash starfish (Dream Journal trigger)
+ * and decorative shell images on the sand.
+ *
+ * Local assets (/beach/ocean.jpg, palm.webp, starfish.webp) load first when present;
+ * stock Unsplash URLs kick in automatically via onerror handlers.
  */
+const OCEAN_FALLBACK =
+	'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80';
 const STARFISH_FALLBACK =
 	'https://images.unsplash.com/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=400&q=80';
 const SHELL_A = 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5d?auto=format&fit=crop&w=200&q=80';
@@ -14,10 +20,12 @@ const SHELL_B = 'https://images.unsplash.com/photo-1507525428034-9040b037703b?au
 	data-beach-canvas
 	aria-hidden="true"
 	hidden
+	transition:persist
 >
+	<!-- Sky-to-sand gradient (always renders, no images needed) -->
 	<div class="beach-gradient-ocean absolute inset-0" aria-hidden="true"></div>
 
-	<!-- Animated wave layers (always on — reads as moving water without video) -->
+	<!-- Animated wave layers (pure SVG — always rendered) -->
 	<div class="beach-waves pointer-events-none absolute inset-x-0 bottom-0 top-[18%] overflow-hidden opacity-90" aria-hidden="true">
 		<svg
 			class="beach-wave-svg beach-wave-svg--1 absolute -left-[5%] bottom-[32%] w-[130%] max-w-none text-[#4a90b8]"
@@ -51,38 +59,30 @@ const SHELL_B = 'https://images.unsplash.com/photo-1507525428034-9040b037703b?au
 		</svg>
 	</div>
 
-	<div class="beach-video-shell absolute inset-0" data-beach-parallax="0.3">
-		<video
-			class="beach-video h-full w-full object-cover opacity-0 transition-opacity duration-700"
-			autoplay
-			muted
-			loop
-			playsinline
-			poster="/beach/ocean.jpg"
-			data-beach-video
-		>
-			<source src="/beach/waves.mp4" type="video/mp4" />
-		</video>
+	<!-- Ocean photo: local /beach/ocean.jpg first, Unsplash fallback on error -->
+	<div class="absolute inset-0" data-beach-parallax="0.3">
+		<img
+			src="/beach/ocean.jpg"
+			alt=""
+			class="h-full w-full object-cover opacity-0 transition-opacity duration-700"
+			data-beach-ocean-img
+			data-fallback-src={OCEAN_FALLBACK}
+			decoding="async"
+		/>
+		<div class="beach-ocean-shimmer pointer-events-none absolute inset-0" aria-hidden="true"></div>
 		<div
 			class="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#dceaf8]/55 via-transparent to-[#fdf8f0]/88"
 			aria-hidden="true"
 		></div>
 	</div>
 
-	<!-- Palm: photo or animated SVG coconut tree -->
+	<!-- Palm: SVG always visible as base; optional local photo overlays on load -->
 	<div
 		class="beach-palm-sway pointer-events-none absolute -left-[2%] bottom-0 top-[6%] w-[min(52vw,440px)] max-w-none"
 		data-beach-palm-sway
 	>
 		<div class="relative h-full w-full" data-beach-parallax="0.55">
-			<img
-				src="/beach/palm.webp"
-				alt=""
-				class="beach-palm-photo relative z-[1] h-full w-full object-contain object-bottom opacity-95 drop-shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
-				data-beach-palm-img
-				decoding="async"
-			/>
-			<div class="beach-palm-svg-fallback absolute inset-0 z-[2] hidden" data-beach-palm-fallback aria-hidden="true">
+			<div class="absolute inset-0 z-[1]" aria-hidden="true">
 				<svg class="h-full w-full object-contain object-bottom" viewBox="0 0 200 320" fill="none" xmlns="http://www.w3.org/2000/svg">
 					<path
 						class="palm-trunk"
@@ -113,14 +113,23 @@ const SHELL_B = 'https://images.unsplash.com/photo-1507525428034-9040b037703b?au
 					<circle cx="108" cy="48" r="11" fill="#95d5b2" opacity="0.85"/>
 				</svg>
 			</div>
+			<img
+				src="/beach/palm.webp"
+				alt=""
+				class="relative z-[2] h-full w-full object-contain object-bottom opacity-0 transition-opacity duration-500 drop-shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
+				data-beach-palm-img
+				decoding="async"
+			/>
 		</div>
 	</div>
 
+	<!-- Sand strip gradient -->
 	<div
 		class="pointer-events-none absolute inset-x-0 bottom-0 h-[32%] bg-gradient-to-t from-[#f0dcc4] via-[#faf0e6]/96 to-transparent"
 		aria-hidden="true"
 	></div>
 
+	<!-- Decorative shells -->
 	<img
 		src={SHELL_A}
 		alt=""
@@ -136,6 +145,7 @@ const SHELL_B = 'https://images.unsplash.com/photo-1507525428034-9040b037703b?au
 		loading="lazy"
 	/>
 
+	<!-- Starfish: Dream Journal trigger -->
 	<button
 		type="button"
 		class="beach-starfish pointer-events-auto absolute bottom-[8%] right-[10%] z-[2] cursor-pointer border-0 bg-transparent p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffaa00]"
@@ -209,6 +219,26 @@ const SHELL_B = 'https://images.unsplash.com/photo-1507525428034-9040b037703b?au
 		}
 	}
 
+	.beach-ocean-shimmer {
+		background: repeating-linear-gradient(
+			105deg,
+			transparent 0%,
+			rgba(255, 255, 255, 0.06) 2.5%,
+			transparent 5%
+		);
+		animation: ocean-shimmer 8s ease-in-out infinite alternate;
+	}
+	@keyframes ocean-shimmer {
+		0% {
+			transform: translateX(-5%) scaleX(1);
+			opacity: 0.5;
+		}
+		100% {
+			transform: translateX(5%) scaleX(1.02);
+			opacity: 0.9;
+		}
+	}
+
 	.palm-frond--1 {
 		animation: palm-flutter 3.8s ease-in-out infinite;
 	}
@@ -258,9 +288,8 @@ const SHELL_B = 'https://images.unsplash.com/photo-1507525428034-9040b037703b?au
 
 	const root = document.querySelector('[data-beach-canvas]') as HTMLElement | null;
 	const starfish = document.querySelector('[data-beach-starfish]') as HTMLButtonElement | null;
-	const video = document.querySelector('[data-beach-video]') as HTMLVideoElement | null;
+	const oceanImg = document.querySelector('[data-beach-ocean-img]') as HTMLImageElement | null;
 	const palmImg = document.querySelector('[data-beach-palm-img]') as HTMLImageElement | null;
-	const palmFallback = document.querySelector('[data-beach-palm-fallback]') as HTMLElement | null;
 	const starfishImg = document.querySelector('[data-beach-starfish-img]') as HTMLImageElement | null;
 	const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -270,11 +299,9 @@ const SHELL_B = 'https://images.unsplash.com/photo-1507525428034-9040b037703b?au
 		if (t === 'beach') {
 			root.hidden = false;
 			root.style.visibility = 'visible';
-			video?.play().catch(() => {});
 		} else {
 			root.hidden = true;
 			root.style.visibility = 'hidden';
-			video?.pause();
 		}
 	}
 
@@ -286,25 +313,33 @@ const SHELL_B = 'https://images.unsplash.com/photo-1507525428034-9040b037703b?au
 		window.location.href = '/dream-journal';
 	});
 
-	video?.addEventListener('loadeddata', () => {
-		video.style.opacity = '0.88';
-	});
-	video?.addEventListener('error', () => {
-		video.style.display = 'none';
-	});
-
-	palmImg?.addEventListener('error', () => {
-		palmImg.style.visibility = 'hidden';
-		palmFallback?.classList.remove('hidden');
-	});
-
-	starfishImg?.addEventListener('error', () => {
-		const fb = starfishImg.dataset.fallbackSrc;
-		if (fb && !starfishImg.dataset.usedFallback) {
-			starfishImg.dataset.usedFallback = '1';
-			starfishImg.src = fb;
+	/** Handles load / error for images that try a local src first and fall back to Unsplash. */
+	function setupFallbackImage(img: HTMLImageElement | null) {
+		if (!img) return;
+		const show = () => { img.style.opacity = '0.88'; };
+		const tryFallback = () => {
+			const fb = img.dataset.fallbackSrc;
+			if (fb && !img.dataset.usedFallback) {
+				img.dataset.usedFallback = '1';
+				img.src = fb;
+			}
+		};
+		img.addEventListener('load', show);
+		img.addEventListener('error', tryFallback);
+		if (img.complete) {
+			if (img.naturalWidth > 0) show();
+			else tryFallback();
 		}
-	});
+	}
+
+	setupFallbackImage(oceanImg);
+	setupFallbackImage(starfishImg);
+
+	if (palmImg) {
+		const show = () => { palmImg.style.opacity = '0.95'; };
+		palmImg.addEventListener('load', show);
+		if (palmImg.complete && palmImg.naturalWidth > 0) show();
+	}
 
 	if (root && !reduce) {
 		let px = 0;

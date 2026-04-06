@@ -1,6 +1,7 @@
 /**
- * Universe theme — star field on a rotating shell (smooth Y carousel) plus a small
- * Earth globe (lower-right) as the Dream Journal portal — click navigates there.
+ * Universe theme — star field on a rotating hollow shell with mouse-reactive
+ * particle scatter. Contains a single secret amber star that navigates to
+ * the Dream Journal when clicked.
  */
 import * as THREE from 'three';
 
@@ -10,10 +11,10 @@ const MAX_DPR = 2;
 const REDUCED_MOTION_STAR_COUNT = 1400;
 const DEFAULT_STAR_COUNT = 5200;
 
-/** NDC for the secret trigger: lower-right, away from typical title block (left/center) */
-const TRIGGER_NDC = { x: 0.74, y: -0.66 };
-/** World Z plane for placing the trigger (among distant stars) */
-const TRIGGER_PLANE_Z = -34;
+/** NDC position for the secret star — lower-right, away from title area */
+const SECRET_NDC = { x: 0.68, y: -0.58 };
+const SECRET_PLANE_Z = -30;
+const SECRET_RADIUS = 1.8;
 
 function prefersReducedMotion(): boolean {
 	return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -47,8 +48,6 @@ function createStarfieldMaterial(): THREE.ShaderMaterial {
 			void main() {
 				vec3 pos = position;
 
-				/* Scroll parallax removed: depth motion comes from 3D rotation + camera orbit only */
-
 				vec2 delta = pos.xy - uMouse;
 				float dist = length(delta);
 				float wake = smoothstep(12.0, 0.0, dist);
@@ -75,6 +74,52 @@ function createStarfieldMaterial(): THREE.ShaderMaterial {
 	});
 }
 
+/** Shader for the secret star — warm amber with a soft glow halo */
+function createSecretStarMaterial(): THREE.ShaderMaterial {
+	return new THREE.ShaderMaterial({
+		transparent: true,
+		depthWrite: false,
+		blending: THREE.AdditiveBlending,
+		uniforms: {
+			uTime: { value: 0 },
+			uHover: { value: 0 },
+		},
+		vertexShader: /* glsl */ `
+			varying vec2 vUv;
+			void main() {
+				vUv = uv;
+				gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+			}
+		`,
+		fragmentShader: /* glsl */ `
+			uniform float uTime;
+			uniform float uHover;
+			varying vec2 vUv;
+
+			void main() {
+				vec2 c = vUv - 0.5;
+				float r = length(c);
+
+				/* Core: bright warm amber */
+				float core = smoothstep(0.18, 0.0, r);
+				/* Inner glow */
+				float glow = smoothstep(0.45, 0.05, r) * 0.5;
+				/* Outer halo — pulses gently */
+				float pulse = 0.85 + 0.15 * sin(uTime * 1.8);
+				float halo = smoothstep(0.5, 0.15, r) * 0.22 * pulse;
+				/* Hover expansion */
+				float hoverGlow = uHover * smoothstep(0.5, 0.0, r) * 0.4;
+
+				float alpha = core + glow + halo + hoverGlow;
+				vec3 col = mix(vec3(1.0, 0.72, 0.18), vec3(1.0, 0.92, 0.6), core);
+				col = mix(col, vec3(1.0, 0.85, 0.4), uHover * 0.5);
+
+				gl_FragColor = vec4(col, alpha);
+			}
+		`,
+	});
+}
+
 export function initUniverseStarField(): () => void {
 	const canvas = document.getElementById(CANVAS_ID) as HTMLCanvasElement | null;
 	if (!canvas) {
@@ -82,7 +127,6 @@ export function initUniverseStarField(): () => void {
 		return () => {};
 	}
 
-	/* Alias so nested functions see HTMLCanvasElement, not HTMLElement | null */
 	const canvasEl = canvas;
 
 	const reducedMotion = prefersReducedMotion();
@@ -109,9 +153,7 @@ export function initUniverseStarField(): () => void {
 	const scatter = new Float32Array(STAR_COUNT * 3);
 	const aSize = new Float32Array(STAR_COUNT);
 	const aDepth = new Float32Array(STAR_COUNT);
-	const phase = new Float32Array(STAR_COUNT);
 
-	/* Wide hollow shell — avoids a dense blob in the middle of the screen */
 	for (let i = 0; i < STAR_COUNT; i++) {
 		const ix = i * 3;
 		const r = 78 + Math.random() * 92;
@@ -125,7 +167,6 @@ export function initUniverseStarField(): () => void {
 		base[ix + 2] = r * Math.cos(phi);
 		aDepth[i] = Math.random();
 		aSize[i] = 0.32 + Math.random() * 1.45;
-		phase[i] = Math.random() * Math.PI * 2;
 	}
 
 	geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -136,44 +177,12 @@ export function initUniverseStarField(): () => void {
 	const points = new THREE.Points(geometry, material);
 	starGroup.add(points);
 
-	const earthGeom = new THREE.SphereGeometry(2.05, 48, 48);
-	const earthMat = new THREE.MeshBasicMaterial({
-		color: 0x3a7bc8,
-		transparent: true,
-		opacity: 1,
-	});
-	const earthMesh = new THREE.Mesh(earthGeom, earthMat);
-	earthMesh.renderOrder = 2;
-	scene.add(earthMesh);
-
-	const texLoader = new THREE.TextureLoader();
-	texLoader.setCrossOrigin('anonymous');
-	texLoader.load(
-		'https://cdn.jsdelivr.net/npm/three-globe@2/example/img/earth-blue-marble.jpg',
-		(t) => {
-			t.colorSpace = THREE.SRGBColorSpace;
-			earthMat.map = t;
-			earthMat.color.setHex(0xffffff);
-			earthMat.needsUpdate = true;
-		},
-		undefined,
-		() => {
-			/* keep fallback color */
-		},
-	);
-
-	const earthHalo = new THREE.Mesh(
-		new THREE.RingGeometry(2.35, 2.85, 48),
-		new THREE.MeshBasicMaterial({
-			color: 0xffaa00,
-			transparent: true,
-			opacity: 0.22,
-			depthWrite: false,
-			side: THREE.DoubleSide,
-		}),
-	);
-	earthHalo.renderOrder = 1;
-	scene.add(earthHalo);
+	/* Secret star — a small billboard quad positioned in screen space */
+	const secretMat = createSecretStarMaterial();
+	const secretGeom = new THREE.PlaneGeometry(SECRET_RADIUS * 2, SECRET_RADIUS * 2);
+	const secretStar = new THREE.Mesh(secretGeom, secretMat);
+	secretStar.renderOrder = 5;
+	scene.add(secretStar);
 
 	const raycaster = new THREE.Raycaster();
 	const pointer = new THREE.Vector2();
@@ -182,12 +191,18 @@ export function initUniverseStarField(): () => void {
 	const invStarGroup = new THREE.Matrix4();
 	const tmpHit = new THREE.Vector3();
 	const tmpMouseLocal = new THREE.Vector3();
-	const triggerPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
-	const planePoint = new THREE.Vector3(0, 0, TRIGGER_PLANE_Z);
-	triggerPlane.setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 0, 1), planePoint);
+	const starPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -SECRET_PLANE_Z);
 
 	let lastScroll = typeof window !== 'undefined' ? window.scrollY : 0;
-	let triggerHover = false;
+	let secretHover = false;
+
+	function placeSecretStar() {
+		raycaster.setFromCamera(new THREE.Vector2(SECRET_NDC.x, SECRET_NDC.y), camera);
+		if (raycaster.ray.intersectPlane(starPlane, tmpHit)) {
+			secretStar.position.copy(tmpHit);
+			secretStar.lookAt(camera.position);
+		}
+	}
 
 	const onScroll = () => {
 		lastScroll = window.scrollY;
@@ -199,17 +214,19 @@ export function initUniverseStarField(): () => void {
 		const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 		pointer.set(x, y);
 		raycaster.setFromCamera(pointer, camera);
-		if (raycaster.ray.intersectPlane(triggerPlane, tmpHit)) {
+
+		if (raycaster.ray.intersectPlane(starPlane, tmpHit)) {
 			mouseWorld3.copy(tmpHit);
 		}
-		const hits = raycaster.intersectObject(earthMesh, false);
-		triggerHover = hits.length > 0;
-		canvasEl.style.cursor = triggerHover ? 'pointer' : 'default';
+
+		const hits = raycaster.intersectObject(secretStar, false);
+		secretHover = hits.length > 0;
+		canvasEl.style.cursor = secretHover ? 'pointer' : 'default';
 	};
 
 	const onPointerLeave = () => {
 		mouseWorld3.set(1e6, 1e6, 0);
-		triggerHover = false;
+		secretHover = false;
 		canvasEl.style.cursor = 'default';
 	};
 
@@ -221,27 +238,15 @@ export function initUniverseStarField(): () => void {
 		const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 		pointer.set(x, y);
 		raycaster.setFromCamera(pointer, camera);
-		const hits = raycaster.intersectObject(earthMesh, false);
+		const hits = raycaster.intersectObject(secretStar, false);
 		if (hits.length > 0) {
 			navigating = true;
-			earthMat.opacity = 1;
-			earthMesh.scale.setScalar(2.4);
-			(earthHalo.material as THREE.MeshBasicMaterial).opacity = 0.65;
-			earthHalo.scale.setScalar(1.35);
+			secretMat.uniforms.uHover.value = 1;
 			setTimeout(() => {
 				window.location.href = '/dream-journal';
-			}, 400);
+			}, 350);
 		}
 	};
-
-	function placeEarthScreenFixed() {
-		raycaster.setFromCamera(new THREE.Vector2(TRIGGER_NDC.x, TRIGGER_NDC.y), camera);
-		if (raycaster.ray.intersectPlane(triggerPlane, tmpHit)) {
-			earthMesh.position.copy(tmpHit);
-			earthHalo.position.copy(tmpHit);
-			earthHalo.lookAt(camera.position);
-		}
-	}
 
 	function setSize() {
 		const w = window.innerWidth;
@@ -252,7 +257,7 @@ export function initUniverseStarField(): () => void {
 		renderer.setPixelRatio(pr);
 		renderer.setSize(w, h, false);
 		material.uniforms.uPixelRatio.value = pr;
-		placeEarthScreenFixed();
+		placeSecretStar();
 	}
 
 	setSize();
@@ -260,18 +265,16 @@ export function initUniverseStarField(): () => void {
 	let raf = 0;
 	let running = false;
 	const clock = new THREE.Clock();
-	/** Continuous Y spin; scroll adds extra roll (3D), not vertical drift */
 	let spinY = 0;
+	let hoverLerp = 0;
 
 	const tick = () => {
 		if (!running) return;
 		const t = clock.getElapsedTime();
 		const delta = Math.min(clock.getDelta(), 0.1);
-		const driftScale = reducedMotion ? 0.4 : 1;
 
 		const rotSpeed = reducedMotion ? 0.09 : isDreamRealmPage() ? 0.35 : 0.95;
 		spinY += delta * rotSpeed;
-		/* Single-axis carousel: field revolves around Y; slight fixed X tilt for depth */
 		starGroup.rotation.y = spinY + lastScroll * (reducedMotion ? 0.00008 : 0.00012);
 		starGroup.rotation.x = reducedMotion ? 0 : 0.1;
 		starGroup.rotation.z = 0;
@@ -314,17 +317,16 @@ export function initUniverseStarField(): () => void {
 		}
 		posAttr.needsUpdate = true;
 
-		placeEarthScreenFixed();
+		/* Secret star — keep screen-fixed, animate hover */
+		placeSecretStar();
+		secretMat.uniforms.uTime.value = t;
+		hoverLerp += ((secretHover ? 1 : 0) - hoverLerp) * 0.12;
+		secretMat.uniforms.uHover.value = hoverLerp;
 
 		if (!navigating) {
-			earthMesh.rotation.y += delta * 0.55;
-			const breathe = 1 + Math.sin(t * 0.55) * 0.04;
-			const hoverBoost = triggerHover ? 1.18 : 1;
-			earthMesh.scale.setScalar(breathe * hoverBoost);
-			const haloMat = earthHalo.material as THREE.MeshBasicMaterial;
-			haloMat.opacity = triggerHover ? 0.42 : 0.16 + Math.sin(t * 1.4) * 0.1;
-			earthHalo.scale.setScalar(breathe * (triggerHover ? 1.15 : 1));
-			earthHalo.lookAt(camera.position);
+			const breathe = 1 + Math.sin(t * 0.8) * 0.06;
+			const hoverScale = 1 + hoverLerp * 0.3;
+			secretStar.scale.setScalar(breathe * hoverScale);
 		}
 
 		renderer.render(scene, camera);
@@ -376,10 +378,8 @@ export function initUniverseStarField(): () => void {
 		canvasEl.removeEventListener('click', onClick);
 		geometry.dispose();
 		material.dispose();
-		earthGeom.dispose();
-		earthMat.dispose();
-		earthHalo.geometry.dispose();
-		(earthHalo.material as THREE.Material).dispose();
+		secretGeom.dispose();
+		secretMat.dispose();
 		renderer.dispose();
 	};
 }

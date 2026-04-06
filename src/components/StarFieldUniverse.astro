@@ -17,6 +17,7 @@
 	class="pointer-events-auto fixed inset-0 z-0"
 	data-universe-canvas
 	aria-hidden="true"
+	transition:persist
 >
 	<canvas id="universe-star-field-canvas" class="block h-full w-full"></canvas>
 </div>
@@ -24,7 +25,6 @@
 <script>
 	import { initUniverseStarField } from '../scripts/universe-star-field.ts';
 
-	// One initializer per page load; cleanup runs if the module is ever re-executed (dev HMR edge cases).
 	let dispose: (() => void) | undefined;
 
 	function boot() {
@@ -34,7 +34,8 @@
 
 	boot();
 
-	// Astro may re-run this module during development; re-bind cleanly.
+	document.addEventListener('astro:after-swap', boot);
+
 	if (import.meta.hot) {
 		import.meta.hot.dispose(() => {
 			dispose?.();

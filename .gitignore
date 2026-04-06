@@ -3,6 +3,9 @@ dist/
 # generated types
 .astro/
 
+# Cloudflare Pages worker bundle (regenerated on deploy)
+_worker.bundle
+
 # dependencies
 node_modules/
 

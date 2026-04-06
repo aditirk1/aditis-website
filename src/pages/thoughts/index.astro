@@ -14,26 +14,35 @@ const bodies = await Promise.all(
 ---
 
 <Layout title="Thoughts · aditi's universe">
-	<div class="pointer-events-auto mx-auto max-w-xl" data-reveal-stagger>
-		<h1 class="mb-8 text-4xl font-light" style="font-family: var(--font-display)" data-reveal-child>Thoughts</h1>
+	<div class="pointer-events-auto mx-auto max-w-2xl px-2" data-reveal-stagger>
+		<div class="mb-12">
+			<h1
+				class="text-4xl font-semibold tracking-tight md:text-5xl"
+				style="font-family: var(--font-display)"
+				data-reveal-child
+			>
+				Thoughts
+			</h1>
+			<div class="mt-2 h-0.5 w-12 rounded-full bg-[var(--color-amber)]" data-reveal-child></div>
+		</div>
 		{
 			bodies.length === 0 ? (
-				<p class="prose-shell px-6 py-8 text-[var(--page-muted)]">
+				<p class="text-[var(--page-muted)]">
 					Add short entries as Markdown in <code class="text-[var(--color-amber)]">src/content/thoughts/</code>.
 				</p>
 			) : (
-				<ul class="flex flex-col gap-5">
+				<div class="flex flex-col gap-0 divide-y divide-[color-mix(in_srgb,var(--page-fg)_10%,transparent)]">
 					{bodies.map(({ entry, Content }) => (
-						<li class="prose-shell px-5 py-4" data-reveal-child>
-							<p class="mb-2 text-xs uppercase tracking-wider text-[var(--page-muted)]">
-								{entry.data.date.toLocaleString()}
+						<div class="py-8 first:pt-0" data-reveal-child>
+							<p class="mb-3 text-xs uppercase tracking-wider text-[var(--page-muted)]">
+								{entry.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
 							</p>
-							<div class="text-[var(--page-fg)] [&_p]:mb-0 [&_p]:leading-relaxed">
+							<div class="text-base leading-relaxed text-[var(--page-fg)] [&_p]:mb-0">
 								<Content />
 							</div>
-						</li>
+						</div>
 					))}
-				</ul>
+				</div>
 			)
 		}
 	</div>

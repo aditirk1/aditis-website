@@ -1,0 +1,10 @@
+# Local preview: npx wrangler pages dev ./dist --compatibility-date=2024-11-01
+# KV: create namespace in dashboard, bind as VISITOR_KV for Production + Preview.
+
+name = "aditis-website"
+compatibility_date = "2024-11-01"
+pages_build_output_dir = "dist"
+
+[[kv_namespaces]]
+binding = "VISITOR_KV"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
