@@ -1,0 +1,94 @@
+---
+/**
+ * Floating audio controls with collapse toggle (persisted in localStorage).
+ */
+const collapseKey = 'aditi-ambient-panel-collapsed';
+---
+
+<div class="pointer-events-auto fixed bottom-5 right-5 z-[60] flex flex-col items-end gap-1" data-ambient-root>
+	<button
+		type="button"
+		class="rounded-full border border-[color-mix(in_srgb,var(--color-amber)_40%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_90%,transparent)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--page-fg)] shadow backdrop-blur-sm transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)]"
+		data-ambient-toggle
+		aria-expanded="true"
+		aria-controls="ambient-panel-body"
+	>
+		<span data-ambient-toggle-label>Hide</span>
+	</button>
+	<div
+		id="ambient-panel-body"
+		class="flex max-w-[220px] flex-col gap-2 rounded-2xl border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_88%,transparent)] p-3 text-xs text-[var(--page-fg)] shadow-lg backdrop-blur-md transition-[opacity,transform]"
+		data-ambient-panel
+		aria-label="Ambient sound controls"
+	>
+		<div class="flex items-center justify-between gap-2">
+			<button
+				type="button"
+				class="rounded-lg border border-[color-mix(in_srgb,var(--page-fg)_20%,transparent)] px-2 py-1 hover:border-[var(--color-amber)]"
+				data-audio-mute-toggle
+				aria-pressed="false"
+			>
+				<span data-audio-mute-label>Sound on</span>
+			</button>
+			<span class="text-[var(--page-muted)]" aria-hidden="true">♪</span>
+		</div>
+		<label class="flex flex-col gap-1">
+			<span class="text-[var(--page-muted)]">Volume</span>
+			<input type="range" min="0" max="100" value="15" class="w-full accent-[var(--color-amber)]" data-audio-volume-slider />
+		</label>
+		<label class="flex flex-col gap-1">
+			<span class="text-[var(--page-muted)]">Ambience</span>
+			<select
+				class="rounded-lg border border-[color-mix(in_srgb,var(--page-fg)_18%,transparent)] bg-transparent px-2 py-1"
+				data-audio-track-select
+			>
+			</select>
+		</label>
+	</div>
+</div>
+
+<script define:vars={{ collapseKey }}>
+	const root = document.querySelector('[data-ambient-root]');
+	const panel = document.querySelector('[data-ambient-panel]') as HTMLElement | null;
+	const toggle = document.querySelector('[data-ambient-toggle]') as HTMLButtonElement | null;
+	const label = document.querySelector('[data-ambient-toggle-label]') as HTMLElement | null;
+
+	function readCollapsed(): boolean {
+		try {
+			return localStorage.getItem(collapseKey) === '1';
+		} catch {
+			return false;
+		}
+	}
+
+	function setCollapsed(collapsed: boolean) {
+		try {
+			localStorage.setItem(collapseKey, collapsed ? '1' : '0');
+		} catch {
+			/* ignore */
+		}
+		if (!panel || !toggle || !label) return;
+		panel.style.display = collapsed ? 'none' : '';
+		panel.setAttribute('aria-hidden', collapsed ? 'true' : 'false');
+		toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+		label.textContent = collapsed ? 'Sound' : 'Hide';
+	}
+
+	if (root && panel && toggle) {
+		setCollapsed(readCollapsed());
+		toggle.addEventListener('click', () => {
+			const isHidden = panel.style.display === 'none';
+			setCollapsed(!isHidden);
+		});
+	}
+</script>
+
+<script>
+	import { initAmbientAudio } from '../scripts/ambient-audio.ts';
+
+	const stop = initAmbientAudio();
+
+	if (import.meta.hot) {
+		import.meta.hot.dispose(() => stop());
+	}
+</script>

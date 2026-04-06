@@ -1,0 +1,114 @@
+---
+/**
+ * Projects grid with ScrollTrigger entrance; each card opens a <dialog> with full Markdown body.
+ */
+import { getCollection, render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+const projects = await getCollection('projects', ({ data }) => data.draft !== true);
+const sorted = projects.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const rendered = await Promise.all(
+	sorted.map(async (post) => {
+		const { Content } = await render(post);
+		return { post, Content };
+	}),
+);
+---
+
+<Layout title="Projects · aditi's universe">
+	<div class="pointer-events-auto mx-auto max-w-4xl">
+		<div data-reveal-stagger class="mb-8">
+			<h1 class="text-4xl font-light" style="font-family: var(--font-display)" data-reveal-child>Projects</h1>
+		</div>
+		{
+			rendered.length === 0 ? (
+				<p class="prose-shell px-6 py-8 text-[var(--page-muted)]">
+					Add Markdown to <code class="text-[var(--color-amber)]">src/content/projects/</code>.
+				</p>
+			) : (
+				<ul class="grid gap-6 sm:grid-cols-2">
+					{rendered.map(({ post, Content }) => (
+						<li class="flex flex-col gap-2">
+							<article
+								class="card-3d-pop prose-shell flex h-full flex-col px-5 py-5"
+								data-project-card
+							>
+								<h2 class="text-lg font-light" style="font-family: var(--font-display)">
+									{post.data.title}
+								</h2>
+								<p class="mt-2 flex-1 text-sm text-[var(--page-muted)]">{post.data.summary}</p>
+								<ul class="mt-3 flex flex-wrap gap-2">
+									{post.data.tags.map((t) => (
+										<li class="rounded-full border border-[color-mix(in_srgb,var(--color-amber)_40%,transparent)] px-2 py-0.5 text-xs text-[var(--page-muted)]">
+											{t}
+										</li>
+									))}
+								</ul>
+								<button
+									type="button"
+									class="mt-4 w-full rounded-full border border-[var(--color-amber)] py-2 text-xs font-bold text-[var(--color-amber)] transition hover:bg-[color-mix(in_srgb,var(--color-amber)_12%,transparent)]"
+									data-project-open={post.id}
+								>
+									Open project
+								</button>
+							</article>
+							<dialog
+								class="project-dialog pointer-events-auto prose-shell w-[min(100%,640px)] max-w-[calc(100%-2rem)] border-0 p-0"
+								id={`project-dialog-${post.id}`}
+							>
+								<div class="sticky top-0 z-10 flex justify-end border-b border-[color-mix(in_srgb,var(--page-fg)_12%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_92%,transparent)] px-4 py-3 backdrop-blur-sm">
+									<button
+										type="button"
+										class="rounded-full border border-[color-mix(in_srgb,var(--page-fg)_25%,transparent)] px-3 py-1 text-xs hover:border-[var(--color-amber)]"
+										data-project-close
+									>
+										Close
+									</button>
+								</div>
+								<div class="px-6 py-5 text-[var(--page-fg)] [&_p]:leading-relaxed">
+									<h2 class="mb-2 text-2xl font-light" style="font-family: var(--font-display)">
+										{post.data.title}
+									</h2>
+									<p class="mb-6 text-sm text-[var(--page-muted)]">{post.data.date.toLocaleDateString()}</p>
+									<Content />
+								</div>
+							</dialog>
+						</li>
+					))}
+				</ul>
+			)
+		}
+	</div>
+</Layout>
+
+<script>
+	import { gsap } from 'gsap';
+
+	document.querySelectorAll<HTMLButtonElement>('[data-project-open]').forEach((btn) => {
+		btn.addEventListener('click', () => {
+			const id = btn.getAttribute('data-project-open');
+			const dlg = document.getElementById(`project-dialog-${id}`) as HTMLDialogElement | null;
+			if (!dlg) return;
+			dlg.showModal();
+			gsap.fromTo(
+				dlg,
+				{ scale: 0.94, opacity: 0 },
+				{ scale: 1, opacity: 1, duration: 0.38, ease: 'power3.out' },
+			);
+		});
+	});
+
+	document.querySelectorAll<HTMLButtonElement>('[data-project-close]').forEach((btn) => {
+		btn.addEventListener('click', () => {
+			const dlg = btn.closest('dialog') as HTMLDialogElement | null;
+			dlg?.close();
+		});
+	});
+
+	document.querySelectorAll<HTMLDialogElement>('.project-dialog').forEach((dlg) => {
+		dlg.addEventListener('click', (e) => {
+			if (e.target === dlg) dlg.close();
+		});
+	});
+</script>
