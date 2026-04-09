@@ -4,7 +4,6 @@
  * navigation, ambient audio, Umami (optional), and page-wide GSAP reveals.
  */
 import '../styles/global.css';
-import { ClientRouter } from 'astro:transitions';
 import StarFieldUniverse from '../components/StarFieldUniverse.astro';
 import BeachBackground from '../components/BeachBackground.astro';
 import SiteNav from '../components/SiteNav.astro';
@@ -53,7 +52,6 @@ const umamiSrc = import.meta.env.PUBLIC_UMAMI_SCRIPT_URL;
 		<meta name="generator" content={Astro.generator} />
 		{noindex && <meta name="robots" content="noindex, nofollow" />}
 		<title>{title}</title>
-		<ClientRouter />
 
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -83,7 +81,6 @@ const umamiSrc = import.meta.env.PUBLIC_UMAMI_SCRIPT_URL;
 			<header
 				class="pointer-events-auto flex flex-col gap-3 px-6 py-5 transition-[padding,backdrop-filter] duration-300 md:flex-row md:items-center md:justify-between md:gap-6 md:px-10"
 				data-site-header
-				transition:persist="site-header"
 			>
 				<a
 					href="/"
@@ -207,27 +204,16 @@ const umamiSrc = import.meta.env.PUBLIC_UMAMI_SCRIPT_URL;
 			window.addEventListener('scroll', onScrollHeader, { passive: true });
 			onScrollHeader();
 
-			function onPageLoad() {
-				applyTheme(getStoredTheme());
-				stopReveal();
-				stopReveal = initPageRevealAnimations();
-				syncSiteNavChrome();
-				ScrollTrigger.refresh();
-				onScrollHeader();
-			}
-
 			function onResizeNav() {
 				syncSiteNavChrome();
 			}
 
-			document.addEventListener('astro:page-load', onPageLoad);
 			window.addEventListener('resize', onResizeNav);
 
 			if (import.meta.hot) {
 				import.meta.hot.dispose(() => {
 					stopReveal();
 					document.removeEventListener('click', onThemeToggleClick);
-					document.removeEventListener('astro:page-load', onPageLoad);
 					window.removeEventListener('resize', onResizeNav);
 				});
 			}

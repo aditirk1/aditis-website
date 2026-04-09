@@ -1,5 +1,5 @@
 /**
- * Desktop tab underline + active states for persisted header (View Transitions).
+ * Desktop tab underline + active states (runs once per full page load).
  */
 import { gsap } from 'gsap';
 
