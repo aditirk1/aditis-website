@@ -135,20 +135,9 @@ const chars = siteTitle.split('');
 <script>
 	import { initHomeHero } from '../scripts/home-hero.ts';
 
-	let stopHomeHero = initHomeHero();
-
-	function bootHomeHeroIfHome() {
-		if (window.location.pathname !== '/') return;
-		stopHomeHero();
-		stopHomeHero = initHomeHero();
-	}
-
-	document.addEventListener('astro:page-load', bootHomeHeroIfHome);
+	const stop = initHomeHero();
 
 	if (import.meta.hot) {
-		import.meta.hot.dispose(() => {
-			stopHomeHero();
-			document.removeEventListener('astro:page-load', bootHomeHeroIfHome);
-		});
+		import.meta.hot.dispose(() => stop());
 	}
 </script>

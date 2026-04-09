@@ -1,7 +1,6 @@
 ---
 /**
- * Beach: CSS gradient backdrop + animated SVG wave layers only (no raster/clipart).
- * Dream Journal: fixed control (no images).
+ * Beach theme: minimal solid/soft gradient only — no photos, waves, or illustration.
  */
 ---
 
@@ -10,60 +9,12 @@
 	data-beach-canvas
 	aria-hidden="true"
 	hidden
-	transition:persist
 >
-	<div class="absolute inset-0" data-beach-parallax="0.22">
-		<!-- Sky-to-sand gradient -->
-		<div class="beach-gradient-ocean absolute inset-0" aria-hidden="true"></div>
+	<div class="absolute inset-0 beach-plain-bg" aria-hidden="true"></div>
 
-		<!-- Animated wave layers (pure SVG) -->
-		<div
-			class="beach-waves pointer-events-none absolute inset-x-0 bottom-0 top-[18%] overflow-hidden opacity-90"
-			aria-hidden="true"
-		>
-			<svg
-				class="beach-wave-svg beach-wave-svg--1 absolute -left-[5%] bottom-[32%] w-[130%] max-w-none text-[#4a90b8]"
-				viewBox="0 0 1200 120"
-				preserveAspectRatio="none"
-			>
-				<path
-					fill="currentColor"
-					fill-opacity="0.35"
-					d="M0,60 C200,20 400,100 600,55 C800,10 1000,90 1200,50 L1200,120 L0,120 Z"></path>
-			</svg>
-			<svg
-				class="beach-wave-svg beach-wave-svg--2 absolute -left-[8%] bottom-[28%] w-[135%] max-w-none text-[#5ba3c9]"
-				viewBox="0 0 1200 120"
-				preserveAspectRatio="none"
-			>
-				<path
-					fill="currentColor"
-					fill-opacity="0.45"
-					d="M0,70 C250,30 450,110 650,60 C850,15 1050,95 1200,55 L1200,120 L0,120 Z"></path>
-			</svg>
-			<svg
-				class="beach-wave-svg beach-wave-svg--3 absolute -left-[3%] bottom-[24%] w-[125%] max-w-none text-[#7ec8e3]"
-				viewBox="0 0 1200 120"
-				preserveAspectRatio="none"
-			>
-				<path
-					fill="currentColor"
-					fill-opacity="0.5"
-					d="M0,80 C180,40 380,100 580,65 C780,25 980,100 1200,70 L1200,120 L0,120 Z"></path>
-			</svg>
-		</div>
-	</div>
-
-	<!-- Sand strip gradient -->
-	<div
-		class="pointer-events-none absolute inset-x-0 bottom-0 h-[32%] bg-gradient-to-t from-[#f0dcc4] via-[#faf0e6]/96 to-transparent"
-		aria-hidden="true"
-	></div>
-
-	<!-- Dream Journal — text only, no images -->
 	<button
 		type="button"
-		class="pointer-events-auto absolute bottom-[8%] right-[8%] z-[2] rounded-full border-2 border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-beach-bg)_82%,transparent)] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#142a42] shadow-[0_0_24px_color-mix(in_srgb,var(--color-amber)_35%,transparent)] backdrop-blur-sm transition hover:scale-[1.03] hover:shadow-[0_0_32px_color-mix(in_srgb,var(--color-amber)_45%,transparent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffaa00]"
+		class="pointer-events-auto absolute bottom-[8%] right-[8%] z-[2] rounded-full border-2 border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-beach-bg)_88%,transparent)] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#142a42] shadow-md backdrop-blur-sm transition hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffaa00]"
 		data-beach-dream-journal
 		aria-label="Enter Dream Journal"
 		title="Dream Journal"
@@ -73,64 +24,14 @@
 </div>
 
 <style>
-	.beach-gradient-ocean {
-		background: linear-gradient(
-			180deg,
-			#87ceeb 0%,
-			#a8d8ea 16%,
-			#6db3d4 32%,
-			#4a9aba 44%,
-			#6eb8d6 54%,
-			#a8cfc4 65%,
-			#e8dcc8 78%,
-			#f5e6d3 100%
-		);
-	}
-	.beach-gradient-ocean::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background: repeating-linear-gradient(175deg, transparent 0%, rgba(255, 255, 255, 0.07) 2%, transparent 4%);
-		animation: beach-shimmer 10s ease-in-out infinite alternate;
-	}
-	@keyframes beach-shimmer {
-		0% {
-			transform: translateX(-6%);
-			opacity: 0.55;
-		}
-		100% {
-			transform: translateX(6%);
-			opacity: 0.95;
-		}
-	}
-
-	.beach-wave-svg--1 {
-		animation: beach-wave-slide 14s linear infinite;
-	}
-	.beach-wave-svg--2 {
-		animation: beach-wave-slide 19s linear infinite reverse;
-		opacity: 0.92;
-	}
-	.beach-wave-svg--3 {
-		animation: beach-wave-slide 11s linear infinite;
-		opacity: 0.88;
-	}
-	@keyframes beach-wave-slide {
-		0% {
-			transform: translateX(0);
-		}
-		100% {
-			transform: translateX(-8%);
-		}
+	.beach-plain-bg {
+		background: linear-gradient(165deg, #f0f7fc 0%, #fdf8f0 45%, #f5ebe0 100%);
 	}
 </style>
 
 <script>
-	import { gsap } from 'gsap';
-
 	const root = document.querySelector('[data-beach-canvas]') as HTMLElement | null;
 	const dreamBtn = document.querySelector('[data-beach-dream-journal]') as HTMLButtonElement | null;
-	const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 	function applyThemeVisibility() {
 		const t = document.documentElement.getAttribute('data-theme');
@@ -148,32 +49,7 @@
 	const mo = new MutationObserver(applyThemeVisibility);
 	mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-	function goDreamJournal() {
+	dreamBtn?.addEventListener('click', () => {
 		window.location.href = '/dream-journal';
-	}
-
-	dreamBtn?.addEventListener('click', goDreamJournal);
-
-	if (root && !reduce) {
-		let px = 0;
-		let py = 0;
-		let tx = 0;
-		let ty = 0;
-		window.addEventListener(
-			'pointermove',
-			(e) => {
-				tx = (e.clientX / window.innerWidth - 0.5) * 2;
-				ty = (e.clientY / window.innerHeight - 0.5) * 2;
-			},
-			{ passive: true },
-		);
-		gsap.ticker.add(() => {
-			px += (tx - px) * 0.06;
-			py += (ty - py) * 0.06;
-			root.querySelectorAll<HTMLElement>('[data-beach-parallax]').forEach((el) => {
-				const m = Number(el.dataset.beachParallax || '0.4');
-				gsap.set(el, { x: px * 14 * m, y: py * 10 * m, rotateZ: px * 0.35 * m });
-			});
-		});
-	}
+	});
 </script>
