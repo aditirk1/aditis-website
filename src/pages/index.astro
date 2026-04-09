@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import LiveVisitorMap from '../components/LiveVisitorMap.astro';
 import SplashIntro from '../components/SplashIntro.astro';
+import LiveVisitorMap from '../components/LiveVisitorMap.astro';
 
 const siteTitle = "aditi's universe";
 const chars = siteTitle.split('');
@@ -10,9 +10,10 @@ const chars = siteTitle.split('');
 <Layout title="aditi's universe · aditirk.me">
 	<SplashIntro />
 
-	<!-- Full-viewport hero — text floats directly over the star field / beach -->
+	<!-- Hero: pointer-events-none so the starfield canvas can receive clicks (secret star). Interactive bits opt in. -->
 	<section
-		class="pointer-events-auto relative flex min-h-[100dvh] flex-col items-start justify-center px-8 pb-20 pt-8 md:px-16 md:pb-24 lg:px-24"
+		class="pointer-events-none relative flex min-h-[100dvh] flex-col items-start justify-center px-8 pb-20 pt-8 md:px-16 md:pb-24 lg:px-24"
+		data-hero-root
 		data-reveal-stagger
 	>
 		<h1
@@ -42,7 +43,7 @@ const chars = siteTitle.split('');
 			Exploring the intersection of biology, technology, and creative expression.
 			Look closely — there may be more to discover than meets the eye.
 		</p>
-		<div class="mt-10 flex flex-wrap gap-4" data-reveal-child>
+		<div class="pointer-events-auto mt-10 flex flex-wrap gap-4" data-reveal-child>
 			<a
 				href="/projects"
 				class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-6 py-3 text-sm font-bold text-[var(--page-fg)] backdrop-blur-sm transition hover:scale-105 hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)] hover:shadow-[0_0_28px_color-mix(in_srgb,var(--color-amber)_30%,transparent)]"
@@ -57,12 +58,11 @@ const chars = siteTitle.split('');
 			</a>
 		</div>
 
-		<div class="absolute bottom-8 left-1/2 -translate-x-1/2" aria-hidden="true">
-			<span class="inline-block animate-bounce text-3xl text-[var(--color-amber)]" data-hero-chevron>⌄</span>
+		<div class="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2" aria-hidden="true">
+			<span class="inline-block text-3xl text-[var(--color-amber)] will-change-transform" data-hero-chevron>⌄</span>
 		</div>
 	</section>
 
-	<!-- About section — scroll-reveal, no box -->
 	<section
 		class="pointer-events-auto relative mx-auto max-w-3xl px-8 py-20 md:px-16 md:py-28"
 		data-reveal-stagger
@@ -85,7 +85,6 @@ const chars = siteTitle.split('');
 		</p>
 	</section>
 
-	<!-- Quick links — flowing row of cards -->
 	<section
 		class="pointer-events-auto relative mx-auto max-w-5xl px-8 py-12 md:px-16 md:py-20"
 		data-reveal-stagger
@@ -98,7 +97,7 @@ const chars = siteTitle.split('');
 			Explore
 		</h2>
 		<div class="mt-1 h-0.5 w-12 rounded-full bg-[var(--color-amber)]" data-reveal-child></div>
-		<div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-reveal-child>
+		<div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 			{[
 				{ href: '/projects', title: 'Projects', desc: 'Research, engineering, and creative builds.' },
 				{ href: '/blog', title: 'Blog', desc: 'Long-form essays and technical explorations.' },
@@ -109,6 +108,7 @@ const chars = siteTitle.split('');
 				<a
 					href={href}
 					class="group relative overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--page-fg)_12%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_70%,transparent)] p-6 backdrop-blur-md transition-all duration-300 hover:border-[var(--color-amber)] hover:shadow-[0_0_32px_color-mix(in_srgb,var(--color-amber)_15%,transparent)]"
+					data-reveal-child
 				>
 					<h3 class="text-lg font-semibold" style="font-family: var(--font-display)">
 						{title}
@@ -124,31 +124,9 @@ const chars = siteTitle.split('');
 		</div>
 	</section>
 
-	<!-- Visitor map -->
 	<section class="pointer-events-auto relative mx-auto max-w-3xl px-8 py-12 md:px-16 md:py-20" data-reveal-stagger>
 		<div data-reveal-child>
 			<LiveVisitorMap />
 		</div>
 	</section>
 </Layout>
-
-<script>
-	import { initHomeHero } from '../scripts/home-hero.ts';
-
-	let stopHomeHero = initHomeHero();
-
-	function bootHomeHeroIfHome() {
-		if (window.location.pathname !== '/') return;
-		stopHomeHero();
-		stopHomeHero = initHomeHero();
-	}
-
-	document.addEventListener('astro:page-load', bootHomeHeroIfHome);
-
-	if (import.meta.hot) {
-		import.meta.hot.dispose(() => {
-			stopHomeHero();
-			document.removeEventListener('astro:page-load', bootHomeHeroIfHome);
-		});
-	}
-</script>

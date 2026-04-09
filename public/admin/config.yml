@@ -1,0 +1,80 @@
+# Decap CMS — edit Markdown in the browser. For production, set `backend` to your Git host
+# (GitHub + OAuth) or enable Netlify Identity + Git Gateway. Local editing: run `npm run cms:local`
+# with local_backend: true, then open /admin/ while `astro dev` is running.
+
+local_backend: true
+
+backend:
+  name: git-gateway
+  branch: main
+  repo: aditirk1/aditis-website
+
+media_folder: public/uploads
+public_folder: /uploads
+
+collections:
+  - name: projects
+    label: Projects
+    label_singular: project
+    folder: src/content/projects
+    create: true
+    extension: md
+    format: frontmatter
+    slug: '{{slug}}'
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Date, name: date, widget: datetime, date_format: YYYY-MM-DD, time_format: false }
+      - label: Tags
+        name: tags
+        widget: select
+        multiple: true
+        required: false
+        options:
+          - { label: Research, value: research }
+          - { label: Engineering, value: engineering }
+          - { label: Design, value: design }
+      - { label: Summary, name: summary, widget: text }
+      - { label: Thumbnail, name: thumbnail, widget: image, required: false, choose_url: true }
+      - { label: Draft, name: draft, widget: boolean, default: false }
+      - { label: Body, name: body, widget: markdown }
+
+  - name: blog
+    label: Blog
+    label_singular: post
+    folder: src/content/blog
+    create: true
+    extension: md
+    format: frontmatter
+    slug: '{{slug}}'
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Date, name: date, widget: datetime, date_format: YYYY-MM-DD, time_format: false }
+      - { label: Draft, name: draft, widget: boolean, default: false }
+      - { label: Body, name: body, widget: markdown }
+
+  - name: thoughts
+    label: Thoughts
+    label_singular: thought
+    folder: src/content/thoughts
+    create: true
+    extension: md
+    format: frontmatter
+    slug: '{{slug}}'
+    fields:
+      - { label: Date, name: date, widget: datetime, date_format: YYYY-MM-DD, time_format: false }
+      - { label: Draft, name: draft, widget: boolean, default: false }
+      - { label: Body, name: body, widget: markdown }
+
+  - name: dreams
+    label: Dream journal
+    label_singular: dream
+    folder: src/content/dreams
+    create: true
+    extension: md
+    format: frontmatter
+    slug: '{{slug}}'
+    fields:
+      - { label: Date, name: date, widget: datetime, date_format: YYYY-MM-DD, time_format: false }
+      - { label: Mood, name: mood, widget: string, required: false }
+      - { label: Draft, name: draft, widget: boolean, default: false }
+      - { label: Body, name: body, widget: markdown }

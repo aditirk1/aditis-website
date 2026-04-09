@@ -1,48 +1,55 @@
 ---
 /**
- * Dream Journal — ethereal layout variant, comic-style word hits, GSAP hover on hits.
- * Entries: src/content/dreams/*.md (see frontmatter highlight-words + word-styles).
+ * Dream Journal — list links to full entries at /dream-journal/[id].
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import { stripFrontmatter, dreamMarkdownToHtml } from '../../utils/dream-markdown.ts';
+import { stripFrontmatter } from '../../utils/dream-markdown.ts';
+
+function previewPlain(md: string, max: number): string {
+	const t = md
+		.replace(/^#+\s+/gm, '')
+		.replace(/[*_`]/g, '')
+		.replace(/\s+/g, ' ')
+		.trim();
+	return t.length > max ? `${t.slice(0, max).trim()}…` : t;
+}
 
 const entries = await getCollection('dreams', ({ data }) => data.draft !== true);
 const sorted = entries.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-const rendered = await Promise.all(
-	sorted.map(async (entry) => {
-		const fp = path.join(process.cwd(), 'src', 'content', 'dreams', `${entry.id}.md`);
-		const rawFile = fs.readFileSync(fp, 'utf8');
-		const md = stripFrontmatter(rawFile);
-		const html = await dreamMarkdownToHtml(
-			md,
-			entry.data['highlight-words'],
-			entry.data['word-styles'],
-		);
-		return { entry, html };
-	}),
-);
+const list = sorted.map((entry) => {
+	const fp = path.join(process.cwd(), 'src', 'content', 'dreams', `${entry.id}.md`);
+	const rawFile = fs.readFileSync(fp, 'utf8');
+	const md = stripFrontmatter(rawFile);
+	return { entry, preview: previewPlain(md, 220) };
+});
 ---
 
 <Layout layoutVariant="dream" title="Dream Journal · aditi's universe">
 	<div class="pointer-events-auto mx-auto max-w-2xl pb-16" data-dream-entrance>
 		<h1 class="mb-2 text-4xl font-light md:text-5xl" style="font-family: var(--font-display)">Dream Journal</h1>
 		<p class="mb-10 max-w-prose text-lg text-[var(--page-muted)]">
-			Ethereal, a little surreal — comic-book emphasis on chosen words (hover them). Soundtrack switches automatically
-			here if you add audio files under <code class="text-[var(--color-amber)]">/public/audio/</code>.
+			Ethereal, a little surreal — comic-book emphasis on chosen words on each entry page (hover them). Soundtrack
+			switches automatically here if you add audio files under <code class="text-[var(--color-amber)]">/public/audio/</code>.
 		</p>
 
 		{
-			rendered.length === 0 ? (
-				<p class="text-[var(--page-muted)]">No dreams published yet. Add Markdown to <code>src/content/dreams/</code>.</p>
+			list.length === 0 ? (
+				<p class="text-[var(--page-muted)]">
+					No dreams published yet. Add entries in the{' '}
+					<a href="/admin/" class="text-[var(--color-amber)] underline underline-offset-2 hover:opacity-90">
+						editor
+					</a>{' '}
+					or under <code>src/content/dreams/</code>.
+				</p>
 			) : (
-				rendered.map(({ entry, html }) => (
-					<article class="dream-realm-panel relative mb-10 px-6 py-8 md:px-8 md:py-10">
-						<div class="dream-realm-article">
-							<p class="dream-entry-meta mb-5">
+				<div class="flex flex-col gap-6">
+					{list.map(({ entry, preview }) => (
+						<article class="dream-realm-panel relative rounded-2xl px-6 py-6 md:px-8 md:py-8">
+							<p class="dream-entry-meta mb-3">
 								{entry.data.date.toLocaleDateString(undefined, {
 									weekday: 'long',
 									year: 'numeric',
@@ -51,18 +58,20 @@ const rendered = await Promise.all(
 								})}
 								{entry.data.mood && <> · {entry.data.mood}</>}
 							</p>
-							<div
-								class="dream-md space-y-4 text-lg leading-relaxed text-[var(--page-fg)] [&_p]:mb-4"
-								set:html={html}
-							/>
-						</div>
-					</article>
-				))
+							<p class="text-[var(--page-muted)]">{preview}</p>
+							<a
+								href={`/dream-journal/${entry.id}`}
+								class="mt-4 inline-block text-sm font-bold tracking-wide text-[var(--color-amber)] underline-offset-2 hover:underline"
+							>
+								Read full dream →
+							</a>
+						</article>
+					))}
+				</div>
 			)
 		}
 	</div>
 </Layout>
-
 <script>
 	import { gsap } from 'gsap';
 
@@ -75,16 +84,5 @@ const rendered = await Promise.all(
 			{ opacity: 0, filter: 'blur(12px)', y: 12 },
 			{ opacity: 1, filter: 'blur(0px)', y: 0, duration: 1.25, ease: 'power2.out', delay: 0.08 },
 		);
-	}
-
-	if (!reduce) {
-		document.querySelectorAll('.dream-hit').forEach((el) => {
-			el.addEventListener('mouseenter', () => {
-				gsap.to(el, { scale: 1.08, duration: 0.22, ease: 'power2.out' });
-			});
-			el.addEventListener('mouseleave', () => {
-				gsap.to(el, { scale: 1, duration: 0.35, ease: 'power3.inOut' });
-			});
-		});
 	}
 </script>

@@ -1,0 +1,38 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Thank you · aditi's universe" description="Payment completed.">
+	<div class="pointer-events-auto mx-auto max-w-xl px-2 py-16 md:py-24" data-reveal-stagger>
+		<h1
+			class="text-3xl font-semibold tracking-tight md:text-4xl"
+			style="font-family: var(--font-display)"
+			data-reveal-child
+		>
+			Thank you
+		</h1>
+		<div class="mt-2 h-0.5 w-12 rounded-full bg-[var(--color-amber)]" data-reveal-child></div>
+		<p class="mt-6 text-lg leading-relaxed text-[var(--page-muted)]" data-reveal-child>
+			Your payment went through Stripe. If anything looks off, reply to your Stripe receipt email or reach out via
+			the contact form on Services.
+		</p>
+		<p class="mt-4 text-sm text-[var(--page-muted)]" data-reveal-child>
+			Stripe sends its own receipt — this page only confirms you returned from Checkout successfully.
+		</p>
+		<p class="mt-10" data-reveal-child>
+			<a
+				href="/"
+				class="text-[var(--color-amber)] underline underline-offset-2 hover:opacity-90"
+			>
+				Back to home
+			</a>
+			<span class="text-[var(--page-muted)]"> · </span>
+			<a
+				href="/services"
+				class="text-[var(--color-amber)] underline underline-offset-2 hover:opacity-90"
+			>
+				Services
+			</a>
+		</p>
+	</div>
+</Layout>

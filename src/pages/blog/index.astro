@@ -38,10 +38,17 @@ const enriched = sorted.map((post) => {
 		</div>
 		{enriched.length === 0 ? (
 			<p class="text-[var(--page-muted)]">
-				Add Markdown to <code class="text-[var(--color-amber)]">src/content/blog/</code>.
+				Add posts in the{' '}
+				<a href="/admin/" class="text-[var(--color-amber)] underline underline-offset-2 hover:opacity-90">
+					content editor
+				</a>{' '}
+				or under <code class="text-[var(--color-amber)]">src/content/blog/</code>.
 			</p>
 		) : (
-			<div class="flex flex-col gap-0 divide-y divide-[color-mix(in_srgb,var(--page-fg)_10%,transparent)]">
+			<div
+				class="flex flex-col gap-0 divide-y divide-[color-mix(in_srgb,var(--page-fg)_10%,transparent)]"
+				data-reveal-stagger
+			>
 				{enriched.map(({ post, minutes, excerpt }) => (
 					<a
 						href={`/blog/${post.id}`}

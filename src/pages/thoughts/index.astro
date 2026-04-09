@@ -1,16 +1,39 @@
 ---
-import { getCollection, render } from 'astro:content';
+import fs from 'node:fs';
+import path from 'node:path';
+import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+
+function stripFrontmatter(raw: string): string {
+	if (!raw.startsWith('---')) return raw;
+	const end = raw.indexOf('\n---', 3);
+	if (end === -1) return raw;
+	return raw.slice(end + 4).trim();
+}
+
+function previewPlain(md: string, max: number): string {
+	const t = md
+		.replace(/^#+\s+/gm, '')
+		.replace(/[*_`]/g, '')
+		.replace(/\s+/g, ' ')
+		.trim();
+	return t.length > max ? `${t.slice(0, max).trim()}…` : t;
+}
 
 const thoughts = await getCollection('thoughts', ({ data }) => data.draft !== true);
 const sorted = thoughts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-const bodies = await Promise.all(
-	sorted.map(async (t) => {
-		const { Content } = await render(t);
-		return { entry: t, Content };
-	}),
-);
+const list = sorted.map((entry) => {
+	const fp = path.join(process.cwd(), 'src', 'content', 'thoughts', `${entry.id}.md`);
+	let raw = '';
+	try {
+		raw = fs.readFileSync(fp, 'utf8');
+	} catch {
+		raw = '';
+	}
+	const md = stripFrontmatter(raw);
+	return { entry, preview: previewPlain(md, 280) };
+});
 ---
 
 <Layout title="Thoughts · aditi's universe">
@@ -26,20 +49,28 @@ const bodies = await Promise.all(
 			<div class="mt-2 h-0.5 w-12 rounded-full bg-[var(--color-amber)]" data-reveal-child></div>
 		</div>
 		{
-			bodies.length === 0 ? (
+			list.length === 0 ? (
 				<p class="text-[var(--page-muted)]">
-					Add short entries as Markdown in <code class="text-[var(--color-amber)]">src/content/thoughts/</code>.
+					Add thoughts in the{' '}
+					<a href="/admin/" class="text-[var(--color-amber)] underline underline-offset-2 hover:opacity-90">
+						content editor
+					</a>{' '}
+					or as Markdown under <code class="text-[var(--color-amber)]">src/content/thoughts/</code>.
 				</p>
 			) : (
 				<div class="flex flex-col gap-0 divide-y divide-[color-mix(in_srgb,var(--page-fg)_10%,transparent)]">
-					{bodies.map(({ entry, Content }) => (
+					{list.map(({ entry, preview }) => (
 						<div class="py-8 first:pt-0" data-reveal-child>
 							<p class="mb-3 text-xs uppercase tracking-wider text-[var(--page-muted)]">
 								{entry.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
 							</p>
-							<div class="text-base leading-relaxed text-[var(--page-fg)] [&_p]:mb-0">
-								<Content />
-							</div>
+							<p class="text-base leading-relaxed text-[var(--page-muted)]">{preview}</p>
+							<a
+								href={`/thoughts/${entry.id}`}
+								class="mt-4 inline-block text-sm font-semibold text-[var(--color-amber)] underline-offset-2 hover:underline"
+							>
+								Read thought →
+							</a>
 						</div>
 					))}
 				</div>
