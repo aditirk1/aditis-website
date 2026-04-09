@@ -1,0 +1,46 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer
+	class="pointer-events-auto mt-auto border-t border-[color-mix(in_srgb,var(--page-fg)_12%,transparent)] px-6 py-10 md:px-10"
+	data-site-footer
+>
+	<div class="mx-auto flex max-w-5xl flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+		<div>
+			<p class="text-sm font-medium text-[var(--page-fg)]" style="font-family: var(--font-display)">
+				aditi's universe
+			</p>
+			<p class="mt-1 max-w-md text-sm leading-relaxed text-[var(--page-muted)]">
+				Biomedical engineering, research, and writing — built with care.
+			</p>
+		</div>
+		<div class="flex flex-col gap-3 sm:items-end">
+			<div class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+				<a
+					href="https://www.linkedin.com/in/aditirk/"
+					class="text-[var(--page-muted)] underline decoration-[color-mix(in_srgb,var(--page-fg)_35%,transparent)] underline-offset-4 transition hover:text-[var(--color-amber)] hover:decoration-[var(--color-amber)]"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					LinkedIn
+				</a>
+				<a
+					href="https://github.com/aditirk1"
+					class="text-[var(--page-muted)] underline decoration-[color-mix(in_srgb,var(--page-fg)_35%,transparent)] underline-offset-4 transition hover:text-[var(--color-amber)] hover:decoration-[var(--color-amber)]"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					GitHub
+				</a>
+				<a
+					href="/admin/"
+					class="text-[var(--page-muted)] underline decoration-[color-mix(in_srgb,var(--page-fg)_35%,transparent)] underline-offset-4 transition hover:text-[var(--color-amber)] hover:decoration-[var(--color-amber)]"
+				>
+					Edit content
+				</a>
+			</div>
+			<p class="text-xs text-[var(--page-muted)]">© {year} · aditirk.me</p>
+		</div>
+	</div>
+</footer>

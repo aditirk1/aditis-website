@@ -1,9 +1,6 @@
 ---
 /**
- * Custom visitor globe (globe.gl) + total from Cloudflare Pages Functions + KV.
- *
- * Deploy: bind KV as VISITOR_KV, set secret ADMIN_STATS_SECRET for /api/admin/stats.
- * Optional PUBLIC_VISITOR_API_BASE if the browser must call another origin (rare).
+ * Visitor globe (globe.gl) + total from /api/stats (Cloudflare Pages + KV).
  */
 const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '');
 ---
@@ -12,12 +9,12 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 	class="pointer-events-auto mt-8 rounded-xl border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_85%,transparent)] p-4 shadow-[0_0_28px_color-mix(in_srgb,var(--color-amber)_14%,transparent)] backdrop-blur-md md:mt-10"
 	data-live-visitor-map
 	data-api-base={apiBase}
-	aria-label="Live visitors"
+	aria-label="Site reach"
 >
 	<div class="mb-3 flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-[var(--page-muted)]">
 		<span class="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--color-amber)]" aria-hidden="true"
 		></span>
-		<span>Live reach</span>
+		<span>Global reach</span>
 	</div>
 
 	<div class="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
@@ -37,11 +34,11 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 		</div>
 
 		<div class="flex w-full min-w-0 flex-1 flex-col items-center gap-2 sm:items-start">
-			<span class="text-[9px] uppercase tracking-wider text-[var(--page-muted)]">Total visits</span>
+			<span class="text-[9px] uppercase tracking-wider text-[var(--page-muted)]">Recorded visits</span>
 			<div
 				class="flex min-h-[72px] w-full max-w-[260px] flex-col justify-center gap-1 rounded-lg border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,#000_35%,transparent)] px-4 py-3"
 			>
-				<span class="text-[9px] uppercase tracking-wider text-[var(--page-muted)]">All-time (recorded)</span>
+				<span class="text-[9px] uppercase tracking-wider text-[var(--page-muted)]">All-time (site)</span>
 				<span
 					data-visitor-total
 					class="text-2xl font-semibold tabular-nums text-[var(--color-amber)]"
@@ -51,7 +48,6 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 		</div>
 	</div>
 </aside>
-
 <script>
 	import { bootLiveVisitorMap } from '../scripts/live-visitor-map';
 

@@ -49,6 +49,7 @@ aditis-website/
 ├── functions/                # Cloudflare Pages Functions (edge)
 │   ├── global.d.ts           # Workers types reference
 │   ├── api/
+│   │   ├── checkout.ts       # POST — create Stripe Checkout Session
 │   │   ├── visit.ts          # POST — record visit from cf.* geo
 │   │   ├── stats.ts          # GET — public totals + globe markers
 │   │   └── admin/
@@ -192,12 +193,14 @@ All **`PUBLIC_*`** variables are exposed to the browser. Never put secrets in `P
 | `PUBLIC_UMAMI_SCRIPT_URL` | Umami analytics script URL |
 | `PUBLIC_UMAMI_WEBSITE_ID` | Umami site id |
 | `PUBLIC_VISITOR_API_BASE` | Optional absolute origin for `/api/*` if not same-origin |
-| `PUBLIC_STRIPE_LINK_*` | Stripe payment links (consult / writing / design) |
+| `PUBLIC_STRIPE_CHECKOUT` | Set to `true` to show **Pay securely (Stripe)** on `/services` |
 
 **Cloudflare-only (not `PUBLIC_*`):**
 
 - **`VISITOR_KV`** — KV namespace binding (see `wrangler.toml`).
 - **`ADMIN_STATS_SECRET`** — Bearer token for `/api/admin/stats`.
+- **`STRIPE_SECRET_KEY`** — Stripe secret API key for **`POST /api/checkout`** (Checkout Sessions).
+- **`STRIPE_PRICE_ID`** — Default [Price](https://stripe.com/docs/api/prices) id (`price_…`) for that checkout button.
 
 Define **`PUBLIC_*`** in `.env` locally and in **Cloudflare Pages → Settings → Environment variables** for production/preview.
 

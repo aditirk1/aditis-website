@@ -1,0 +1,37 @@
+---
+import { getCollection, render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+	const items = await getCollection('thoughts', ({ data }) => data.draft !== true);
+	return items.map((entry) => ({
+		params: { id: entry.id },
+		props: { entry },
+	}));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<Layout title={`Thought · ${entry.data.date.toLocaleDateString()}`}>
+	<article
+		class="pointer-events-auto mx-auto max-w-2xl px-2 py-8 md:py-10"
+		data-reveal-stagger
+	>
+		<p data-reveal-child>
+			<a
+				href="/thoughts"
+				class="text-sm text-[var(--page-muted)] underline-offset-2 hover:text-[var(--color-amber)] hover:underline"
+			>
+				← All thoughts
+			</a>
+		</p>
+		<p class="mb-6 mt-8 text-xs uppercase tracking-wider text-[var(--page-muted)]" data-reveal-child>
+			{entry.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+		</p>
+		<div class="text-base leading-relaxed text-[var(--page-fg)] [&_p]:mb-4" data-reveal-child>
+			<Content />
+		</div>
+	</article>
+</Layout>
