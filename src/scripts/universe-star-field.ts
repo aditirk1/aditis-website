@@ -270,8 +270,9 @@ export function initUniverseStarField(): () => void {
 
 	const tick = () => {
 		if (!running) return;
-		const t = clock.getElapsedTime();
+		/* One getDelta() per frame — getElapsedTime() also calls getDelta() and would zero the next delta. */
 		const delta = Math.min(clock.getDelta(), 0.1);
+		const t = clock.elapsedTime;
 
 		const rotSpeed = reducedMotion ? 0.09 : isDreamRealmPage() ? 0.35 : 0.95;
 		spinY += delta * rotSpeed;

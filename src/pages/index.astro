@@ -12,11 +12,11 @@ const chars = siteTitle.split('');
 
 	<!-- Full-viewport hero — text floats directly over the star field / beach -->
 	<section
-		class="pointer-events-auto relative flex min-h-[100dvh] flex-col items-start justify-center px-8 md:px-16 lg:px-24"
+		class="pointer-events-auto relative flex min-h-[100dvh] flex-col items-start justify-center px-8 pb-20 pt-8 md:px-16 md:pb-24 lg:px-24"
 		data-reveal-stagger
 	>
 		<h1
-			class="text-5xl font-semibold leading-[1.1] tracking-tight md:text-7xl lg:text-8xl"
+			class="max-w-[18ch] text-balance text-5xl font-semibold leading-[1.08] tracking-tight md:text-7xl lg:text-8xl"
 			style="font-family: var(--font-display)"
 			data-hero-title
 		>
@@ -36,7 +36,7 @@ const chars = siteTitle.split('');
 			biomedical engineer · researcher · writer
 		</p>
 		<p
-			class="mt-6 max-w-lg text-lg leading-relaxed text-[var(--page-muted)] md:text-xl"
+			class="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-[var(--page-muted)] md:text-xl"
 			data-reveal-child
 		>
 			Exploring the intersection of biology, technology, and creative expression.
@@ -64,7 +64,7 @@ const chars = siteTitle.split('');
 
 	<!-- About section — scroll-reveal, no box -->
 	<section
-		class="pointer-events-auto relative mx-auto max-w-3xl px-8 py-24 md:px-16"
+		class="pointer-events-auto relative mx-auto max-w-3xl px-8 py-20 md:px-16 md:py-28"
 		data-reveal-stagger
 	>
 		<h2
@@ -87,7 +87,7 @@ const chars = siteTitle.split('');
 
 	<!-- Quick links — flowing row of cards -->
 	<section
-		class="pointer-events-auto relative mx-auto max-w-5xl px-8 py-16 md:px-16"
+		class="pointer-events-auto relative mx-auto max-w-5xl px-8 py-12 md:px-16 md:py-20"
 		data-reveal-stagger
 	>
 		<h2
@@ -125,7 +125,7 @@ const chars = siteTitle.split('');
 	</section>
 
 	<!-- Visitor map -->
-	<section class="pointer-events-auto relative mx-auto max-w-3xl px-8 py-16 md:px-16" data-reveal-stagger>
+	<section class="pointer-events-auto relative mx-auto max-w-3xl px-8 py-12 md:px-16 md:py-20" data-reveal-stagger>
 		<div data-reveal-child>
 			<LiveVisitorMap />
 		</div>
@@ -135,9 +135,20 @@ const chars = siteTitle.split('');
 <script>
 	import { initHomeHero } from '../scripts/home-hero.ts';
 
-	const stop = initHomeHero();
+	let stopHomeHero = initHomeHero();
+
+	function bootHomeHeroIfHome() {
+		if (window.location.pathname !== '/') return;
+		stopHomeHero();
+		stopHomeHero = initHomeHero();
+	}
+
+	document.addEventListener('astro:page-load', bootHomeHeroIfHome);
 
 	if (import.meta.hot) {
-		import.meta.hot.dispose(() => stop());
+		import.meta.hot.dispose(() => {
+			stopHomeHero();
+			document.removeEventListener('astro:page-load', bootHomeHeroIfHome);
+		});
 	}
 </script>

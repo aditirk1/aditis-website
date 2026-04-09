@@ -1,16 +1,24 @@
 import Globe from 'globe.gl';
+import { Color, MeshPhongMaterial } from 'three';
 
 export type GlobeMarker = { lat: number; lng: number; count: number; country: string };
 
-const EARTH_NIGHT =
-	'https://cdn.jsdelivr.net/npm/three-globe@2/example/img/earth-night.jpg';
+/** Solid globe — no external earth texture (avoids CDN / image dependency). */
+function createGlobeMaterial(): MeshPhongMaterial {
+	return new MeshPhongMaterial({
+		color: new Color(0x1a2e4a),
+		emissive: new Color(0x0c1828),
+		shininess: 22,
+	});
+}
 
 export function initVisitorGlobe(container: HTMLElement): {
 	setMarkers: (markers: GlobeMarker[]) => void;
 	destroy: () => void;
 } {
 	const globe = new Globe(container)
-		.globeImageUrl(EARTH_NIGHT)
+		.globeImageUrl('')
+		.globeMaterial(createGlobeMaterial())
 		.backgroundColor('rgba(0,0,0,0)')
 		.showGlobe(true)
 		.showAtmosphere(true)
