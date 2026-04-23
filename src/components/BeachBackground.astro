@@ -11,6 +11,7 @@
 	hidden
 >
 	<div class="absolute inset-0 beach-plain-bg" aria-hidden="true"></div>
+	<div class="absolute inset-0 beach-plain-bg" aria-hidden="true"></div>
 
 	<button
 		type="button"
@@ -25,6 +26,8 @@
 </div>
 
 <style>
+	.beach-plain-bg {
+		background: linear-gradient(165deg, #f0f7fc 0%, #fdf8f0 45%, #f5ebe0 100%);
 	.beach-plain-bg {
 		background: linear-gradient(165deg, #f0f7fc 0%, #fdf8f0 45%, #f5ebe0 100%);
 	}
@@ -51,6 +54,8 @@
 	mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
 	dreamBtn?.addEventListener('click', () => {
+	dreamBtn?.addEventListener('click', () => {
 		window.location.href = '/dream-journal';
+	});
 	});
 </script>
