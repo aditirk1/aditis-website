@@ -6,6 +6,12 @@ export type GlobeMarker = { lat: number; lng: number; count?: number };
 const EARTH_BLUE_MARBLE =
 	'https://unpkg.com/three-globe@2.45.0/example/img/earth-blue-marble.jpg';
 
+/** Read theme accent from CSS (`--color-amber` is gold on Universe, blue on Beach). */
+function accentColor(): string {
+	const v = getComputedStyle(document.documentElement).getPropertyValue('--color-amber').trim();
+	return v || '#ffaa00';
+}
+
 export function initVisitorGlobe(container: HTMLElement): {
 	setMarkers: (markers: GlobeMarker[]) => void;
 	destroy: () => void;
@@ -38,7 +44,7 @@ export function initVisitorGlobe(container: HTMLElement): {
 					lat: m.lat,
 					lng: m.lng,
 					size: 0.35 + Math.min(1.2, (m.count ?? 1) * 0.08),
-					color: '#ffaa00',
+					color: accentColor(),
 				})),
 			);
 		},

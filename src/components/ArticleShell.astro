@@ -1,0 +1,72 @@
+---
+import ContentLightbox from './ContentLightbox.astro';
+
+interface Props {
+	backHref: string;
+	backLabel?: string;
+	title: string;
+	variant?: 'project' | 'blog';
+}
+
+const {
+	backHref,
+	backLabel = 'Back',
+	title,
+	variant = 'project',
+} = Astro.props;
+---
+
+<article
+	class="full-page-article pointer-events-auto"
+	data-content-article
+	data-article-variant={variant}
+>
+	<div class="full-page-article__backdrop" aria-hidden="true"></div>
+
+	<div class="full-page-article__inner">
+		<header class="full-page-article__hero" data-reveal-stagger>
+			<p class="full-page-article__back" data-reveal-child>
+				<a href={backHref} class="article-back-link">
+					← {backLabel}
+				</a>
+			</p>
+
+			<h1
+				class="full-page-article__title"
+				style="font-family: var(--font-display)"
+				data-reveal-child
+			>
+				{title}
+			</h1>
+
+			{
+				Astro.slots.has('meta') && (
+					<div class="full-page-article__meta" data-reveal-child>
+						<slot name="meta" />
+					</div>
+				)
+			}
+
+			{
+				Astro.slots.has('lede') && (
+					<div class="full-page-article__lede" data-reveal-child>
+						<slot name="lede" />
+					</div>
+				)
+			}
+		</header>
+
+		<div class="full-page-article__body blog-prose prose-article text-[var(--page-fg)]" data-reveal-child>
+			<slot />
+		</div>
+	</div>
+</article>
+
+<ContentLightbox />
+
+<script>
+	import { initContentArticle } from '../scripts/content-article.ts';
+
+	const stop = initContentArticle();
+	if (import.meta.hot) import.meta.hot.dispose(() => stop());
+</script>

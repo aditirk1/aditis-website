@@ -37,8 +37,8 @@ const list = sorted.map((entry) => {
 ---
 
 <Layout title="Thoughts · aditi's universe">
-	<div class="pointer-events-auto mx-auto max-w-2xl px-2" data-reveal-stagger>
-		<div class="mb-12">
+	<div class="page-list-shell page-list-shell--thoughts">
+		<div data-reveal-stagger class="page-list-header">
 			<h1
 				class="text-4xl font-semibold tracking-tight md:text-5xl"
 				style="font-family: var(--font-display)"
@@ -50,24 +50,23 @@ const list = sorted.map((entry) => {
 		</div>
 		{
 			list.length === 0 ? (
-				<p class="text-[var(--page-muted)]">
-					Add thoughts in the{' '}
-					<a href="/admin/" class="text-[var(--color-amber)] underline underline-offset-2 hover:opacity-90">
-						content editor
-					</a>{' '}
-					or as Markdown under <code class="text-[var(--color-amber)]">src/content/thoughts/</code>.
+				<p class="text-[var(--page-muted)]" data-reveal-child>
+					No thoughts yet. Add Markdown under <code class="text-[var(--color-amber)]">src/content/thoughts/</code>.
 				</p>
 			) : (
-				<div class="flex flex-col gap-0 divide-y divide-[color-mix(in_srgb,var(--page-fg)_10%,transparent)]">
+				<div
+					class="flex flex-col gap-0 divide-y divide-[color-mix(in_srgb,var(--page-fg)_10%,transparent)]"
+					data-reveal-stagger
+				>
 					{list.map(({ entry, preview }) => (
 						<div class="py-8 first:pt-0" data-reveal-child>
-							<p class="mb-3 text-xs uppercase tracking-wider text-[var(--page-muted)]">
+							<p class="mb-3 text-sm uppercase tracking-wider text-[var(--page-muted)]">
 								{entry.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
 							</p>
-							<p class="text-base leading-relaxed text-[var(--page-muted)]">{preview}</p>
+							<p class="text-lg leading-relaxed text-[var(--page-muted)]">{preview}</p>
 							<a
 								href={`/thoughts/${entry.id}`}
-								class="mt-4 inline-block text-sm font-semibold text-[var(--color-amber)] underline-offset-2 hover:underline"
+								class="mt-4 inline-block text-base font-semibold text-[var(--color-amber)] underline-offset-2 hover:underline"
 							>
 								Read thought →
 							</a>

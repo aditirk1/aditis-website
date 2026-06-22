@@ -29,7 +29,19 @@ export function bootLiveVisitorMap(root: HTMLElement): () => void {
 		if (noteEl) noteEl.textContent = note;
 	}
 
+	async function recordVisit() {
+		try {
+			await fetch(apiUrl(apiBase, '/api/visit'), {
+				method: 'POST',
+				credentials: 'same-origin',
+			});
+		} catch {
+			// Fire-and-forget; stats fetch handles UI fallback.
+		}
+	}
+
 	async function load() {
+		await recordVisit();
 		try {
 			const r = await fetch(apiUrl(apiBase, '/api/stats'), { credentials: 'same-origin' });
 			if (!r.ok) throw new Error(String(r.status));

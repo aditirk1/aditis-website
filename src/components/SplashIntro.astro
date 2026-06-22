@@ -1,10 +1,7 @@
 ---
 /**
- * First homepage visit per session: "aditi's universe" text fades in, holds briefly,
- * then each letter scatters outward (GSAP stagger with random trajectories).
- * Overlay fades to transparent and is removed — revealing the real site.
- *
- * No flash on refresh: inline script marks html before paint when already seen.
+ * First homepage visit per session: logo (shimmer) → title rises in below,
+ * then letters scatter and the overlay reveals the site.
  */
 const splashText = "aditi's universe";
 const chars = splashText.split('');
@@ -33,17 +30,34 @@ const chars = splashText.split('');
 	aria-hidden="true"
 >
 	<div class="splash-starfield pointer-events-none absolute inset-0" aria-hidden="true"></div>
-	<p
-		class="splash-title relative z-10 select-none text-center text-4xl font-light tracking-[0.35em] text-[var(--page-fg)] opacity-0 md:text-6xl lg:text-7xl"
-		style="font-family: var(--font-display)"
-		data-splash-title
-	>
-		{chars.map((ch) => (
-			<span class="splash-char inline-block will-change-transform">
-				{ch === ' ' ? '\u00a0' : ch}
-			</span>
-		))}
-	</p>
+
+	<div class="splash-stage relative z-10 flex flex-col items-center justify-center" data-splash-stage>
+		<div class="splash-logo-wrap relative" data-splash-logo-wrap>
+			<div class="splash-logo-shimmer" aria-hidden="true"></div>
+			<img
+				src="/brand/logo-universe-180.png"
+				alt=""
+				class="splash-logo block h-[140px] w-[140px] select-none opacity-0 md:h-[180px] md:w-[180px]"
+				width="180"
+				height="180"
+				decoding="async"
+				loading="eager"
+				data-splash-logo
+			/>
+		</div>
+
+		<p
+			class="splash-title pointer-events-none m-0 mt-5 max-w-[min(92vw,28rem)] select-none text-center text-4xl font-light tracking-[0.35em] text-[var(--page-fg)] md:max-w-none md:mt-6 md:text-6xl lg:text-7xl"
+			style="font-family: var(--font-display); visibility: hidden"
+			data-splash-title
+		>
+			{chars.map((ch) => (
+				<span class="splash-char inline-block will-change-transform">
+					{ch === ' ' ? '\u00a0' : ch}
+				</span>
+			))}
+		</p>
+	</div>
 </div>
 
 <style>
@@ -57,6 +71,55 @@ const chars = splashText.split('');
 			radial-gradient(1px 1px at 90% 45%, rgba(255, 255, 255, 0.3), transparent);
 		background-size: 100% 100%;
 		opacity: 0.55;
+	}
+
+	.splash-logo-wrap {
+		overflow: hidden;
+		border-radius: 50%;
+	}
+
+	.splash-logo-shimmer {
+		position: absolute;
+		inset: -8%;
+		background: linear-gradient(
+			105deg,
+			transparent 0%,
+			transparent 38%,
+			rgba(255, 255, 255, 0.15) 44%,
+			rgba(255, 235, 180, 0.75) 50%,
+			rgba(255, 255, 255, 0.2) 56%,
+			transparent 62%,
+			transparent 100%
+		);
+		background-size: 220% 100%;
+		background-position: 120% center;
+		animation: splash-logo-shimmer 2.4s ease-in-out infinite;
+		mix-blend-mode: screen;
+		pointer-events: none;
+	}
+
+	html[data-theme='beach'] .splash-logo-shimmer {
+		background: linear-gradient(
+			105deg,
+			transparent 0%,
+			transparent 38%,
+			rgba(255, 255, 255, 0.2) 44%,
+			rgba(180, 220, 255, 0.85) 50%,
+			rgba(255, 255, 255, 0.25) 56%,
+			transparent 62%,
+			transparent 100%
+		);
+		background-size: 220% 100%;
+		background-position: 120% center;
+	}
+
+	@keyframes splash-logo-shimmer {
+		0% {
+			background-position: 120% center;
+		}
+		100% {
+			background-position: -30% center;
+		}
 	}
 </style>
 
