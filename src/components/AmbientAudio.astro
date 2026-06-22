@@ -5,10 +5,10 @@
 const collapseKey = 'aditi-ambient-panel-collapsed';
 ---
 
-<div class="pointer-events-auto fixed bottom-5 right-5 z-[60] flex flex-col items-end gap-1" data-ambient-root>
+<div class="pointer-events-auto fixed bottom-5 right-5 z-[60] flex flex-col items-end gap-1.5" data-ambient-root>
 	<button
 		type="button"
-		class="rounded-full border border-[color-mix(in_srgb,var(--color-amber)_40%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_90%,transparent)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--page-fg)] shadow backdrop-blur-sm transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)]"
+		class="rounded-full border border-[color-mix(in_srgb,var(--color-amber)_40%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_90%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--page-fg)] shadow backdrop-blur-sm transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)]"
 		data-ambient-toggle
 		aria-expanded="true"
 		aria-controls="ambient-panel-body"
@@ -17,14 +17,14 @@ const collapseKey = 'aditi-ambient-panel-collapsed';
 	</button>
 	<div
 		id="ambient-panel-body"
-		class="flex max-w-[220px] flex-col gap-2 rounded-2xl border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_88%,transparent)] p-3 text-xs text-[var(--page-fg)] shadow-lg backdrop-blur-md transition-[opacity,transform]"
+		class="flex max-w-[240px] flex-col gap-2.5 rounded-2xl border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_88%,transparent)] p-3.5 text-sm text-[var(--page-fg)] shadow-lg backdrop-blur-md transition-[opacity,transform]"
 		data-ambient-panel
 		aria-label="Ambient sound controls"
 	>
 		<div class="flex items-center justify-between gap-2">
 			<button
 				type="button"
-				class="rounded-lg border border-[color-mix(in_srgb,var(--page-fg)_20%,transparent)] px-2 py-1 hover:border-[var(--color-amber)]"
+				class="rounded-lg border border-[color-mix(in_srgb,var(--page-fg)_20%,transparent)] px-2.5 py-1.5 text-sm hover:border-[var(--color-amber)]"
 				data-audio-mute-toggle
 				aria-pressed="false"
 			>
@@ -39,7 +39,7 @@ const collapseKey = 'aditi-ambient-panel-collapsed';
 		<label class="flex flex-col gap-1">
 			<span class="text-[var(--page-muted)]">Ambience</span>
 			<select
-				class="rounded-lg border border-[color-mix(in_srgb,var(--page-fg)_18%,transparent)] bg-transparent px-2 py-1"
+				class="rounded-lg border border-[color-mix(in_srgb,var(--page-fg)_18%,transparent)] bg-transparent px-2.5 py-1.5 text-sm"
 				data-audio-track-select
 			>
 			</select>

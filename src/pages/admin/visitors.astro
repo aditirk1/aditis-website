@@ -1,0 +1,156 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '');
+---
+
+<Layout title="Visitor stats" noindex={true}>
+	<main class="page-list-shell mx-auto px-4 py-16">
+		<h1 class="mb-2 text-2xl font-semibold text-[var(--page-fg)]">Visitor geography</h1>
+		<p class="mb-8 max-w-xl text-sm text-[var(--page-muted)]">
+			Private breakdown from Cloudflare KV. Requires <code class="text-xs">ADMIN_STATS_SECRET</code> on
+			the deployed site.
+		</p>
+
+		<form
+			id="admin-stats-form"
+			class="mb-8 flex max-w-md flex-col gap-3 sm:flex-row sm:items-end"
+			data-api-base={apiBase}
+		>
+			<label class="flex min-w-0 flex-1 flex-col gap-1 text-xs uppercase tracking-wider text-[var(--page-muted)]">
+				Admin secret
+				<input
+					type="password"
+					name="secret"
+					autocomplete="off"
+					class="rounded border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,#000_35%,transparent)] px-3 py-2 text-sm normal-case tracking-normal text-[var(--page-fg)]"
+					placeholder="Bearer token"
+				/>
+			</label>
+			<button
+				type="submit"
+				class="rounded border border-[color-mix(in_srgb,var(--color-amber)_45%,transparent)] px-4 py-2 text-xs uppercase tracking-wider text-[var(--color-amber)] transition hover:bg-[color-mix(in_srgb,var(--color-amber)_12%,transparent)]"
+			>
+				Load stats
+			</button>
+		</form>
+
+		<p id="admin-stats-error" class="mb-4 hidden text-sm text-red-400"></p>
+
+		<div class="mb-6">
+			<p class="mb-1 text-xs uppercase tracking-wider text-[var(--page-muted)]">All-time visits</p>
+			<p id="admin-stats-total" class="text-3xl font-semibold tabular-nums text-[var(--color-amber)]">—</p>
+		</div>
+
+		<div class="grid gap-10 lg:grid-cols-2">
+			<section>
+				<h2 class="mb-3 text-sm uppercase tracking-wider text-[var(--page-muted)]">By country</h2>
+				<div class="overflow-x-auto rounded border border-[color-mix(in_srgb,var(--color-amber)_25%,transparent)]">
+					<table class="w-full min-w-[240px] text-left text-sm">
+						<thead class="border-b border-[color-mix(in_srgb,var(--color-amber)_20%,transparent)] text-xs uppercase tracking-wider text-[var(--page-muted)]">
+							<tr>
+								<th class="px-3 py-2">Code</th>
+								<th class="px-3 py-2 text-right">Visits</th>
+							</tr>
+						</thead>
+						<tbody id="admin-stats-countries" class="text-[var(--page-fg)]"></tbody>
+					</table>
+				</div>
+			</section>
+
+			<section>
+				<h2 class="mb-3 text-sm uppercase tracking-wider text-[var(--page-muted)]">By city</h2>
+				<div class="overflow-x-auto rounded border border-[color-mix(in_srgb,var(--color-amber)_25%,transparent)]">
+					<table class="w-full min-w-[280px] text-left text-sm">
+						<thead class="border-b border-[color-mix(in_srgb,var(--color-amber)_20%,transparent)] text-xs uppercase tracking-wider text-[var(--page-muted)]">
+							<tr>
+								<th class="px-3 py-2">City</th>
+								<th class="px-3 py-2">Country</th>
+								<th class="px-3 py-2 text-right">Visits</th>
+							</tr>
+						</thead>
+						<tbody id="admin-stats-cities" class="text-[var(--page-fg)]"></tbody>
+					</table>
+				</div>
+			</section>
+		</div>
+	</main>
+</Layout>
+
+<script>
+	const form = document.getElementById('admin-stats-form');
+	const errEl = document.getElementById('admin-stats-error');
+	const totalEl = document.getElementById('admin-stats-total');
+	const countriesEl = document.getElementById('admin-stats-countries');
+	const citiesEl = document.getElementById('admin-stats-cities');
+
+	function apiUrl(base: string, path: string): string {
+		const b = base.replace(/\/$/, '');
+		return b ? `${b}${path}` : path;
+	}
+
+	function showError(msg: string) {
+		if (!errEl) return;
+		errEl.textContent = msg;
+		errEl.classList.toggle('hidden', !msg);
+	}
+
+	form?.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		if (!(form instanceof HTMLFormElement) || !totalEl || !countriesEl || !citiesEl) return;
+
+		const secret = new FormData(form).get('secret');
+		if (typeof secret !== 'string' || !secret.trim()) {
+			showError('Enter the admin secret.');
+			return;
+		}
+
+		showError('');
+		totalEl.textContent = '…';
+		countriesEl.innerHTML = '';
+		citiesEl.innerHTML = '';
+
+		const base = form.dataset.apiBase ?? '';
+		try {
+			const r = await fetch(apiUrl(base, '/api/admin/stats'), {
+				headers: { Authorization: `Bearer ${secret.trim()}` },
+				credentials: 'same-origin',
+			});
+			if (!r.ok) {
+				showError(r.status === 401 ? 'Invalid secret.' : `Request failed (${r.status}).`);
+				totalEl.textContent = '—';
+				return;
+			}
+
+			const d = (await r.json()) as {
+				total: number;
+				countries: { code: string; count: number }[];
+				cities: { city: string; country: string; count: number }[];
+			};
+
+			totalEl.textContent = String(d.total ?? 0);
+			countriesEl.innerHTML =
+				d.countries?.length ?
+					d.countries
+						.map(
+							(row) =>
+								`<tr class="border-b border-[color-mix(in_srgb,var(--color-amber)_10%,transparent)]"><td class="px-3 py-2 font-mono">${row.code}</td><td class="px-3 py-2 text-right tabular-nums">${row.count}</td></tr>`,
+						)
+						.join('')
+				:	'<tr><td class="px-3 py-3 text-[var(--page-muted)]" colspan="2">No data yet.</td></tr>';
+
+			citiesEl.innerHTML =
+				d.cities?.length ?
+					d.cities
+						.map(
+							(row) =>
+								`<tr class="border-b border-[color-mix(in_srgb,var(--color-amber)_10%,transparent)]"><td class="px-3 py-2">${row.city}</td><td class="px-3 py-2 font-mono">${row.country}</td><td class="px-3 py-2 text-right tabular-nums">${row.count}</td></tr>`,
+						)
+						.join('')
+				:	'<tr><td class="px-3 py-3 text-[var(--page-muted)]" colspan="3">No city data yet (Cloudflare does not always send city).</td></tr>';
+		} catch {
+			showError('Could not reach /api/admin/stats. Deploy to Cloudflare Pages or use wrangler pages dev.');
+			totalEl.textContent = '—';
+		}
+	});
+</script>

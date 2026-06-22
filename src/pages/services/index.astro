@@ -4,6 +4,7 @@ import ContactModal from '../../components/ContactModal.astro';
 
 const stripeCheckoutEnabled = import.meta.env.PUBLIC_STRIPE_CHECKOUT === 'true';
 const checkoutCanceled = Astro.url.searchParams.get('checkout') === 'canceled';
+const contactEnabled = Boolean(import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY?.trim());
 
 const services = [
 	{
@@ -11,23 +12,56 @@ const services = [
 		teaser: 'Literature synthesis, experiment design, signal & systems thinking.',
 		detail:
 			'Scoped engagements from a single deep-dive memo to multi-week support. Pricing depends on scope — we align after a short intro call.',
+		includes: [
+			'Problem framing and literature review',
+			'Experimental or analysis design',
+			'Written memos or slide summaries',
+		],
 	},
 	{
 		title: 'Technical writing',
 		teaser: 'Grants, reports, and explainers that stay precise without going cold.',
 		detail: 'Per document or monthly retainer. Clear milestones and revision rounds baked in.',
+		includes: [
+			'Grant sections, reports, and white papers',
+			'Editing for clarity and structure',
+			'Figure/diagram support where helpful',
+		],
 	},
 	{
 		title: 'Design + prototyping',
 		teaser: 'Interfaces, diagrams, and small interactive proofs-of-concept.',
 		detail: 'Figma plus light front-end when it helps the story land. Milestone-based delivery.',
+		includes: [
+			'UI flows and visual systems',
+			'Technical diagrams and schematics',
+			'Light prototypes (Figma, web) for demos',
+		],
+	},
+] as const;
+
+const process = [
+	{
+		step: '01',
+		title: 'Intro conversation',
+		body: 'Share context, timeline, and what success looks like. No commitment required.',
+	},
+	{
+		step: '02',
+		title: 'Scope & quote',
+		body: 'I send a short scope doc with deliverables, timeline, and fixed or hourly pricing.',
+	},
+	{
+		step: '03',
+		title: 'Delivery',
+		body: 'Work in agreed checkpoints. You get drafts early; we refine before final handoff.',
 	},
 ] as const;
 ---
 
 <Layout title="Services · aditi's universe">
-	<div class="pointer-events-auto mx-auto max-w-3xl px-2">
-		<div data-reveal-stagger class="mb-12">
+	<div class="page-list-shell">
+		<div data-reveal-stagger class="page-list-header">
 			<h1
 				class="text-4xl font-semibold tracking-tight md:text-5xl"
 				style="font-family: var(--font-display)"
@@ -36,14 +70,15 @@ const services = [
 				Services
 			</h1>
 			<div class="mt-2 h-0.5 w-12 rounded-full bg-[var(--color-amber)]" data-reveal-child></div>
-			<p class="mt-4 text-lg text-[var(--page-muted)]" data-reveal-child>
-				Research, writing, and design support for teams that care about clarity. Tell me what you are building — we
-				can shape a scope together.
+			<p class="mt-4 max-w-3xl text-xl leading-relaxed text-[var(--page-muted)]" data-reveal-child>
+				Research, writing, and design for biotech and health — from RNA-seq pipelines and survival
+				models on Medicare claims to BCI signal processing, molecular dynamics, and prototype hardware.
+				Most work starts with a conversation.
 			</p>
 			{
 				checkoutCanceled && (
 					<p
-						class="mt-4 rounded-lg border border-[color-mix(in_srgb,var(--page-fg)_18%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_80%,transparent)] px-4 py-3 text-sm text-[var(--page-muted)]"
+						class="mt-4 rounded-lg border border-[color-mix(in_srgb,var(--page-fg)_18%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_80%,transparent)] px-4 py-3 text-base text-[var(--page-muted)]"
 						data-reveal-child
 					>
 						Checkout was canceled — no charge. You can try again or reach out below.
@@ -52,58 +87,124 @@ const services = [
 			}
 		</div>
 
-		<div
-			class="flex flex-col gap-0 divide-y divide-[color-mix(in_srgb,var(--page-fg)_10%,transparent)]"
-			data-reveal-stagger
-		>
+		<div class="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-6 lg:gap-10" data-reveal-stagger>
 			{
 				services.map((s) => (
-					<div class="group cursor-default py-8 first:pt-0" data-reveal-child>
-						<div class="flex flex-wrap items-start justify-between gap-4">
-							<h2 class="text-2xl font-semibold tracking-tight" style="font-family: var(--font-display)">
-								{s.title}
-							</h2>
-						</div>
-						<p class="mt-2 text-base leading-relaxed text-[var(--page-muted)]">{s.teaser}</p>
-						<div class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-out group-hover:grid-rows-[1fr]">
-							<div class="min-h-0 overflow-hidden">
-								<p class="pb-1 pt-4 text-sm leading-relaxed text-[var(--page-fg)]">{s.detail}</p>
-							</div>
-						</div>
-					</div>
+					<article class="flex flex-col" data-reveal-child>
+						<h2 class="text-2xl font-semibold tracking-tight md:text-[1.65rem]" style="font-family: var(--font-display)">
+							{s.title}
+						</h2>
+						<p class="mt-3 text-lg leading-relaxed text-[var(--page-muted)]">{s.teaser}</p>
+						<p class="mt-4 text-base leading-relaxed text-[var(--page-fg)]">{s.detail}</p>
+						<ul class="mt-4 list-inside list-disc space-y-2 text-base leading-relaxed text-[var(--page-muted)]">
+							{s.includes.map((item) => (
+								<li>{item}</li>
+							))}
+						</ul>
+					</article>
 				))
 			}
 		</div>
 
-		<div class="mt-12 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center" data-reveal-stagger>
-			<button
-				type="button"
-				class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-7 py-3.5 text-sm font-bold text-[var(--color-amber)] transition hover:scale-[1.03] hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)]"
-				data-contact-open
+		<section class="mt-16" data-reveal-stagger>
+			<h2
+				class="text-2xl font-semibold tracking-tight md:text-[1.75rem]"
+				style="font-family: var(--font-display)"
 				data-reveal-child
 			>
-				Work with me
-			</button>
+				How it works
+			</h2>
+			<ol class="mt-8 grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-6 lg:gap-10">
+				{
+					process.map(({ step, title, body }) => (
+						<li class="flex flex-col gap-3" data-reveal-child>
+							<span
+								class="font-mono text-sm tracking-widest text-[var(--color-amber)]"
+								aria-hidden="true"
+							>
+								{step}
+							</span>
+							<div>
+								<h3 class="text-lg font-semibold text-[var(--page-fg)]">{title}</h3>
+								<p class="mt-2 text-base leading-relaxed text-[var(--page-muted)]">{body}</p>
+							</div>
+						</li>
+					))
+				}
+			</ol>
+		</section>
+
+		<section
+			class="mt-16 rounded-2xl border border-[color-mix(in_srgb,var(--color-amber)_28%,transparent)] bg-[color-mix(in_srgb,var(--color-amber)_6%,transparent)] p-6 md:p-10"
+			data-reveal-stagger
+		>
+			<h2
+				class="text-2xl font-semibold tracking-tight"
+				style="font-family: var(--font-display)"
+				data-reveal-child
+			>
+				Start a project
+			</h2>
+			<p class="mt-3 max-w-3xl text-base leading-relaxed text-[var(--page-muted)]" data-reveal-child>
+				{
+					stripeCheckoutEnabled
+						? 'Use the contact form for custom scope, or pay for a defined offering via Stripe when you are ready.'
+						: 'Use the contact form below — I reply by email, usually within a few days. Online payment via Stripe is coming soon; for now all projects are scoped and invoiced after we talk.'
+				}
+			</p>
+			<div class="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center" data-reveal-child>
+				<button
+					type="button"
+					class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-7 py-3.5 text-base font-bold text-[var(--color-amber)] transition hover:scale-[1.03] hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)]"
+					data-contact-open
+				>
+					Work with me
+				</button>
+				<a
+					href="https://www.linkedin.com/in/aditirk/"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="rounded-full border border-[color-mix(in_srgb,var(--page-fg)_22%,transparent)] px-7 py-3.5 text-center text-base font-bold text-[var(--page-fg)] transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)]"
+				>
+					Message on LinkedIn
+				</a>
+				{
+					stripeCheckoutEnabled && (
+						<button
+							type="button"
+							class="rounded-full border border-[color-mix(in_srgb,var(--page-fg)_22%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_60%,transparent)] px-7 py-3.5 text-base font-bold text-[var(--page-fg)] transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)]"
+							data-stripe-checkout
+						>
+							Pay securely (Stripe)
+						</button>
+					)
+				}
+			</div>
 			{
-				stripeCheckoutEnabled && (
-					<button
-						type="button"
-						class="rounded-full border border-[color-mix(in_srgb,var(--page-fg)_22%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_60%,transparent)] px-7 py-3.5 text-sm font-bold text-[var(--page-fg)] transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)]"
-						data-stripe-checkout
-						data-reveal-child
-					>
-						Pay securely (Stripe)
-					</button>
+				!contactEnabled && (
+					<p class="mt-4 text-sm text-[var(--page-muted)]" data-reveal-child>
+						Contact form: add <code class="text-[var(--color-amber)]">PUBLIC_WEB3FORMS_ACCESS_KEY</code> to
+						your <code class="text-[var(--color-amber)]">.env</code> (free at{' '}
+						<a
+							href="https://web3forms.com"
+							class="underline underline-offset-2 hover:text-[var(--color-amber)]"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							web3forms.com
+						</a>
+						). Until then, use LinkedIn.
+					</p>
 				)
 			}
-		</div>
-		{
-			stripeCheckoutEnabled && (
-				<p class="mt-3 text-xs text-[var(--page-muted)]" data-reveal-child>
-					Secure hosted checkout — cards and wallets where Stripe enables them.
-				</p>
-			)
-		}
+			{
+				stripeCheckoutEnabled && (
+					<p class="mt-3 text-sm text-[var(--page-muted)]" data-reveal-child>
+						Secure hosted checkout — cards and wallets where Stripe enables them.
+					</p>
+				)
+			}
+		</section>
 	</div>
 
 	<ContactModal />

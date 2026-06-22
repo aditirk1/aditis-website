@@ -1,6 +1,6 @@
 ---
 /**
- * Beach theme: minimal gradient. Dream journal is a barely-visible sparkle (no tab, no "DREAMS" label).
+ * Beach theme: WebGL shader background (see beach-wave-field.ts).
  */
 ---
 
@@ -10,52 +10,24 @@
 	aria-hidden="true"
 	hidden
 >
-	<div class="absolute inset-0 beach-plain-bg" aria-hidden="true"></div>
-	<div class="absolute inset-0 beach-plain-bg" aria-hidden="true"></div>
-
-	<button
-		type="button"
-		class="pointer-events-auto absolute bottom-[7%] right-[7%] z-[2] flex h-8 w-8 items-center justify-center rounded-full border border-[color-mix(in_srgb,#ffaa00_22%,transparent)] bg-[color-mix(in_srgb,var(--color-beach-bg)_55%,transparent)] text-[11px] text-[color-mix(in_srgb,#142a42_45%,transparent)] opacity-[0.22] shadow-sm backdrop-blur-[2px] transition duration-300 hover:opacity-90 hover:shadow-[0_0_18px_color-mix(in_srgb,#ffaa00_25%,transparent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffaa00]"
-		data-beach-dream-journal
-		aria-label="A quiet corner of the site"
-		title=""
-	>
-		<span aria-hidden="true" class="select-none">✦</span>
-		<span class="sr-only">Open dream journal</span>
-	</button>
+	<canvas id="beach-wave-canvas" class="block h-full w-full" aria-hidden="true"></canvas>
 </div>
 
-<style>
-	.beach-plain-bg {
-		background: linear-gradient(165deg, #f0f7fc 0%, #fdf8f0 45%, #f5ebe0 100%);
-	.beach-plain-bg {
-		background: linear-gradient(165deg, #f0f7fc 0%, #fdf8f0 45%, #f5ebe0 100%);
-	}
-</style>
-
 <script>
-	const root = document.querySelector('[data-beach-canvas]') as HTMLElement | null;
-	const dreamBtn = document.querySelector('[data-beach-dream-journal]') as HTMLButtonElement | null;
+	import { initBeachWaveField } from '../scripts/beach-wave-field.ts';
 
-	function applyThemeVisibility() {
-		const t = document.documentElement.getAttribute('data-theme');
-		if (!root) return;
-		if (t === 'beach') {
-			root.hidden = false;
-			root.style.visibility = 'visible';
-		} else {
-			root.hidden = true;
-			root.style.visibility = 'hidden';
-		}
+	let dispose: (() => void) | undefined;
+
+	function boot() {
+		dispose?.();
+		dispose = initBeachWaveField();
 	}
 
-	applyThemeVisibility();
-	const mo = new MutationObserver(applyThemeVisibility);
-	mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+	boot();
 
-	dreamBtn?.addEventListener('click', () => {
-	dreamBtn?.addEventListener('click', () => {
-		window.location.href = '/dream-journal';
-	});
-	});
+	if (import.meta.hot) {
+		import.meta.hot.dispose(() => {
+			dispose?.();
+		});
+	}
 </script>

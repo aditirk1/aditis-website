@@ -25,8 +25,8 @@ const enriched = sorted.map((post) => {
 ---
 
 <Layout title="Blog · aditi's universe">
-	<div class="pointer-events-auto mx-auto max-w-3xl px-2">
-		<div data-reveal-stagger class="mb-12">
+	<div class="page-list-shell page-list-shell--blog">
+		<div data-reveal-stagger class="page-list-header">
 			<h1
 				class="text-4xl font-semibold tracking-tight md:text-5xl"
 				style="font-family: var(--font-display)"
@@ -38,11 +38,7 @@ const enriched = sorted.map((post) => {
 		</div>
 		{enriched.length === 0 ? (
 			<p class="text-[var(--page-muted)]">
-				Add posts in the{' '}
-				<a href="/admin/" class="text-[var(--color-amber)] underline underline-offset-2 hover:opacity-90">
-					content editor
-				</a>{' '}
-				or under <code class="text-[var(--color-amber)]">src/content/blog/</code>.
+				No posts yet. Add Markdown under <code class="text-[var(--color-amber)]">src/content/blog/</code>.
 			</p>
 		) : (
 			<div
@@ -52,24 +48,24 @@ const enriched = sorted.map((post) => {
 				{enriched.map(({ post, minutes, excerpt }) => (
 					<a
 						href={`/blog/${post.id}`}
-						class="group block py-8 transition-colors first:pt-0"
+						class="blog-list-card group block py-8 transition-colors first:pt-0"
 						data-reveal-child
 					>
 						<div class="flex items-baseline justify-between gap-4">
 							<h2
-								class="text-xl font-semibold text-[var(--page-fg)] transition-colors group-hover:text-[var(--color-amber)] md:text-2xl"
+								class="text-2xl font-semibold text-[var(--page-fg)] transition-colors group-hover:text-[var(--color-amber)] md:text-[1.75rem]"
 								style="font-family: var(--font-display)"
 							>
-								{post.data.title}
-							</h2>
-							<span class="shrink-0 text-xs tracking-wide text-[var(--page-muted)]">
+									{post.data.title}
+								</h2>
+							<span class="shrink-0 text-sm tracking-wide text-[var(--page-muted)]">
 								{minutes} min
 							</span>
 						</div>
-						<p class="mt-1 text-xs uppercase tracking-wider text-[var(--page-muted)]">
+						<p class="mt-1 text-sm uppercase tracking-wider text-[var(--page-muted)]">
 							{post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
 						</p>
-						<p class="mt-3 line-clamp-2 text-base leading-relaxed text-[var(--page-muted)] transition-colors group-hover:text-[var(--page-fg)]">
+						<p class="mt-3 line-clamp-2 text-lg leading-relaxed text-[var(--page-muted)] transition-colors group-hover:text-[var(--page-fg)]">
 							{excerpt}
 						</p>
 					</a>

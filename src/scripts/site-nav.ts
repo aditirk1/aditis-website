@@ -59,17 +59,16 @@ export function syncSiteNavActiveClasses(): void {
 	document.querySelectorAll<HTMLAnchorElement>('[data-site-nav] .nav-tab').forEach((a) => {
 		const href = a.getAttribute('href') || '';
 		const on = href === activeHref;
-		a.className = on
-			? 'nav-tab text-[var(--color-amber)]'
-			: 'nav-tab text-[var(--page-fg)] transition-colors hover:text-[var(--color-amber)]';
+		if (on) a.dataset.active = 'true';
+		else delete a.dataset.active;
 	});
 
 	document.querySelectorAll<HTMLAnchorElement>('[data-site-nav-mobile] a[data-nav-href]').forEach((a) => {
 		const href = a.getAttribute('data-nav-href') || a.getAttribute('href') || '';
 		const on = href === activeHref;
-		a.className = on
-			? 'rounded-full border border-[var(--color-amber)] px-2.5 py-1 text-[var(--color-amber)]'
-			: 'rounded-full border border-[color-mix(in_srgb,var(--page-fg)_22%,transparent)] px-2.5 py-1';
+		a.className = 'nav-tab';
+		if (on) a.dataset.active = 'true';
+		else delete a.dataset.active;
 	});
 }
 

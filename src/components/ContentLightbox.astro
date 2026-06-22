@@ -1,0 +1,49 @@
+---
+/** Fullscreen image viewer — shared by photo dump and article prose images. */
+---
+
+<div
+	class="content-lightbox fixed inset-0 z-[80] flex items-center justify-center bg-black/88 p-4 backdrop-blur-md"
+	hidden
+	data-content-lightbox
+	role="dialog"
+	aria-modal="true"
+	aria-label="Image preview"
+>
+	<button
+		type="button"
+		class="absolute right-4 top-4 z-10 rounded-full border border-white/40 bg-black/40 px-3 py-1.5 text-sm text-white transition hover:border-[var(--color-amber)]"
+		data-content-lightbox-close
+	>
+		Close
+	</button>
+	<button
+		type="button"
+		class="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/30 bg-black/30 px-3 py-2 text-lg text-white md:left-6"
+		data-content-lightbox-prev
+		aria-label="Previous image"
+		hidden
+	>
+		‹
+	</button>
+	<img
+		src=""
+		alt=""
+		class="content-lightbox__img max-h-[88dvh] max-w-full rounded-lg object-contain shadow-2xl"
+		data-content-lightbox-img
+	/>
+	<button
+		type="button"
+		class="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/30 bg-black/30 px-3 py-2 text-lg text-white md:right-6"
+		data-content-lightbox-next
+		aria-label="Next image"
+		hidden
+	>
+		›
+	</button>
+	<p
+		class="pointer-events-none absolute bottom-6 left-1/2 max-w-[90vw] -translate-x-1/2 truncate text-center text-xs text-white/70"
+		data-content-lightbox-caption
+		hidden
+	></p>
+</div>

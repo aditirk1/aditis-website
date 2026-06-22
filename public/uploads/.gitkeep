@@ -1,0 +1,4 @@
+Images for blog posts and projects.
+Reference in Markdown as: ![caption](/uploads/your-file.jpg)
+
+Decap CMS (/admin/) also saves uploads here when using local_backend.
