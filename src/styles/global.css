@@ -7,7 +7,7 @@
 	--color-amber: #ffaa00;
 	--color-beach-accent: #2d7ec8;
 
-	--color-universe-bg: #050508;
+	--color-universe-bg: #0a0614;
 	--color-universe-fg: #f7f4ec;
 	--color-universe-muted: color-mix(in srgb, #f7f4ec 58%, transparent);
 
@@ -226,10 +226,13 @@ html[data-coarse-pointer] .dream-hit:active {
 	position: fixed;
 	inset: 0;
 	z-index: -5;
-	opacity: 0.5;
+	opacity: 0.52;
 	background:
-		radial-gradient(ellipse 85% 55% at 0% 100%, rgba(45, 27, 78, 0.5), transparent 58%),
-		radial-gradient(ellipse 75% 50% at 100% 0%, rgba(20, 40, 90, 0.42), transparent 52%);
+		radial-gradient(ellipse 90% 68% at 18% 82%, rgba(255, 170, 0, 0.22), transparent 50%),
+		radial-gradient(ellipse 82% 58% at 88% 12%, rgba(255, 120, 40, 0.26), transparent 48%),
+		radial-gradient(ellipse 75% 55% at 55% 45%, rgba(180, 30, 50, 0.24), transparent 52%),
+		radial-gradient(ellipse 70% 50% at 72% 68%, rgba(230, 90, 130, 0.14), transparent 50%),
+		radial-gradient(ellipse 110% 90% at 50% 50%, #140a12 0%, #0a0614 72%);
 	mix-blend-mode: screen;
 }
 
@@ -576,6 +579,7 @@ html[data-theme='beach'] #planet-label {
 	left: 50%;
 	width: 4px;
 	height: 4px;
+	pointer-events: none;
 	translate: var(--sx) var(--sy);
 	background: transparent;
 	animation: sparkletwinkle 2.4s ease-in-out infinite;
