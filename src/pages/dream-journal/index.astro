@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+import DreamJournalGate from '../../components/DreamJournalGate.astro';
 import { stripFrontmatter } from '../../utils/dream-markdown.ts';
 
 function previewPlain(md: string, max: number): string {
@@ -28,7 +29,8 @@ const list = sorted.map((entry) => {
 });
 ---
 
-<Layout layoutVariant="dream" title="Dream Journal · aditi's universe">
+<Layout layoutVariant="dream" title="Dream Journal · aditi's universe" noindex={true}>
+	<DreamJournalGate>
 	<div class="pointer-events-auto mx-auto max-w-2xl pb-16" data-dream-entrance>
 		<h1 class="mb-2 text-4xl font-light md:text-5xl" style="font-family: var(--font-display)">Dream Journal</h1>
 		<p class="mb-10 max-w-prose text-lg text-[var(--page-muted)]">
@@ -67,6 +69,7 @@ const list = sorted.map((entry) => {
 			)
 		}
 	</div>
+	</DreamJournalGate>
 </Layout>
 <script>
 	import { gsap } from 'gsap';

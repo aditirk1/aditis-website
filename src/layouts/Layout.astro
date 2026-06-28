@@ -141,10 +141,10 @@ const umamiSrc = import.meta.env.PUBLIC_UMAMI_SCRIPT_URL;
 
 		<div id="site-shell" class="relative z-10 flex min-h-dvh flex-col pointer-events-none">
 			<header
-				class="pointer-events-auto flex flex-col gap-3 px-4 py-4 transition-[padding,backdrop-filter] duration-300 sm:px-6 sm:py-5 md:flex-row md:items-center md:justify-between md:gap-6 md:px-10"
+				class="pointer-events-none flex flex-col gap-3 px-4 py-4 transition-[padding,backdrop-filter] duration-300 sm:px-6 sm:py-5 md:flex-row md:items-center md:justify-between md:gap-6 md:px-10"
 				data-site-header
 			>
-				<div class="flex shrink-0 items-center gap-2.5">
+				<div class="pointer-events-auto flex shrink-0 items-center gap-2.5">
 					{
 						isHome && (
 							<button
@@ -176,7 +176,7 @@ const umamiSrc = import.meta.env.PUBLIC_UMAMI_SCRIPT_URL;
 					</a>
 				</div>
 
-				<div class="flex w-full flex-col items-stretch gap-3 md:w-auto md:max-w-none md:flex-row md:items-center md:justify-end">
+				<div class="pointer-events-auto flex w-full flex-col items-stretch gap-3 md:w-auto md:max-w-none md:flex-row md:items-center md:justify-end">
 					<SiteNav />
 					<button
 						type="button"

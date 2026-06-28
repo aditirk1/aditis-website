@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+import DreamJournalGate from '../../components/DreamJournalGate.astro';
 import { stripFrontmatter, dreamMarkdownToHtml } from '../../utils/dream-markdown.ts';
 
 export async function getStaticPaths() {
@@ -20,7 +21,8 @@ const md = stripFrontmatter(rawFile);
 const html = await dreamMarkdownToHtml(md, entry.data['highlight-words'], entry.data['word-styles']);
 ---
 
-<Layout layoutVariant="dream" title={`Dream · ${entry.data.date.toLocaleDateString()}`}>
+<Layout layoutVariant="dream" title={`Dream · ${entry.data.date.toLocaleDateString()}`} noindex={true}>
+	<DreamJournalGate>
 	<div class="pointer-events-auto mx-auto max-w-2xl pb-16 pt-4" data-dream-entrance>
 		<p class="mb-8">
 			<a
@@ -45,6 +47,7 @@ const html = await dreamMarkdownToHtml(md, entry.data['highlight-words'], entry.
 			</div>
 		</article>
 	</div>
+	</DreamJournalGate>
 </Layout>
 <script>
 	import { gsap } from 'gsap';

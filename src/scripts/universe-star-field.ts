@@ -16,6 +16,7 @@ import {
 	prefersReducedMotion,
 	syncCoarsePointerAttribute,
 } from '../utils/input-capabilities.ts';
+import { createNebulaSky } from './universe-nebula-sky.ts';
 
 const CANVAS_ID = 'universe-star-field-canvas';
 
@@ -339,11 +340,15 @@ export function initUniverseStarField(): () => void {
 
 	const renderer = new THREE.WebGLRenderer({
 		canvas: canvasEl,
-		alpha: true,
+		alpha: false,
 		antialias: false,
 		powerPreference: 'high-performance',
 	});
-	renderer.setClearColor(0x020208, 0.35);
+	renderer.setClearColor(0x0a0614, 1);
+
+	const nebulaMotion = reducedMotion ? 0.22 : 1;
+	const nebulaSky = createNebulaSky(nebulaMotion);
+	scene.add(nebulaSky.mesh);
 
 	scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 	const planetDirLight = new THREE.DirectionalLight(0xffffff, 0.6);
@@ -606,8 +611,10 @@ export function initUniverseStarField(): () => void {
 
 	function resolveHitPlanet(clientX: number, clientY: number): THREE.Mesh | null {
 		const rayHit = pickPlanetFromRaycast();
-		if (!coarsePointer) return rayHit;
 		const screenHit = pickPlanetScreenSpace(clientX, clientY);
+		if (!coarsePointer) {
+			return rayHit ?? screenHit;
+		}
 		if (rayHit && screenHit && rayHit !== screenHit) {
 			const w = window.innerWidth || 1;
 			const h = window.innerHeight || 1;
@@ -673,6 +680,14 @@ export function initUniverseStarField(): () => void {
 		target.copy(ray.origin).addScaledVector(ray.direction, MOUSE_SHELL_R);
 	}
 
+	function isBlockingOverlay(el: Element | null): boolean {
+		if (!el || el === canvasEl || el.closest('[data-universe-canvas]')) return false;
+		const hit = el.closest(
+			'a, button, input, textarea, select, label, [role="button"], [data-theme-toggle], [data-contact-modal]',
+		);
+		return !!hit && getComputedStyle(hit).pointerEvents !== 'none';
+	}
+
 	const onPointerMove = (e: PointerEvent) => {
 		const w = window.innerWidth || 1;
 		const h = window.innerHeight || 1;
@@ -685,13 +700,7 @@ export function initUniverseStarField(): () => void {
 		mouseWorld3.copy(tmpHit);
 
 		const top = document.elementFromPoint(e.clientX, e.clientY);
-		const overInteractive =
-			!!top &&
-			top !== canvasEl &&
-			!top.closest('[data-universe-canvas]') &&
-			getComputedStyle(top).pointerEvents !== 'none';
-
-		updateSolarPick(e.clientX, e.clientY, overInteractive);
+		updateSolarPick(e.clientX, e.clientY, isBlockingOverlay(top));
 	};
 
 	const onPointerLeave = () => {
@@ -726,12 +735,7 @@ export function initUniverseStarField(): () => void {
 		raycaster.setFromCamera(pointer, camera);
 
 		const top = document.elementFromPoint(e.clientX, e.clientY);
-		const overInteractive =
-			!!top &&
-			top !== canvasEl &&
-			!top.closest('[data-universe-canvas]') &&
-			getComputedStyle(top).pointerEvents !== 'none';
-		if (overInteractive) return;
+		if (isBlockingOverlay(top)) return;
 
 		updateSolarPick(e.clientX, e.clientY, false);
 
@@ -799,6 +803,8 @@ export function initUniverseStarField(): () => void {
 		camera.lookAt(0, 0, 0);
 
 		material.uniforms.uTime.value = t;
+
+		nebulaSky.update(camera, t);
 
 		starGroup.updateMatrixWorld(true);
 		invStarGroup.copy(starGroup.matrixWorld).invert();
@@ -947,6 +953,9 @@ export function initUniverseStarField(): () => void {
 		canvasEl.removeEventListener('pointerdown', onPointerDown);
 		geometry.dispose();
 		material.dispose();
+		nebulaSky.mesh.geometry.dispose();
+		(nebulaSky.mesh.material as THREE.Material).dispose();
+		scene.remove(nebulaSky.mesh);
 		secretGeom.dispose();
 		secretMat.dispose();
 		for (const mesh of planetMeshes) {

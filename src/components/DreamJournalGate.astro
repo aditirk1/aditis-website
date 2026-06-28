@@ -1,0 +1,84 @@
+---
+/**
+ * Session gate for dream journal routes — one interchangeable question per visit.
+ */
+---
+
+<div class="dream-gate-root" data-dream-gate-root>
+	<div
+		class="dream-gate-panel dream-realm-panel pointer-events-auto mx-auto max-w-md rounded-2xl px-6 py-8 md:px-8 md:py-10"
+		data-dream-gate
+	>
+		<p class="dream-entry-meta mb-3">Private corner</p>
+		<h2 class="mb-2 text-2xl font-light md:text-3xl" style="font-family: var(--font-display)">
+			One question first
+		</h2>
+		<p class="mb-6 text-sm leading-relaxed text-[var(--page-muted)]">
+			before what appears next 👁️
+		</p>
+
+		<form class="flex flex-col gap-4" data-dream-gate-form autocomplete="off">
+			<label class="flex flex-col gap-2 text-sm text-[var(--page-muted)]">
+				<span data-dream-gate-question class="text-base text-[var(--page-fg)]"></span>
+				<input
+					type="text"
+					name="answer"
+					data-dream-gate-input
+					class="rounded-lg border border-[color-mix(in_srgb,var(--color-amber)_30%,transparent)] bg-[color-mix(in_srgb,#000_30%,transparent)] px-3 py-2.5 text-[var(--page-fg)] outline-none transition focus:border-[var(--color-amber)]"
+					placeholder="Your answer"
+					spellcheck="false"
+					autocapitalize="off"
+					autocomplete="off"
+					required
+				/>
+			</label>
+			<p data-dream-gate-error class="hidden text-sm text-[color-mix(in_srgb,#ff8a8a_90%,white)]" hidden></p>
+			<div class="flex flex-wrap items-center gap-3">
+				<button
+					type="submit"
+					class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_12%,transparent)] px-5 py-2.5 text-sm font-semibold text-[var(--page-fg)] transition hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)]"
+				>
+					Enter
+				</button>
+				<button
+					type="button"
+					data-dream-gate-rotate
+					class="text-sm text-[var(--page-muted)] underline-offset-2 hover:text-[var(--color-amber)] hover:underline"
+				>
+					Different question
+				</button>
+			</div>
+		</form>
+	</div>
+
+	<div data-dream-gate-content>
+		<slot />
+	</div>
+</div>
+
+<script>
+	import { initDreamJournalGate } from '../scripts/dream-journal-gate.ts';
+
+	const root = document.querySelector('[data-dream-gate-root]');
+	let stop: (() => void) | undefined;
+	if (root instanceof HTMLElement) {
+		stop = initDreamJournalGate(root);
+	}
+	if (import.meta.hot) {
+		import.meta.hot.dispose(() => stop?.());
+	}
+</script>
+
+<style>
+	.dream-gate-root[data-dream-locked] [data-dream-gate-content] {
+		display: none;
+	}
+
+	.dream-gate-root:not([data-dream-locked]) [data-dream-gate] {
+		display: none;
+	}
+
+	.dream-gate-panel {
+		margin-top: clamp(2rem, 8vh, 4rem);
+	}
+</style>
