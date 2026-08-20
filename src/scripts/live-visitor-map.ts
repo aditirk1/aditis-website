@@ -1,12 +1,5 @@
 import { initVisitorGlobe, type GlobeMarker } from './visitor-globe';
 
-const DEMO_MARKERS: GlobeMarker[] = [
-	{ lat: 40.7, lng: -74, count: 2 },
-	{ lat: 51.5, lng: -0.1, count: 1 },
-	{ lat: 35.6, lng: 139.7, count: 1 },
-	{ lat: -33.8, lng: 151.2, count: 1 },
-];
-
 function apiUrl(base: string, path: string): string {
 	const b = base.replace(/\/$/, '');
 	return b ? `${b}${path}` : path;
@@ -15,17 +8,20 @@ function apiUrl(base: string, path: string): string {
 export function bootLiveVisitorMap(root: HTMLElement): () => void {
 	const apiBase = (root.dataset.apiBase ?? '').trim();
 	const globeEl = root.querySelector<HTMLElement>('[data-visitor-globe]');
-	const totalEl = root.querySelector<HTMLElement>('[data-visitor-total]');
+	const totalTextEl = root.querySelector<HTMLElement>('[data-visitor-total]');
 	const noteEl = root.querySelector<HTMLElement>('[data-visitor-note]');
 
-	if (!globeEl || !totalEl) {
+	if (!globeEl || !totalTextEl) {
 		return () => {};
 	}
 
+	// Bound after the guard so the hoisted helpers below see a non-null type.
+	const totalEl = totalTextEl;
+
 	const globeApi = initVisitorGlobe(globeEl);
 
-	function setTotal(n: number, note: string) {
-		totalEl.textContent = n >= 0 ? String(n) : '—';
+	function setTotal(n: number | null, note: string) {
+		totalEl.textContent = n === null ? '—' : String(n);
 		if (noteEl) noteEl.textContent = note;
 	}
 
@@ -46,14 +42,11 @@ export function bootLiveVisitorMap(root: HTMLElement): () => void {
 			const r = await fetch(apiUrl(apiBase, '/api/stats'), { credentials: 'same-origin' });
 			if (!r.ok) throw new Error(String(r.status));
 			const d = (await r.json()) as { total: number; markers: GlobeMarker[] };
-			setTotal(d.total, '');
-			globeApi.setMarkers(d.markers.length ? d.markers : DEMO_MARKERS);
+			setTotal(d.total, d.total > 0 ? '' : 'Counting from today.');
+			globeApi.setMarkers(d.markers);
 		} catch {
-			setTotal(
-				0,
-				'Demo data: after deploy, totals and markers come from your site (GET /api/stats, country-level from Cloudflare). Astro dev does not run Pages Functions.',
-			);
-			globeApi.setMarkers(DEMO_MARKERS);
+			setTotal(null, 'Live count is offline right now.');
+			globeApi.setMarkers([]);
 		}
 	}
 

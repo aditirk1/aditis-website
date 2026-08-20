@@ -9,7 +9,6 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 const easeReveal = 'expo.out';
 const durShort = 0.62;
-const durCard = 0.68;
 const stagger = 0.048;
 
 function isRoughlyInView(el: HTMLElement, vh: number): boolean {
@@ -52,60 +51,6 @@ export function initPageRevealAnimations(): () => void {
 		const st = ScrollTrigger.create({
 			trigger: root,
 			start: 'top 88%',
-			once: true,
-			onEnter: run,
-		});
-		triggers.push(st);
-	});
-
-	/* Project cards */
-	document.querySelectorAll<HTMLElement>('[data-project-card]').forEach((el) => {
-		const run = () => {
-			gsap.to(el, {
-				y: 0,
-				opacity: 1,
-				duration: durCard,
-				ease: easeReveal,
-				overwrite: 'auto',
-			});
-		};
-
-		if (isRoughlyInView(el, window.innerHeight)) {
-			requestAnimationFrame(run);
-			return;
-		}
-
-		const st = ScrollTrigger.create({
-			trigger: el,
-			start: 'top 90%',
-			once: true,
-			onEnter: run,
-		});
-		triggers.push(st);
-	});
-
-	/* Blog list: horizontal reveal */
-	document.querySelectorAll<HTMLElement>('[data-blog-wipe]').forEach((shell) => {
-		const inner = shell.querySelector<HTMLElement>('[data-blog-wipe-inner]');
-		if (!inner) return;
-
-		const run = () => {
-			gsap.to(inner, {
-				clipPath: 'inset(0 0% 0 0)',
-				duration: 0.85,
-				ease: 'power3.inOut',
-				overwrite: 'auto',
-			});
-		};
-
-		if (isRoughlyInView(shell, window.innerHeight)) {
-			requestAnimationFrame(run);
-			return;
-		}
-
-		const st = ScrollTrigger.create({
-			trigger: shell,
-			start: 'top 90%',
 			once: true,
 			onEnter: run,
 		});

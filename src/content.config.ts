@@ -28,6 +28,12 @@ const blog = defineCollection({
 		title: z.string(),
 		date: z.coerce.date(),
 		draft: z.boolean().optional(),
+		/**
+		 * Normally implied by the folder (`blog/essays/post.md` → "essays").
+		 * Decap CMS also writes it here; a value is only read when a post
+		 * sits at the collection root.
+		 */
+		category: z.string().optional(),
 	}),
 });
 

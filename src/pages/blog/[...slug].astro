@@ -1,0 +1,39 @@
+---
+import { render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import ArticleShell from '../../components/ArticleShell.astro';
+import { loadBlogPosts, type BlogPost } from '../../utils/blog.ts';
+
+export async function getStaticPaths() {
+	const posts = await loadBlogPosts();
+	return posts.map((post) => ({
+		params: { slug: post.slug },
+		props: { post },
+	}));
+}
+
+const { post } = Astro.props as { post: BlogPost };
+const { Content } = await render(post.entry);
+---
+
+<Layout title={`${post.entry.data.title} · blog`} immersive>
+	<ArticleShell
+		backHref="/blog"
+		backLabel="All posts"
+		title={post.entry.data.title}
+		variant="blog"
+	>
+		<div slot="meta" class="full-page-article__meta-inner">
+			<time datetime={post.entry.data.date.toISOString()}>
+				{post.entry.data.date.toLocaleDateString('en-US', {
+					year: 'numeric',
+					month: 'long',
+					day: 'numeric',
+				})}
+			</time>
+			{post.categoryId && <span class="full-page-article__read-time">{post.categoryLabel}</span>}
+			<span class="full-page-article__read-time">{post.minutes} min read</span>
+		</div>
+		<Content />
+	</ArticleShell>
+</Layout>

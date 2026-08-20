@@ -3,6 +3,8 @@ Custom visitor globe + counts (no third-party globe embed)
 Public homepage
   - Rotating WebGL globe (globe.gl) with amber pins at country centroids.
   - Total visits from your own API (/api/stats).
+  - earth-blue-marble.jpg — self-hosted texture (2048x1024). Keep it here; loading it
+    from a CDN meant a blank globe whenever the CDN was slow or blocked.
 
 Edge backend (Cloudflare Pages Functions + KV)
   - Bind a KV namespace as VISITOR_KV (Production + Preview).
@@ -15,8 +17,10 @@ Private breakdown
     country + city tables.
 
 Local / Astro dev
-  - astro dev does not run Pages Functions; the widget shows a demo globe until you deploy
-    or run: npm run build && npx wrangler pages dev ./dist
+  - astro dev does not run Pages Functions, so /api/stats fails and the globe shows no pins
+    with "Live count is offline right now." Never show invented markers here — a public
+    visitor cannot tell demo pins from real ones.
+  - For real data locally: npm run build && npx wrangler pages dev ./dist
     (KV binding must be set in wrangler.toml with a real namespace id.)
 
 wrangler.toml

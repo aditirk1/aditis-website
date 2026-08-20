@@ -53,19 +53,26 @@ const collapseKey = 'aditi-ambient-panel-collapsed';
 	var toggle = document.querySelector('[data-ambient-toggle]');
 	var label = document.querySelector('[data-ambient-toggle-label]');
 
+	/* The panel is fixed over the page, so on small or short screens it starts
+	   collapsed rather than covering content. An explicit choice always wins. */
 	function readCollapsed() {
 		try {
-			return localStorage.getItem(collapseKey) === '1';
+			var stored = localStorage.getItem(collapseKey);
+			if (stored === '1') return true;
+			if (stored === '0') return false;
 		} catch (e) {
-			return false;
+			/* fall through to the viewport default */
 		}
+		return window.innerWidth < 768 || window.innerHeight < 600;
 	}
 
-	function setCollapsed(collapsed) {
-		try {
-			localStorage.setItem(collapseKey, collapsed ? '1' : '0');
-		} catch (e) {
-			/* ignore */
+	function setCollapsed(collapsed, persist) {
+		if (persist) {
+			try {
+				localStorage.setItem(collapseKey, collapsed ? '1' : '0');
+			} catch (e) {
+				/* ignore */
+			}
 		}
 		if (!panel || !toggle || !label) return;
 		panel.style.display = collapsed ? 'none' : '';
@@ -75,10 +82,10 @@ const collapseKey = 'aditi-ambient-panel-collapsed';
 	}
 
 	if (root && panel && toggle) {
-		setCollapsed(readCollapsed());
+		setCollapsed(readCollapsed(), false);
 		toggle.addEventListener('click', function () {
 			var isHidden = panel.style.display === 'none';
-			setCollapsed(!isHidden);
+			setCollapsed(!isHidden, true);
 		});
 	}
 </script>

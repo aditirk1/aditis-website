@@ -8,14 +8,18 @@ export type MediaLightboxController = {
 };
 
 export function createMediaLightbox(): MediaLightboxController | null {
-	const overlay = document.querySelector('[data-content-lightbox]') as HTMLElement | null;
-	const img = document.querySelector('[data-content-lightbox-img]') as HTMLImageElement | null;
-	const captionEl = document.querySelector('[data-content-lightbox-caption]') as HTMLElement | null;
-	const btnPrev = document.querySelector('[data-content-lightbox-prev]') as HTMLButtonElement | null;
-	const btnNext = document.querySelector('[data-content-lightbox-next]') as HTMLButtonElement | null;
-	const btnClose = document.querySelector('[data-content-lightbox-close]') as HTMLButtonElement | null;
+	const overlayEl = document.querySelector<HTMLElement>('[data-content-lightbox]');
+	const imgEl = document.querySelector<HTMLImageElement>('[data-content-lightbox-img]');
+	const captionEl = document.querySelector<HTMLElement>('[data-content-lightbox-caption]');
+	const btnPrev = document.querySelector<HTMLButtonElement>('[data-content-lightbox-prev]');
+	const btnNext = document.querySelector<HTMLButtonElement>('[data-content-lightbox-next]');
+	const btnClose = document.querySelector<HTMLButtonElement>('[data-content-lightbox-close]');
 
-	if (!overlay || !img) return null;
+	if (!overlayEl || !imgEl) return null;
+
+	// Bound after the guard so the hoisted helpers below see non-null types.
+	const overlay = overlayEl;
+	const img = imgEl;
 
 	const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	let sources: string[] = [];

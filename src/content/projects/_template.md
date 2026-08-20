@@ -32,10 +32,23 @@ Put files in `public/uploads/`, then use HTML for positioning (works in project 
 </figure>
 ```
 
-**Wide / full-bleed / float left / two-column grid:**
+**Side by side, or a 2×2 quadrant** — same grid, just add more figures:
+```html
+<div class="article-figure-grid article-figure-grid--quad article-figure-grid--even">
+  <figure class="article-figure"><img src="/uploads/1.jpg" alt="" /></figure>
+  <figure class="article-figure"><img src="/uploads/2.jpg" alt="" /></figure>
+  <figure class="article-figure"><img src="/uploads/3.jpg" alt="" /></figure>
+  <figure class="article-figure"><img src="/uploads/4.jpg" alt="" /></figure>
+  <p class="article-figure-grid__caption">One caption for the group.</p>
+</div>
+```
+
+**Modifiers:**
+- Grid columns — `article-figure-grid--2` (pair), `--quad` (2×2), `--3`, `--4` (all stack on phones)
+- `article-figure-grid--even` — crops to 4:3 so mismatched photos line up; add `--square` for 1:1
 - `article-figure--wide` — breaks out wider than text column
 - `article-figure--full` — edge-to-edge across the screen
 - `article-figure--left` or `--right` — text wraps beside image (desktop)
-- Wrap two figures in `<div class="article-figure-grid article-figure-grid--2">`
 
 Plain `![caption](/uploads/x.png)` also works — click any image to open the lightbox.
+Identical markup works in blog posts and thoughts.

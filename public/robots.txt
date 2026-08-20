@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /dream-journal
+
+Sitemap: https://aditirk.me/sitemap-index.xml

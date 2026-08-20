@@ -85,17 +85,23 @@ export function checkGateAnswer(question: DreamGateQuestion, raw: string): boole
 }
 
 export function initDreamJournalGate(root: HTMLElement): () => void {
-	const gate = root.querySelector<HTMLElement>('[data-dream-gate]');
-	const content = root.querySelector<HTMLElement>('[data-dream-gate-content]');
+	const gateEl = root.querySelector<HTMLElement>('[data-dream-gate]');
+	const contentEl = root.querySelector<HTMLElement>('[data-dream-gate-content]');
 	const form = root.querySelector<HTMLFormElement>('[data-dream-gate-form]');
-	const input = root.querySelector<HTMLInputElement>('[data-dream-gate-input]');
-	const questionEl = root.querySelector<HTMLElement>('[data-dream-gate-question]');
+	const inputEl = root.querySelector<HTMLInputElement>('[data-dream-gate-input]');
+	const questionTextEl = root.querySelector<HTMLElement>('[data-dream-gate-question]');
 	const errorEl = root.querySelector<HTMLElement>('[data-dream-gate-error]');
 	const rotateBtn = root.querySelector<HTMLButtonElement>('[data-dream-gate-rotate]');
 
-	if (!gate || !content || !form || !input || !questionEl) {
+	if (!gateEl || !contentEl || !form || !inputEl || !questionTextEl) {
 		return () => {};
 	}
+
+	// Bound after the guard so the hoisted helpers below see non-null types.
+	const gate = gateEl;
+	const content = contentEl;
+	const input = inputEl;
+	const questionEl = questionTextEl;
 
 	let active = getActiveGateQuestion();
 

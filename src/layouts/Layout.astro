@@ -32,6 +32,9 @@ const isHome = Astro.url.pathname === '/';
 
 const umamiId = import.meta.env.PUBLIC_UMAMI_WEBSITE_ID;
 const umamiSrc = import.meta.env.PUBLIC_UMAMI_SCRIPT_URL;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
+const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.url);
 ---
 
 <!doctype html>
@@ -83,11 +86,28 @@ const umamiSrc = import.meta.env.PUBLIC_UMAMI_SCRIPT_URL;
 		</script>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="description" content={description} />
+		<link rel="canonical" href={canonicalURL.href} />
+		<meta property="og:type" content={isHome ? 'website' : 'article'} />
+		<meta property="og:site_name" content="aditi's universe" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonicalURL.href} />
+		<meta property="og:image" content={ogImageURL.href} />
+		<meta name="twitter:card" content="summary" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={ogImageURL.href} />
 		<link rel="icon" type="image/png" sizes="16x16" href="/brand/logo-universe-16.png" data-favicon-16 />
 		<link rel="icon" type="image/png" sizes="32x32" href="/brand/logo-universe-32.png" data-favicon-32 />
 		<link rel="apple-touch-icon" sizes="180x180" href="/brand/logo-universe-180.png" data-apple-touch-icon />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="icon" href="/favicon.ico" />
+		<link
+			rel="alternate"
+			type="application/rss+xml"
+			title="aditi's universe · blog"
+			href="/rss.xml"
+		/>
 		<meta name="generator" content={Astro.generator} />
 		{noindex && <meta name="robots" content="noindex, nofollow" />}
 		<title>{title}</title>
@@ -109,13 +129,9 @@ const umamiSrc = import.meta.env.PUBLIC_UMAMI_SCRIPT_URL;
 				--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 			}
 
-			html[data-reveal-bootstrap='1'] [data-reveal-stagger] [data-reveal-child],
-			html[data-reveal-bootstrap='1'] [data-project-card] {
+			html[data-reveal-bootstrap='1'] [data-reveal-stagger] [data-reveal-child] {
 				opacity: 0;
 				transform: translate3d(0, 1.15rem, 0);
-			}
-			html[data-reveal-bootstrap='1'] [data-blog-wipe-inner] {
-				clip-path: inset(0 100% 0 0);
 			}
 		</style>
 	</head>
@@ -140,6 +156,7 @@ const umamiSrc = import.meta.env.PUBLIC_UMAMI_SCRIPT_URL;
 		<BeachBackground />
 
 		<div id="site-shell" class="relative z-10 flex min-h-dvh flex-col pointer-events-none">
+			<a href="#main-content" class="skip-link">Skip to content</a>
 			<header
 				class="pointer-events-none flex flex-col gap-3 px-4 py-4 transition-[padding,backdrop-filter] duration-300 sm:px-6 sm:py-5 md:flex-row md:items-center md:justify-between md:gap-6 md:px-10"
 				data-site-header
@@ -190,10 +207,12 @@ const umamiSrc = import.meta.env.PUBLIC_UMAMI_SCRIPT_URL;
 			</header>
 
 			<main
+				id="main-content"
 				class:list={[
 					'pointer-events-none flex-1',
 					immersive ? 'px-0 pb-0' : 'px-6 pb-8 md:px-10',
 				]}
+				tabindex="-1"
 			>
 				<slot />
 			</main>

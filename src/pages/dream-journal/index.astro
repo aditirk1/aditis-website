@@ -7,6 +7,7 @@ import path from 'node:path';
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import DreamJournalGate from '../../components/DreamJournalGate.astro';
+import EmptyState from '../../components/EmptyState.astro';
 import { stripFrontmatter } from '../../utils/dream-markdown.ts';
 
 function previewPlain(md: string, max: number): string {
@@ -32,17 +33,20 @@ const list = sorted.map((entry) => {
 <Layout layoutVariant="dream" title="Dream Journal · aditi's universe" noindex={true}>
 	<DreamJournalGate>
 	<div class="pointer-events-auto mx-auto max-w-2xl pb-16" data-dream-entrance>
+		<p class="mb-8">
+			<a href="/" class="article-back-link">← Back to the universe</a>
+		</p>
 		<h1 class="mb-2 text-4xl font-light md:text-5xl" style="font-family: var(--font-display)">Dream Journal</h1>
 		<p class="mb-10 max-w-prose text-lg text-[var(--page-muted)]">
-			Ethereal, a little surreal — comic-book emphasis on chosen words on each entry page (hover them). Soundtrack
-			switches automatically here if you add audio files under <code class="text-[var(--color-amber)]">/public/audio/</code>.
+			Ethereal, a little surreal — hover the emphasized words on each entry if you like.
 		</p>
 
 		{
 			list.length === 0 ? (
-				<p class="text-[var(--page-muted)]">
-					No dreams published yet. Add Markdown under <code class="text-[var(--color-amber)]">src/content/dreams/</code>.
-				</p>
+				<EmptyState
+					message="Nothing to see here yet — more to come very soon."
+					hint="You made it past the gate, though. Apparently I've been sleeping too well."
+				/>
 			) : (
 				<div class="flex flex-col gap-6">
 					{list.map(({ entry, preview }) => (

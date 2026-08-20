@@ -2,6 +2,7 @@
 import path from 'node:path';
 import Layout from '../../layouts/Layout.astro';
 import ContentLightbox from '../../components/ContentLightbox.astro';
+import EmptyState from '../../components/EmptyState.astro';
 import { albumPhotoSources, loadPhotoAlbums } from '../../utils/photo-dump.ts';
 
 const photosRoot = path.join(process.cwd(), 'public', 'photos');
@@ -21,17 +22,16 @@ const hasPhotos = albums.some((a) => a.photos.length > 0);
 			</h1>
 			<div class="mt-2 h-0.5 w-12 rounded-full bg-[var(--color-amber)]" data-reveal-child></div>
 			<p class="mt-4 max-w-xl text-sm leading-relaxed text-[var(--page-muted)]" data-reveal-child>
-				Organize images in folders under <code class="text-[var(--color-amber)]">public/photos/</code> — each
-				subfolder becomes its own album.
+				Snapshots from life and work — click any image to open it larger.
 			</p>
 		</div>
 
 		{
 			!hasPhotos ? (
-				<p class="text-[var(--page-muted)]">
-					Create folders like <code class="text-[var(--color-amber)]">public/photos/travel/</code> and drop
-					images inside.
-				</p>
+				<EmptyState
+					message="Nothing to see here yet — more to come very soon."
+					hint="The camera roll is a disaster and curation takes time. Albums are on the way."
+				/>
 			) : (
 				<div class="flex flex-col gap-16">
 					{albums.map((album) => {
@@ -56,7 +56,7 @@ const hasPhotos = albums.some((a) => a.photos.length > 0);
 											>
 												<img
 													src={photo.src}
-													alt=""
+													alt={photo.name}
 													class="photo-thumb h-auto w-full object-cover transition group-hover:brightness-110"
 													loading="lazy"
 													decoding="async"

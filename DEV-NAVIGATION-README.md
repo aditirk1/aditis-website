@@ -119,7 +119,7 @@ aditis-website/
 
 | Goal | Start here |
 |------|------------|
-| Blog posts | **`src/content/blog/*.md`** |
+| Blog posts | **`src/content/blog/*.md`** (a subfolder becomes a category: `blog/essays/post.md` → `/blog/essays/post`) |
 | Projects | **`src/content/projects/*.md`** |
 | Short thoughts | **`src/content/thoughts/*.md`** |
 | Dream journal entries | **`src/content/dreams/*.md`** |
@@ -181,7 +181,7 @@ These are **illustrative**—copy the idea, adjust values slowly.
    In **`src/components/SiteNav.astro`**, find the `links` array and change `label: 'Blog'` to any short label you want.
 
 6. **New blog post**  
-   Duplicate **`src/content/blog/hello-world.md`**, rename the file, edit the `title` and `date` in the top `---` block, write the body below.
+   Duplicate **`src/content/blog/_template.md`**, rename the file, edit the `title` and `date` in the top `---` block, set `draft: false`, write the body below. Drop it in a subfolder (e.g. `src/content/blog/essays/`) to file it under a category.
 
 7. **Beach video**  
    Add **`public/beach/waves.mp4`** (looping, muted-friendly). The component already points at that path.
