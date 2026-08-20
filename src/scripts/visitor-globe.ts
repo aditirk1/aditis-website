@@ -2,9 +2,11 @@ import Globe from 'globe.gl';
 
 export type GlobeMarker = { lat: number; lng: number; count?: number };
 
-/** NASA Blue Marble–style texture (three-globe example asset). */
-const EARTH_BLUE_MARBLE =
-	'https://unpkg.com/three-globe@2.45.0/example/img/earth-blue-marble.jpg';
+/**
+ * NASA Blue Marble–style texture, self-hosted so the globe still renders when a
+ * CDN is slow or blocked. Downscaled to 2048×1024 — plenty for this widget.
+ */
+const EARTH_BLUE_MARBLE = '/visitor-map/earth-blue-marble.jpg';
 
 /** Read theme accent from CSS (`--color-amber` is gold on Universe, blue on Beach). */
 function accentColor(): string {
@@ -16,7 +18,7 @@ export function initVisitorGlobe(container: HTMLElement): {
 	setMarkers: (markers: GlobeMarker[]) => void;
 	destroy: () => void;
 } {
-	const globe = Globe()(container)
+	const globe = new Globe(container)
 		.globeImageUrl(EARTH_BLUE_MARBLE)
 		.backgroundColor('rgba(0,0,0,0)')
 		.showAtmosphere(true)

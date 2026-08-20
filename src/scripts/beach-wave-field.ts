@@ -111,11 +111,14 @@ function prefersReducedMotion(): boolean {
 }
 
 export function initBeachWaveField(): () => void {
-	const canvas = document.getElementById(CANVAS_ID) as HTMLCanvasElement | null;
-	if (!canvas) {
+	const canvasEl = document.getElementById(CANVAS_ID) as HTMLCanvasElement | null;
+	if (!canvasEl) {
 		console.warn('[beach-wave-field] Canvas not found:', CANVAS_ID);
 		return () => {};
 	}
+
+	// Bound after the guard so the hoisted helpers below see a non-null type.
+	const canvas = canvasEl;
 
 	const root = canvas.closest('[data-beach-canvas]') as HTMLElement | null;
 	const reducedMotion = prefersReducedMotion();

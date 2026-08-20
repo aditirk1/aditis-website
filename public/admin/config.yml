@@ -1,13 +1,27 @@
-# Decap CMS — edit Markdown in the browser. For production, set `backend` to your Git host
-# (GitHub + OAuth) or enable Netlify Identity + Git Gateway. Local editing: run `npm run cms:local`
-# with local_backend: true, then open /admin/ while `astro dev` is running.
+# Decap CMS — write and publish from the browser at /admin/
+#
+# Auth: GitHub OAuth, handled by functions/api/auth.ts + functions/api/callback.ts
+# on Cloudflare Pages. Set these in Cloudflare → Pages → Settings → Environment
+# variables (both encrypted): GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET.
+# The GitHub OAuth app's callback URL must be https://aditirk.me/api/callback
+#
+# Local editing: `npm run cms:local` alongside `astro dev`, then open /admin/.
+# local_backend only activates on localhost, so it is safe to leave enabled.
 
 local_backend: true
 
 backend:
-  name: git-gateway
-  branch: main
+  name: github
   repo: aditirk1/aditis-website
+  branch: main
+  base_url: https://aditirk.me
+  auth_endpoint: api/auth
+  commit_messages:
+    create: 'content: add {{collection}} "{{slug}}"'
+    update: 'content: update {{collection}} "{{slug}}"'
+    delete: 'content: remove {{collection}} "{{slug}}"'
+    uploadMedia: 'content: upload {{path}}'
+    deleteMedia: 'content: remove {{path}}'
 
 media_folder: public/uploads
 public_folder: /uploads
@@ -38,17 +52,31 @@ collections:
       - { label: Draft, name: draft, widget: boolean, default: false }
       - { label: Body, name: body, widget: markdown }
 
+  # Category = subfolder. `path` files each post under the category you pick, so
+  # /blog groups it automatically. To add or rename a writing area, edit the
+  # `options` list below — that is the only place categories are declared.
   - name: blog
     label: Blog
     label_singular: post
     folder: src/content/blog
+    path: '{{category}}/{{slug}}'
     create: true
     extension: md
     format: frontmatter
     slug: '{{slug}}'
+    sortable_fields: [date, title]
     fields:
       - { label: Title, name: title, widget: string }
       - { label: Date, name: date, widget: datetime, date_format: YYYY-MM-DD, time_format: false }
+      - label: Category
+        name: category
+        widget: select
+        hint: Becomes the folder and the heading on /blog.
+        default: essays
+        options:
+          - { label: Essays, value: essays }
+          - { label: Notes, value: notes }
+          - { label: Reading, value: reading }
       - { label: Draft, name: draft, widget: boolean, default: false }
       - { label: Body, name: body, widget: markdown }
 

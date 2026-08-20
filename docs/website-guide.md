@@ -123,7 +123,7 @@ Defined in **`src/content.config.ts`** using Astro’s **Content Layer** (`defin
 | Collection | Folder | Purpose |
 | ---------- | ------ | ------- |
 | `projects` | `src/content/projects/` | Portfolio-style entries: title, date, tags, summary, optional thumbnail. |
-| `blog` | `src/content/blog/` | Blog posts: title, date, optional draft. |
+| `blog` | `src/content/blog/` | Blog posts: title, date, optional draft. Subfolders become categories — `blog/essays/post.md` publishes at `/blog/essays/post` and groups under "Essays" on the index. |
 | `thoughts` | `src/content/thoughts/` | Short notes: date, optional draft. |
 | `dreams` | `src/content/dreams/` | Dream journal: date, mood, highlight words, optional per-word styles (`amber` / `violet` / `burst`). |
 

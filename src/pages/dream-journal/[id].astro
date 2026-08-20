@@ -24,12 +24,13 @@ const html = await dreamMarkdownToHtml(md, entry.data['highlight-words'], entry.
 <Layout layoutVariant="dream" title={`Dream · ${entry.data.date.toLocaleDateString()}`} noindex={true}>
 	<DreamJournalGate>
 	<div class="pointer-events-auto mx-auto max-w-2xl pb-16 pt-4" data-dream-entrance>
-		<p class="mb-8">
+		<p class="mb-8 flex flex-wrap items-center gap-x-4 gap-y-2">
+			<a href="/" class="article-back-link">← Back to the universe</a>
 			<a
 				href="/dream-journal"
 				class="text-sm text-[var(--page-muted)] underline-offset-2 hover:text-[var(--color-amber)] hover:underline"
 			>
-				← Dream journal
+				All dreams
 			</a>
 		</p>
 		<article class="dream-realm-panel relative px-6 py-8 md:px-8 md:py-10">

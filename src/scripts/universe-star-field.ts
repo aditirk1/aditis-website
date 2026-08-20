@@ -33,7 +33,6 @@ const SECRET_HOST_PLANET_INDEX = 4;
 /** Keep inside host planet radius so the star stays partly hidden behind it. */
 const SECRET_ORBIT_RADIUS = 1.75;
 const SECRET_ORBIT_SPEED = 0.00125;
-const SECRET_PLANE_Z = -30;
 const SECRET_RADIUS = 2.2;
 
 /** Minimum touch target when raycasts miss on small screens. */
@@ -148,7 +147,10 @@ function minPhaseSeparation(r: number, a: PlanetConfig, b: PlanetConfig): number
 	return 2 * Math.asin(ratio);
 }
 
+/** Design-time guard for hand-tuned orbits. Dev only — never logs for visitors. */
 function validatePlanetOrbits(): void {
+	if (!import.meta.env.DEV) return;
+
 	const sorted = [...PLANETS].sort((a, b) => a.orbitR - b.orbitR);
 	for (let i = 1; i < sorted.length; i++) {
 		const inner = sorted[i - 1]!;
@@ -715,13 +717,25 @@ export function initUniverseStarField(): () => void {
 		}
 	};
 
+	/** Latched on click so a double-tap cannot fire two navigations. */
 	let navigating = false;
+	let navigationReleaseTimer = 0;
+
+	/** Frees the latch if the navigation never lands (visitor cancels, or link fails). */
+	function beginNavigation() {
+		navigating = true;
+		window.clearTimeout(navigationReleaseTimer);
+		navigationReleaseTimer = window.setTimeout(() => {
+			navigating = false;
+		}, 3000);
+	}
+
 	function goDreamJournal() {
 		if (navigating) return;
-		navigating = true;
+		beginNavigation();
 		secretMat.uniforms.uHover.value = 1;
 		setTimeout(() => {
-			window.location.href = '/dream-journal';
+			window.location.assign('/dream-journal');
 		}, 280);
 	}
 
@@ -759,8 +773,8 @@ export function initUniverseStarField(): () => void {
 			e.preventDefault();
 			const pd = hitPlanet.userData as PlanetConfig;
 			if (!navigating) {
-				navigating = true;
-				window.location.href = pd.href;
+				beginNavigation();
+				window.location.assign(pd.href);
 			}
 		}
 	};
@@ -915,6 +929,17 @@ export function initUniverseStarField(): () => void {
 		cancelAnimationFrame(raf);
 	}
 
+	/**
+	 * Browser Back restores this page from the back/forward cache with
+	 * `running === true` but every rAF cancelled. A plain start() would
+	 * no-op and leave planets frozen and unresponsive — force a fresh loop.
+	 */
+	function forceRestartLoop() {
+		running = false;
+		cancelAnimationFrame(raf);
+		applyVisibility();
+	}
+
 	function applyVisibility() {
 		const theme = getTheme();
 		const root = canvasEl.closest('[data-universe-canvas]') as HTMLElement | null;
@@ -927,6 +952,20 @@ export function initUniverseStarField(): () => void {
 		start();
 	}
 
+	function resetInteractionState() {
+		window.clearTimeout(navigationReleaseTimer);
+		navigating = false;
+		secretHover = false;
+		currentHoveredPlanet = null;
+		hoverLerp = 0;
+		secretMat.uniforms.uHover.value = 0;
+		canvasEl.style.cursor = '';
+		applyPlanetLabelHint();
+		solarFade = getHeroScrollFade();
+		solarFadeLerp = solarFade;
+		applySolarFade(solarFadeLerp);
+	}
+
 	applyVisibility();
 
 	const mo = new MutationObserver(() => applyVisibility());
@@ -937,20 +976,65 @@ export function initUniverseStarField(): () => void {
 		setSize();
 	};
 
+	/** Leaving the page — drop the click latch so a restore can't strand us. */
+	const onPageHide = () => {
+		window.clearTimeout(navigationReleaseTimer);
+		navigating = false;
+	};
+
+	/**
+	 * Returning via Back (bfcache) or any soft restore: clear latch, revive the
+	 * animation loop, and re-sync sizes in case the viewport changed while away.
+	 */
+	const onPageShow = (e: PageTransitionEvent) => {
+		resetInteractionState();
+		if (e.persisted) {
+			forceRestartLoop();
+			setSize();
+		}
+	};
+
+	const onVisibilityChange = () => {
+		if (document.visibilityState !== 'visible') return;
+		resetInteractionState();
+		forceRestartLoop();
+	};
+
+	const onContextLost = (e: Event) => {
+		e.preventDefault();
+		stop();
+	};
+
+	const onContextRestored = () => {
+		forceRestartLoop();
+		setSize();
+	};
+
+	window.addEventListener('pagehide', onPageHide);
+	window.addEventListener('pageshow', onPageShow);
+	document.addEventListener('visibilitychange', onVisibilityChange);
 	window.addEventListener('scroll', onScroll, { passive: true });
 	window.addEventListener('resize', onResize);
 	window.addEventListener('pointermove', onPointerMove, { passive: true });
 	document.documentElement.addEventListener('mouseleave', onPointerLeave);
 	canvasEl.addEventListener('pointerdown', onPointerDown);
+	canvasEl.addEventListener('webglcontextlost', onContextLost);
+	canvasEl.addEventListener('webglcontextrestored', onContextRestored);
 
 	return () => {
 		stop();
 		mo.disconnect();
+		window.clearTimeout(navigationReleaseTimer);
+		window.removeEventListener('pagehide', onPageHide);
+		window.removeEventListener('pageshow', onPageShow);
+		document.removeEventListener('visibilitychange', onVisibilityChange);
 		window.removeEventListener('scroll', onScroll);
 		window.removeEventListener('resize', onResize);
 		window.removeEventListener('pointermove', onPointerMove);
 		document.documentElement.removeEventListener('mouseleave', onPointerLeave);
 		canvasEl.removeEventListener('pointerdown', onPointerDown);
+		canvasEl.removeEventListener('webglcontextlost', onContextLost);
+		canvasEl.removeEventListener('webglcontextrestored', onContextRestored);
 		geometry.dispose();
 		material.dispose();
 		nebulaSky.mesh.geometry.dispose();

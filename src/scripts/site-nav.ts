@@ -1,78 +1,51 @@
 /**
- * Desktop tab underline + active states (runs once per full page load).
+ * Marks the nav tab matching the current URL. The active pill is styled purely
+ * in CSS via `.nav-tab[data-active='true']`.
  */
-import { gsap } from 'gsap';
+function isMatch(href: string, pathname: string): boolean {
+	if (href === '/') return pathname === '/';
+	return pathname === href || pathname.startsWith(`${href}/`);
+}
 
+/** Longest matching href wins, so `/blog/essays/x` prefers `/blog` over `/`. */
 function bestMatchingNavHref(pathname: string): string | null {
 	const nav = document.querySelector('[data-site-nav]');
 	if (!nav) return null;
-	const tabs = nav.querySelectorAll<HTMLAnchorElement>('.nav-tab');
+
 	let best: string | null = null;
 	let bestLen = -1;
-	tabs.forEach((a) => {
+
+	nav.querySelectorAll<HTMLAnchorElement>('.nav-tab').forEach((a) => {
 		if (!a.offsetParent) return;
-		const href = a.getAttribute('href') || '';
-		const match =
-			href === '/' ? pathname === '/' : pathname === href || (href !== '/' && pathname.startsWith(`${href}/`));
-		if (match && href.length > bestLen) {
+		const href = a.getAttribute('href') ?? '';
+		if (isMatch(href, pathname) && href.length > bestLen) {
 			best = href;
 			bestLen = href.length;
 		}
 	});
+
 	return best;
 }
 
-export function positionSiteNavUnderline(): void {
-	const nav = document.querySelector('[data-site-nav]');
-	const underline = document.querySelector('[data-nav-underline]') as HTMLElement | null;
-	if (!nav || !underline) return;
-	const path = window.location.pathname;
-	const tabs = nav.querySelectorAll<HTMLAnchorElement>('.nav-tab');
-	let best: HTMLAnchorElement | undefined;
-	let bestLen = -1;
-	tabs.forEach((a) => {
-		if (!a.offsetParent) return;
-		const href = a.getAttribute('href') || '';
-		const match =
-			href === '/' ? path === '/' : path === href || (href !== '/' && path.startsWith(`${href}/`));
-		if (match && href.length > bestLen) {
-			best = a;
-			bestLen = href.length;
-		}
-	});
-	if (!best) return;
-	const navRect = nav.getBoundingClientRect();
-	const r = best.getBoundingClientRect();
-	const left = r.left - navRect.left;
-	gsap.to(underline, {
-		width: r.width,
-		x: left,
-		duration: 0.45,
-		ease: 'power3.out',
-	});
-}
-
 export function syncSiteNavActiveClasses(): void {
-	const path = window.location.pathname;
-	const activeHref = bestMatchingNavHref(path);
+	const activeHref = bestMatchingNavHref(window.location.pathname);
 
 	document.querySelectorAll<HTMLAnchorElement>('[data-site-nav] .nav-tab').forEach((a) => {
-		const href = a.getAttribute('href') || '';
-		const on = href === activeHref;
-		if (on) a.dataset.active = 'true';
+		const href = a.getAttribute('href') ?? '';
+		if (href === activeHref) a.dataset.active = 'true';
 		else delete a.dataset.active;
 	});
 
-	document.querySelectorAll<HTMLAnchorElement>('[data-site-nav-mobile] a[data-nav-href]').forEach((a) => {
-		const href = a.getAttribute('data-nav-href') || a.getAttribute('href') || '';
-		const on = href === activeHref;
-		a.className = 'nav-tab';
-		if (on) a.dataset.active = 'true';
-		else delete a.dataset.active;
-	});
+	document
+		.querySelectorAll<HTMLAnchorElement>('[data-site-nav-mobile] a[data-nav-href]')
+		.forEach((a) => {
+			const href = a.getAttribute('data-nav-href') ?? a.getAttribute('href') ?? '';
+			a.className = 'nav-tab';
+			if (href === activeHref) a.dataset.active = 'true';
+			else delete a.dataset.active;
+		});
 }
 
 export function syncSiteNavChrome(): void {
 	syncSiteNavActiveClasses();
-	positionSiteNavUnderline();
 }

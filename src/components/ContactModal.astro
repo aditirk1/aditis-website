@@ -112,7 +112,8 @@ const { accessKey = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY ?? '' } = Astro.
 		const key = fd.get('access_key');
 		if (!key) {
 			statusEl.hidden = false;
-			statusEl.textContent = 'Add PUBLIC_WEB3FORMS_ACCESS_KEY to your environment.';
+			statusEl.textContent =
+				'This form is not accepting messages right now — please reach me on LinkedIn.';
 			return;
 		}
 		statusEl.hidden = false;

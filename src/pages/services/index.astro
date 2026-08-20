@@ -149,22 +149,32 @@ const process = [
 				{
 					stripeCheckoutEnabled
 						? 'Use the contact form for custom scope, or pay for a defined offering via Stripe when you are ready.'
-						: 'Use the contact form below — I reply by email, usually within a few days. Online payment via Stripe is coming soon; for now all projects are scoped and invoiced after we talk.'
+						: contactEnabled
+							? 'Use the contact form below — I reply by email, usually within a few days. Projects are scoped and invoiced after we talk.'
+							: 'Reach me on LinkedIn and tell me a little about the work. I reply within a few days. Projects are scoped and invoiced after we talk.'
 				}
 			</p>
 			<div class="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center" data-reveal-child>
-				<button
-					type="button"
-					class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-7 py-3.5 text-base font-bold text-[var(--color-amber)] transition hover:scale-[1.03] hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)]"
-					data-contact-open
-				>
-					Work with me
-				</button>
+				{
+					contactEnabled && (
+						<button
+							type="button"
+							class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-7 py-3.5 text-base font-bold text-[var(--color-amber)] transition hover:scale-[1.03] hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)]"
+							data-contact-open
+						>
+							Work with me
+						</button>
+					)
+				}
 				<a
 					href="https://www.linkedin.com/in/aditirk/"
 					target="_blank"
 					rel="noopener noreferrer"
-					class="rounded-full border border-[color-mix(in_srgb,var(--page-fg)_22%,transparent)] px-7 py-3.5 text-center text-base font-bold text-[var(--page-fg)] transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)]"
+					class={
+						contactEnabled
+							? 'rounded-full border border-[color-mix(in_srgb,var(--page-fg)_22%,transparent)] px-7 py-3.5 text-center text-base font-bold text-[var(--page-fg)] transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)]'
+							: 'rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-7 py-3.5 text-center text-base font-bold text-[var(--color-amber)] transition hover:scale-[1.03] hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)]'
+					}
 				>
 					Message on LinkedIn
 				</a>
@@ -180,23 +190,6 @@ const process = [
 					)
 				}
 			</div>
-			{
-				!contactEnabled && (
-					<p class="mt-4 text-sm text-[var(--page-muted)]" data-reveal-child>
-						Contact form: add <code class="text-[var(--color-amber)]">PUBLIC_WEB3FORMS_ACCESS_KEY</code> to
-						your <code class="text-[var(--color-amber)]">.env</code> (free at{' '}
-						<a
-							href="https://web3forms.com"
-							class="underline underline-offset-2 hover:text-[var(--color-amber)]"
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							web3forms.com
-						</a>
-						). Until then, use LinkedIn.
-					</p>
-				)
-			}
 			{
 				stripeCheckoutEnabled && (
 					<p class="mt-3 text-sm text-[var(--page-muted)]" data-reveal-child>

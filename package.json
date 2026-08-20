@@ -9,10 +9,13 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "check": "astro check",
     "astro": "astro",
     "cms:local": "npx decap-server"
   },
   "dependencies": {
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.3",
     "globe.gl": "^2.45.3",
     "gsap": "^3.14.2",
     "lenis": "^1.3.21",
@@ -20,11 +23,13 @@
     "three": "^0.183.2"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
     "@cloudflare/workers-types": "^4.20260405.1",
     "@tailwindcss/vite": "^4.2.2",
     "@types/three": "^0.183.1",
     "astro": "^6.3.3",
     "tailwindcss": "^4.2.2",
+    "typescript": "^6.0.3",
     "wrangler": "^4.80.0"
   }
 }

@@ -3,6 +3,16 @@ import Layout from '../layouts/Layout.astro';
 import SplashIntro from '../components/SplashIntro.astro';
 import LiveVisitorMap from '../components/LiveVisitorMap.astro';
 
+const heroTitle = "aditi's universe";
+const heroChars = heroTitle.split('');
+
+const exploreCards = [
+	{ href: '/projects', title: 'Projects', desc: 'Research, engineering, and creative builds.' },
+	{ href: '/blog', title: 'Blog', desc: 'Long-form essays and technical explorations.' },
+	{ href: '/thoughts', title: 'Thoughts', desc: 'Shorter notes, observations, and fragments.' },
+	{ href: '/photo-dump', title: 'Photo Dump', desc: 'Visual snapshots from life and work.' },
+	{ href: '/services', title: 'Services', desc: 'Research consulting, writing, and design.' },
+];
 ---
 
 <Layout title="aditi's universe · aditirk.me">
@@ -15,7 +25,11 @@ import LiveVisitorMap from '../components/LiveVisitorMap.astro';
 		data-reveal-stagger
 	>
 		<div id="sun-wrapper">
-			<h1 id="sun-text" data-hero-title>aditi's universe</h1>
+			<h1 id="sun-text" data-hero-title>
+				{heroChars.map((ch) => (
+					<span class="hero-char">{ch === ' ' ? '\u00a0' : ch}</span>
+				))}
+			</h1>
 			<span class="sparkle" style="--sx: -60px; --sy: -12px; --sd: 0s" aria-hidden="true"></span>
 			<span class="sparkle" style="--sx: 62px; --sy: -8px; --sd: 0.4s" aria-hidden="true"></span>
 			<span class="sparkle" style="--sx: -40px; --sy: 14px; --sd: 0.8s" aria-hidden="true"></span>
@@ -106,13 +120,7 @@ import LiveVisitorMap from '../components/LiveVisitorMap.astro';
 		</h2>
 		<div class="mt-1 h-0.5 w-12 rounded-full bg-[var(--color-amber)]" data-reveal-child></div>
 		<div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-			{[
-				{ href: '/projects', title: 'Projects', desc: 'Research, engineering, and creative builds.' },
-				{ href: '/blog', title: 'Blog', desc: 'Long-form essays and technical explorations.' },
-				{ href: '/thoughts', title: 'Thoughts', desc: 'Shorter notes, observations, and fragments.' },
-				{ href: '/photo-dump', title: 'Photo Dump', desc: 'Visual snapshots from life and work.' },
-				{ href: '/services', title: 'Services', desc: 'Research consulting, writing, and design.' },
-			].map(({ href, title, desc }) => (
+			{exploreCards.map(({ href, title, desc }) => (
 				<a
 					href={href}
 					class="group relative overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--page-fg)_12%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_70%,transparent)] p-6 backdrop-blur-md transition-all duration-300 hover:border-[var(--color-amber)] hover:shadow-[0_0_32px_color-mix(in_srgb,var(--color-amber)_15%,transparent)]"
@@ -124,7 +132,7 @@ import LiveVisitorMap from '../components/LiveVisitorMap.astro';
 					<p class="mt-2 text-sm leading-relaxed text-[var(--page-muted)] transition-colors group-hover:text-[var(--page-fg)]">
 						{desc}
 					</p>
-					<span class="explore-card-cta mt-3 inline-block text-xs font-bold tracking-wide text-[var(--color-amber)] opacity-0 transition-opacity group-hover:opacity-100">
+					<span class="explore-card-cta mt-3 inline-block text-xs font-bold tracking-wide text-[var(--color-amber)] opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
 						Explore →
 					</span>
 				</a>
