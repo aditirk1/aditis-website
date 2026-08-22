@@ -5,8 +5,59 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="robots" content="noindex, nofollow" />
 		<title>Edit site content · Decap CMS</title>
+		<link href="/admin/config.yml" type="text/yaml" rel="cms-config-url" />
+		<style>
+			html,
+			body {
+				margin: 0;
+				min-height: 100%;
+				font: 16px/1.5 system-ui, sans-serif;
+				color: #1a1a1a;
+				background: #f0f0f0;
+			}
+			#cms-status {
+				max-width: 36rem;
+				margin: 3rem auto;
+				padding: 1.25rem 1.5rem;
+				background: #fff;
+				border: 1px solid #ddd;
+			}
+			#cms-status[hidden] {
+				display: none;
+			}
+			code {
+				font-size: 0.9em;
+			}
+		</style>
 	</head>
 	<body>
-		<script src="https://unpkg.com/decap-cms@3.4.1/dist/decap-cms.js"></script>
+		<div id="cms-status">
+			<p><strong>Loading editor…</strong></p>
+			<p>Use <code>https://aditirk.me/admin/</code> (with the trailing slash).</p>
+		</div>
+		<script>
+			(function () {
+				var status = document.getElementById('cms-status');
+				var s = document.createElement('script');
+				s.src = '/admin/decap-cms.js';
+				s.async = true;
+				s.onload = function () {
+					if (status) status.hidden = true;
+				};
+				s.onerror = function () {
+					if (!status) return;
+					status.innerHTML =
+						'<p><strong>Could not load the editor script.</strong></p>' +
+						'<p>Expected <code>/admin/decap-cms.js</code> from the site build. Redeploy after installing <code>decap-cms</code>.</p>';
+				};
+				document.body.appendChild(s);
+				setTimeout(function () {
+					if (status && !status.hidden && !window.CMS) {
+						status.innerHTML +=
+							'<p>Still waiting. Open the browser console (Develop → Show Web Inspector) for errors.</p>';
+					}
+				}, 8000);
+			})();
+		</script>
 	</body>
 </html>
