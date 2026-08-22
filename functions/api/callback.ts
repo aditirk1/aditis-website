@@ -76,10 +76,20 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 	const origin = url.origin;
 
 	const denied = url.searchParams.get('error_description') ?? url.searchParams.get('error');
-	if (denied) return errorPage('GitHub declined the request.', 400);
+	if (denied) return errorPage(`GitHub declined the request: ${denied}`, 400);
 
 	const code = url.searchParams.get('code');
-	if (!code) return errorPage('GitHub did not return an authorization code.', 400);
+	if (!code) {
+		// Usually: opened /api/callback directly, or a Cloudflare redirect stripped ?code=
+		const keys = [...url.searchParams.keys()].join(', ') || '(none)';
+		return errorPage(
+			`GitHub did not return an authorization code. Query params received: ${keys}. ` +
+				`Start again from /admin/ (Login with GitHub). ` +
+				`Confirm the OAuth app callback is exactly https://aditirk.me/api/callback ` +
+				`and that Cloudflare is not redirecting /api/callback in a way that drops the query string.`,
+			400,
+		);
+	}
 
 	const expectedState = readCookie(request.headers.get('Cookie'), STATE_COOKIE);
 	if (!expectedState || url.searchParams.get('state') !== expectedState) {
