@@ -12,51 +12,76 @@
 				margin: 0;
 				min-height: 100%;
 				font: 16px/1.5 system-ui, sans-serif;
-				color: #1a1a1a;
-				background: #f0f0f0;
+				color: #111;
+				background: #e8eef5;
 			}
 			#cms-status {
-				max-width: 36rem;
+				max-width: 40rem;
 				margin: 3rem auto;
-				padding: 1.25rem 1.5rem;
+				padding: 1.5rem;
 				background: #fff;
-				border: 1px solid #ddd;
+				border: 1px solid #b8c4d4;
+				border-radius: 4px;
 			}
-			#cms-status[hidden] {
+			#cms-status[data-ok='1'] {
 				display: none;
 			}
 			code {
 				font-size: 0.9em;
+				background: #f3f3f3;
+				padding: 0.1em 0.35em;
 			}
 		</style>
 	</head>
 	<body>
 		<div id="cms-status">
-			<p><strong>Loading editor…</strong></p>
-			<p>Use <code>https://aditirk.me/admin/</code> (with the trailing slash).</p>
+			<p><strong>Loading the content editor…</strong></p>
+			<p>Open <code>https://aditirk.me/admin/</code> (trailing slash). Hard-refresh with ⌘⇧R if this is stuck.</p>
+			<p id="cms-detail" style="color: #555"></p>
 		</div>
+		<!-- Prefer same-origin bundle; CDN is fallback if the build omitted the file -->
+		<script src="/admin/decap-cms.js"></script>
 		<script>
 			(function () {
 				var status = document.getElementById('cms-status');
-				var s = document.createElement('script');
-				s.src = '/admin/decap-cms.js';
-				s.async = true;
-				s.onload = function () {
-					if (status) status.hidden = true;
+				var detail = document.getElementById('cms-detail');
+				function markOk() {
+					if (status) status.setAttribute('data-ok', '1');
+				}
+				function markFail(msg) {
+					if (detail) detail.textContent = msg;
+				}
+				function cmsReady() {
+					return Boolean(window.CMS || window.DecapCms);
+				}
+
+				if (cmsReady()) {
+					markOk();
+					return;
+				}
+
+				// Local script missing or failed — load from jsDelivr
+				var cdn = document.createElement('script');
+				cdn.src = 'https://cdn.jsdelivr.net/npm/decap-cms@3.15.1/dist/decap-cms.js';
+				cdn.onload = function () {
+					if (cmsReady()) markOk();
+					else markFail('Decap script loaded but did not initialize. Check the browser console.');
 				};
-				s.onerror = function () {
-					if (!status) return;
-					status.innerHTML =
-						'<p><strong>Could not load the editor script.</strong></p>' +
-						'<p>Expected <code>/admin/decap-cms.js</code> from the site build. Redeploy after installing <code>decap-cms</code>.</p>';
+				cdn.onerror = function () {
+					markFail(
+						'Could not load Decap from this site or jsDelivr. Check Cloudflare deploy logs and that /admin/decap-cms.js returns 200.',
+					);
 				};
-				document.body.appendChild(s);
+				document.body.appendChild(cdn);
+
 				setTimeout(function () {
-					if (status && !status.hidden && !window.CMS) {
-						status.innerHTML +=
-							'<p>Still waiting. Open the browser console (Develop → Show Web Inspector) for errors.</p>';
+					if (cmsReady()) markOk();
+					else if (status && status.getAttribute('data-ok') !== '1') {
+						markFail(
+							'Still blank after 10s — open Web Inspector → Console/Network and look for failed /admin/decap-cms.js or config.yml.',
+						);
 					}
-				}, 8000);
+				}, 10000);
 			})();
 		</script>
 	</body>
