@@ -1,9 +1,7 @@
 ---
 /**
- * Primary site navigation (desktop + mobile).
- *
- * Every section is always listed. Sections without content yet show a themed
- * placeholder rather than disappearing from the nav.
+ * Primary site navigation (one list — desktop + mobile).
+ * Mobile: horizontal scroll. Desktop: inline flex row.
  */
 const isHome = Astro.url.pathname === '/';
 
@@ -17,13 +15,11 @@ const links = [
 ---
 
 <nav class="min-w-0 md:w-auto" aria-label="Primary" data-home={isHome ? 'true' : 'false'}>
-	<div class="site-nav-desktop relative hidden items-center md:flex" data-site-nav>
-		{links.map((link) => <a href={link.href} class="nav-tab">{link.label}</a>)}
-	</div>
-
-	<div class="site-nav-mobile md:hidden" data-site-nav-mobile>
+	<div class="site-nav-links" data-site-nav data-site-nav-mobile>
 		{links.map((link) => (
-			<a class="nav-tab" data-nav-href={link.href} href={link.href}>{link.label}</a>
+			<a class="nav-tab" data-nav-href={link.href} href={link.href}>
+				{link.label}
+			</a>
 		))}
 	</div>
 </nav>
