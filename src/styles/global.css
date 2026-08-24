@@ -760,28 +760,28 @@ html[data-theme='universe'] .sun-glow {
 	will-change: transform, opacity;
 }
 
-/* Beach theme: centered brand title (desktop), modest size */
+/* Beach theme: big left-aligned hero title (original layout). */
 html[data-theme='beach'] #sun-wrapper {
-	position: relative;
+	position: static;
 	top: auto;
 	left: auto;
 	transform: none;
-	width: 100%;
-	max-width: min(100%, 36rem);
-	margin-inline: auto;
-	text-align: center;
+	width: auto;
+	max-width: none;
+	margin-inline: 0;
+	text-align: left;
 	pointer-events: auto;
 }
 
 html[data-theme='beach'] #sun-text {
-	font-family: var(--font-title);
-	font-size: clamp(2rem, 4.5vw, 3rem);
+	font-family: var(--font-display);
+	font-size: clamp(2.75rem, 8vw, 5rem);
 	font-weight: 700;
 	font-style: normal;
-	letter-spacing: 0.04em;
-	line-height: 1.1;
-	text-transform: lowercase;
-	text-align: center;
+	letter-spacing: -0.02em;
+	line-height: 1.05;
+	text-transform: none;
+	text-align: left;
 	color: var(--page-fg);
 	text-shadow: none;
 	background: none;
@@ -798,19 +798,23 @@ html[data-theme='beach'] .sun-glow {
 }
 
 html[data-theme='beach'] [data-hero-root] {
-	align-items: center;
-	text-align: center;
+	align-items: flex-start;
+	text-align: left;
 }
 
-html[data-theme='beach'] [data-hero-root] .home-hero-extra,
 html[data-theme='beach'] [data-hero-root] .home-hero-desc {
-	max-width: min(100%, 40rem);
-	margin-inline: auto;
-	text-align: center;
+	max-width: min(100%, 48rem);
+	margin-inline: 0;
+	text-align: left;
+}
+
+html[data-theme='beach'] [data-hero-root] .home-hero-extra {
+	margin-inline: 0;
+	text-align: left;
 }
 
 html[data-theme='beach'] [data-hero-root] .home-hero-extra.pointer-events-auto {
-	justify-content: center;
+	justify-content: flex-start;
 }
 
 html[data-theme='beach'] #planet-label {
