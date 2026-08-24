@@ -409,12 +409,8 @@ html[data-theme='universe'] .home-explore {
 	display: none;
 }
 
-/* Mobile universe home: Explore cards as text fallback (top nav is hidden — planets are primary) */
+/* Mobile universe home: Explore cards as text fallback (top nav + tagline stay hidden — planets primary) */
 @media (max-width: 767px) {
-	html[data-theme='universe'] [data-hero-tagline] {
-		display: block;
-	}
-
 	html[data-theme='universe'] .home-explore {
 		display: block;
 	}
@@ -656,18 +652,124 @@ html[data-coarse-pointer] .home-explore-card .explore-card-cta {
 	pointer-events: none;
 }
 
+/*
+ * Universe home: brand title sits above the orrery — centered, elegant serif,
+ * soft amber glow + light sweep (no cross-shaped sparkles).
+ */
+html[data-theme='universe'] #sun-wrapper {
+	top: max(4.75rem, calc(env(safe-area-inset-top, 0px) + 3.75rem));
+	left: 50%;
+	transform: translateX(-50%);
+	width: min(92vw, 40rem);
+	text-align: center;
+}
+
+html[data-theme='universe'] #sun-text {
+	position: relative;
+	z-index: 1;
+	display: inline-block;
+	max-width: 100%;
+	margin: 0 auto;
+	font-family: var(--font-brand);
+	font-size: clamp(2.35rem, 7.2vw, 4.35rem);
+	font-weight: 500;
+	font-style: italic;
+	letter-spacing: 0.02em;
+	line-height: 1.05;
+	text-transform: lowercase;
+	text-align: center;
+	color: transparent;
+	background-image: linear-gradient(
+		105deg,
+		#c9a35a 0%,
+		#ffe7a8 22%,
+		#fff6d6 38%,
+		#ffd27a 52%,
+		#fff1c2 68%,
+		#e0b45c 100%
+	);
+	background-size: 220% 100%;
+	background-position: 0% 50%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	filter: drop-shadow(0 0 10px rgba(255, 196, 90, 0.35)) drop-shadow(0 0 28px rgba(255, 160, 40, 0.18));
+	animation:
+		sun-shimmer-sweep 7s ease-in-out infinite,
+		sun-glow-breathe 4.5s ease-in-out infinite alternate;
+}
+
+html[data-theme='universe'] #sun-text .hero-char {
+	display: inline-block;
+	will-change: transform, opacity;
+}
+
+html[data-theme='universe'] .sun-glow {
+	position: absolute;
+	left: 50%;
+	top: 55%;
+	z-index: 0;
+	width: min(120%, 28rem);
+	height: 4.5rem;
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+	background: radial-gradient(
+		ellipse at center,
+		rgba(255, 190, 80, 0.28) 0%,
+		rgba(255, 150, 40, 0.12) 42%,
+		transparent 72%
+	);
+	filter: blur(10px);
+	animation: sun-halo-pulse 4.5s ease-in-out infinite alternate;
+}
+
 @media (max-width: 767px) {
 	html[data-theme='universe'] #sun-wrapper {
-		top: 28%;
-		width: min(92vw, 22rem);
+		top: max(4.25rem, calc(env(safe-area-inset-top, 0px) + 3.25rem));
+		width: min(94vw, 22rem);
 	}
 
 	html[data-theme='universe'] #sun-text {
-		font-size: clamp(0.85rem, 4.5vw, 1.1rem);
-		letter-spacing: 0.12em;
+		font-size: clamp(2.1rem, 11vw, 2.85rem);
+		letter-spacing: 0.015em;
+	}
+
+	html[data-theme='universe'] .sun-glow {
+		height: 3.25rem;
+		width: min(130%, 20rem);
 	}
 }
 
+@keyframes sun-shimmer-sweep {
+	0%,
+	100% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+}
+
+@keyframes sun-glow-breathe {
+	0% {
+		filter: drop-shadow(0 0 8px rgba(255, 186, 80, 0.28)) drop-shadow(0 0 22px rgba(255, 150, 40, 0.12));
+	}
+	100% {
+		filter: drop-shadow(0 0 14px rgba(255, 210, 110, 0.45)) drop-shadow(0 0 34px rgba(255, 170, 50, 0.22));
+	}
+}
+
+@keyframes sun-halo-pulse {
+	0% {
+		opacity: 0.55;
+		transform: translate(-50%, -50%) scale(0.92);
+	}
+	100% {
+		opacity: 1;
+		transform: translate(-50%, -50%) scale(1.06);
+	}
+}
+
+/* Legacy base (overridden by theme rules above / below) */
 #sun-text {
 	position: relative;
 	top: unset;
@@ -679,40 +781,11 @@ html[data-coarse-pointer] .home-explore-card .explore-card-cta {
 	letter-spacing: 0.15em;
 	text-transform: lowercase;
 	color: #ffdd88;
-	text-shadow:
-		0 0 8px rgba(255, 200, 60, 0.8),
-		0 0 20px rgba(255, 160, 0, 0.4),
-		0 0 40px rgba(255, 120, 0, 0.15);
-	animation: sunshimmer 3s ease-in-out infinite alternate;
 }
 
 #sun-text .hero-char {
 	display: inline-block;
 	will-change: transform, opacity;
-}
-
-@keyframes sunshimmer {
-	0% {
-		text-shadow:
-			0 0 8px rgba(255, 200, 60, 0.8),
-			0 0 20px rgba(255, 160, 0, 0.4),
-			0 0 40px rgba(255, 120, 0, 0.15);
-		color: #ffdd88;
-	}
-	50% {
-		text-shadow:
-			0 0 12px rgba(255, 220, 80, 1),
-			0 0 30px rgba(255, 180, 0, 0.6),
-			0 0 60px rgba(255, 140, 0, 0.2);
-		color: #fff0aa;
-	}
-	100% {
-		text-shadow:
-			0 0 6px rgba(255, 180, 40, 0.7),
-			0 0 16px rgba(255, 140, 0, 0.3),
-			0 0 30px rgba(255, 100, 0, 0.1);
-		color: #ffd066;
-	}
 }
 
 /* Beach theme: big left-aligned hero title (original layout), no orrery centering. */
@@ -721,6 +794,8 @@ html[data-theme='beach'] #sun-wrapper {
 	top: auto;
 	left: auto;
 	transform: none;
+	width: auto;
+	text-align: left;
 	pointer-events: auto;
 }
 
@@ -728,80 +803,41 @@ html[data-theme='beach'] #sun-text {
 	font-family: var(--font-display);
 	font-size: clamp(2.75rem, 8vw, 5rem);
 	font-weight: 700;
+	font-style: normal;
 	letter-spacing: -0.02em;
+	line-height: 1.05;
 	text-transform: none;
+	text-align: left;
 	color: var(--page-fg);
-	text-shadow: none;
+	background: none;
+	-webkit-background-clip: unset;
+	background-clip: unset;
+	filter: none;
 	animation: none;
+}
+
+html[data-theme='beach'] .sun-glow {
+	display: none;
 }
 
 html[data-theme='beach'] [data-hero-root] .home-hero-desc {
 	max-width: min(100%, 48rem);
 }
 
-html[data-theme='beach'] .sparkle,
 html[data-theme='beach'] #planet-label {
 	display: none;
 }
 
-.sparkle {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	width: 4px;
-	height: 4px;
-	pointer-events: none;
-	translate: var(--sx) var(--sy);
-	background: transparent;
-	animation: sparkletwinkle 2.4s ease-in-out infinite;
-	animation-delay: var(--sd);
-}
-
-.sparkle::before,
-.sparkle::after {
-	content: '';
-	position: absolute;
-	background: #ffee99;
-	border-radius: 999px;
-}
-
-.sparkle::before {
-	width: 1px;
-	height: 8px;
-	top: -2px;
-	left: 1.5px;
-}
-
-.sparkle::after {
-	width: 8px;
-	height: 1px;
-	top: 1.5px;
-	left: -2px;
-}
-
-@keyframes sparkletwinkle {
-	0%,
-	100% {
-		opacity: 0;
-		transform: scale(0.4) rotate(0deg);
-	}
-	40% {
-		opacity: 1;
-		transform: scale(1) rotate(20deg);
-	}
-	60% {
-		opacity: 0.8;
-		transform: scale(0.9) rotate(-10deg);
-	}
-}
-
 @media (prefers-reduced-motion: reduce) {
-	#sun-text {
+	html[data-theme='universe'] #sun-text {
 		animation: none;
+		background-position: 40% 50%;
+		filter: drop-shadow(0 0 10px rgba(255, 196, 90, 0.3));
 	}
-	.sparkle {
+
+	html[data-theme='universe'] .sun-glow {
 		animation: none;
-		opacity: 0;
+		opacity: 0.75;
 	}
 }
 
