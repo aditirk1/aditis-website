@@ -3,6 +3,23 @@
  */
 @import 'tailwindcss';
 
+/* Hover styles only apply on devices with a fine pointer (not touch phones). */
+@custom-variant fine-hover {
+	@media (hover: hover) and (pointer: fine) {
+		&:hover {
+			@slot;
+		}
+	}
+}
+
+@custom-variant fine-group-hover {
+	@media (hover: hover) and (pointer: fine) {
+		:is(.group:hover &) {
+			@slot;
+		}
+	}
+}
+
 @theme {
 	--color-amber: #ffaa00;
 	--color-beach-accent: #2d7ec8;
@@ -545,6 +562,60 @@ nav[aria-label='Primary'] .nav-tab[data-active='true'] {
 	color: var(--color-amber);
 	background: color-mix(in srgb, var(--color-amber) 10%, transparent);
 	box-shadow: 0 0 16px color-mix(in srgb, var(--color-amber) 50%, transparent);
+}
+
+/* Mobile nav — single scroll row, no stacked pills */
+.site-nav-mobile {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	gap: 0.45rem;
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	-webkit-overflow-scrolling: touch;
+	scrollbar-width: none;
+	padding: 0.1rem 0 0.25rem;
+}
+
+.site-nav-mobile::-webkit-scrollbar {
+	display: none;
+}
+
+@media (max-width: 767px) {
+	[data-site-header] {
+		gap: 0.55rem;
+		padding-top: max(0.65rem, env(safe-area-inset-top, 0px));
+	}
+
+	nav[aria-label='Primary'] .nav-tab {
+		flex: 0 0 auto;
+		white-space: nowrap;
+		padding: 0.4rem 0.68rem;
+		font-size: 0.72rem;
+		min-height: 2.25rem;
+		letter-spacing: 0.02em;
+	}
+
+	[data-theme-toggle] {
+		padding: 0.45rem 0.85rem;
+		font-size: 0.8125rem;
+	}
+}
+
+/* Touch / mobile: use :active feedback instead of sticky hover */
+html[data-coarse-pointer] [data-theme-toggle]:active,
+html[data-coarse-pointer] .home-hero-extra a:active,
+html[data-coarse-pointer] .home-explore-card:active {
+	border-color: var(--color-amber);
+	color: var(--color-amber);
+}
+
+html[data-coarse-pointer] .home-explore-card:active {
+	box-shadow: 0 0 20px color-mix(in srgb, var(--color-amber) 18%, transparent);
+}
+
+html[data-coarse-pointer] .home-explore-card .explore-card-cta {
+	opacity: 1;
 }
 
 #sun-wrapper {

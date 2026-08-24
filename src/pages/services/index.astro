@@ -107,7 +107,7 @@ const ctaBody = stripeCheckoutEnabled
 					contactEnabled && (
 						<button
 							type="button"
-							class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-7 py-3.5 text-base font-bold text-[var(--color-amber)] transition hover:scale-[1.03] hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)]"
+							class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-7 py-3.5 text-base font-bold text-[var(--color-amber)] transition fine-hover:scale-[1.03] fine-hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)]"
 							data-contact-open
 						>
 							Work with me
@@ -120,8 +120,8 @@ const ctaBody = stripeCheckoutEnabled
 					rel="noopener noreferrer"
 					class={
 						contactEnabled
-							? 'rounded-full border border-[color-mix(in_srgb,var(--page-fg)_22%,transparent)] px-7 py-3.5 text-center text-base font-bold text-[var(--page-fg)] transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)]'
-							: 'rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-7 py-3.5 text-center text-base font-bold text-[var(--color-amber)] transition hover:scale-[1.03] hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)]'
+							? 'rounded-full border border-[color-mix(in_srgb,var(--page-fg)_22%,transparent)] px-7 py-3.5 text-center text-base font-bold text-[var(--page-fg)] transition fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)]'
+							: 'rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-7 py-3.5 text-center text-base font-bold text-[var(--color-amber)] transition fine-hover:scale-[1.03] fine-hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)]'
 					}
 				>
 					Message on LinkedIn
@@ -130,7 +130,7 @@ const ctaBody = stripeCheckoutEnabled
 					stripeCheckoutEnabled && (
 						<button
 							type="button"
-							class="rounded-full border border-[color-mix(in_srgb,var(--page-fg)_22%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_60%,transparent)] px-7 py-3.5 text-base font-bold text-[var(--page-fg)] transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)]"
+							class="rounded-full border border-[color-mix(in_srgb,var(--page-fg)_22%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_60%,transparent)] px-7 py-3.5 text-base font-bold text-[var(--page-fg)] transition fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)]"
 							data-stripe-checkout
 						>
 							Pay securely (Stripe)

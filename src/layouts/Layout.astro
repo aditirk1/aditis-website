@@ -158,51 +158,54 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 		<div id="site-shell" class="relative z-10 flex min-h-dvh flex-col pointer-events-none">
 			<a href="#main-content" class="skip-link">Skip to content</a>
 			<header
-				class="pointer-events-none flex flex-col gap-3 px-4 py-4 transition-[padding,backdrop-filter] duration-300 sm:px-6 sm:py-5 md:flex-row md:items-center md:justify-between md:gap-6 md:px-10"
+				class="pointer-events-none flex flex-col gap-2 px-4 py-3 transition-[padding,backdrop-filter] duration-300 sm:px-6 sm:py-4 md:flex-row md:items-center md:gap-4 md:px-10 md:py-5"
 				data-site-header
 			>
-				<div class="pointer-events-auto flex shrink-0 items-center gap-2.5">
-					{
-						isHome && (
-							<button
-								type="button"
-								class="beach-dream-pineapple border-0 bg-transparent p-0 text-sm leading-none opacity-[0.32] transition duration-300 hover:scale-110 hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-amber)] focus-visible:ring-offset-2"
-								data-beach-dream-journal
-								aria-label="A quiet corner of the site"
-								title=""
-							>
-								<span aria-hidden="true" class="select-none">🍍</span>
-								<span class="sr-only">Open dream journal</span>
-							</button>
-						)
-					}
-					<a
-						href="/"
-						class="flex items-center gap-2 text-lg font-bold tracking-tight text-[var(--page-fg)] md:text-xl"
-						style="font-family: var(--font-display)"
-					>
-						<img
-							src="/brand/logo-universe-32.png"
-							alt=""
-							class="h-8 w-8 select-none md:h-9 md:w-9"
-							decoding="async"
-							loading="eager"
-							data-site-logo
-						/>
-						Home
-					</a>
-				</div>
+				<div class="pointer-events-auto flex items-center justify-between gap-3 md:contents">
+					<div class="order-1 flex shrink-0 items-center gap-2.5">
+						{
+							isHome && (
+								<button
+									type="button"
+									class="beach-dream-pineapple border-0 bg-transparent p-0 text-sm leading-none opacity-[0.32] transition duration-300 fine-hover:scale-110 fine-hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-amber)] focus-visible:ring-offset-2"
+									data-beach-dream-journal
+									aria-label="A quiet corner of the site"
+									title=""
+								>
+									<span aria-hidden="true" class="select-none">🍍</span>
+									<span class="sr-only">Open dream journal</span>
+								</button>
+							)
+						}
+						<a
+							href="/"
+							class="flex items-center gap-2 text-lg font-bold tracking-tight text-[var(--page-fg)] md:text-xl"
+							style="font-family: var(--font-display)"
+						>
+							<img
+								src="/brand/logo-universe-32.png"
+								alt=""
+								class="h-8 w-8 select-none md:h-9 md:w-9"
+								decoding="async"
+								loading="eager"
+								data-site-logo
+							/>
+							Home
+						</a>
+					</div>
 
-				<div class="pointer-events-auto flex w-full flex-col items-stretch gap-3 md:w-auto md:max-w-none md:flex-row md:items-center md:justify-end">
-					<SiteNav />
 					<button
 						type="button"
-						class="shrink-0 self-end rounded-full border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_75%,transparent)] px-4 py-2.5 text-sm font-semibold text-[var(--page-fg)] backdrop-blur-sm transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)] md:self-center md:px-4 md:py-2"
+						class="order-3 shrink-0 rounded-full border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_75%,transparent)] px-3.5 py-2 text-sm font-semibold text-[var(--page-fg)] backdrop-blur-sm transition fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)] md:ml-2 md:px-4 md:py-2"
 						data-theme-toggle
 						aria-label="Toggle Universe and Beach theme"
 					>
 						<span data-theme-toggle-label>Universe</span>
 					</button>
+				</div>
+
+				<div class="pointer-events-auto order-2 min-w-0 md:ml-auto md:flex md:flex-1 md:justify-end">
+					<SiteNav />
 				</div>
 			</header>
 
@@ -275,6 +278,7 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 			}
 
 			applyTheme(getStoredTheme());
+			syncCoarsePointerAttribute();
 			syncSiteNavChrome();
 			document.addEventListener('click', onThemeToggleClick);
 
