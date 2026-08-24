@@ -656,15 +656,15 @@ html[data-coarse-pointer] .home-explore-card .explore-card-cta {
 }
 
 /*
- * Universe home brand title.
- * Desktop: centered over the orrery. Mobile: top band + soft breathe.
- * Solid color (not background-clip) so letter spans stay visible.
+ * Universe home brand title — sits in a clear band ABOVE the orrery.
+ * Desktop: horizontally centered, upper third. Mobile: top + soft breathe.
+ * Inter light (existing site font). Soft glow only — no sparkle glyphs.
  */
 html[data-theme='universe'] #sun-wrapper {
-	top: 50%;
+	top: clamp(5.5rem, 14vh, 8.5rem);
 	left: 50%;
-	transform: translate(-50%, -50%);
-	width: min(90vw, 42rem);
+	transform: translateX(-50%);
+	width: min(88vw, 36rem);
 	text-align: center;
 }
 
@@ -674,23 +674,20 @@ html[data-theme='universe'] #sun-text {
 	display: block;
 	width: 100%;
 	margin: 0 auto;
-	font-family: var(--font-body);
-	font-size: clamp(2.75rem, 5.5vw, 4.5rem);
-	font-weight: 400;
+	font-family: var(--font-display);
+	font-size: clamp(1.85rem, 3.4vw, 2.75rem);
+	font-weight: 300;
 	font-style: normal;
-	letter-spacing: 0.04em;
-	line-height: 1.1;
+	letter-spacing: 0.18em;
+	line-height: 1.15;
 	text-transform: lowercase;
 	text-align: center;
-	color: #f3e6c4;
+	color: rgba(247, 236, 210, 0.92);
 	text-shadow:
-		0 0 12px rgba(255, 196, 90, 0.45),
-		0 0 32px rgba(255, 160, 40, 0.22);
+		0 0 18px rgba(255, 190, 90, 0.28),
+		0 0 48px rgba(255, 150, 40, 0.12);
 	background: none;
-	-webkit-background-clip: unset;
-	background-clip: unset;
-	filter: none;
-	animation: sun-glow-breathe 5s ease-in-out infinite alternate;
+	animation: none;
 }
 
 html[data-theme='universe'] #sun-text .hero-char {
@@ -703,52 +700,36 @@ html[data-theme='universe'] .sun-glow {
 	left: 50%;
 	top: 50%;
 	z-index: 0;
-	width: min(110%, 26rem);
-	height: 3.5rem;
+	width: min(100%, 22rem);
+	height: 2.25rem;
 	transform: translate(-50%, -50%);
 	pointer-events: none;
 	background: radial-gradient(
 		ellipse at center,
-		rgba(255, 190, 80, 0.22) 0%,
-		rgba(255, 150, 40, 0.08) 45%,
-		transparent 72%
+		rgba(255, 190, 80, 0.16) 0%,
+		rgba(255, 150, 40, 0.05) 50%,
+		transparent 75%
 	);
-	filter: blur(12px);
-	animation: sun-halo-pulse 5s ease-in-out infinite alternate;
+	filter: blur(14px);
+	opacity: 0.85;
+	animation: none;
 }
 
 @media (max-width: 767px) {
 	html[data-theme='universe'] #sun-wrapper {
-		top: max(4.5rem, calc(env(safe-area-inset-top, 0px) + 3.5rem));
-		left: 50%;
-		transform: translateX(-50%);
-		width: min(94vw, 22rem);
+		top: max(4.75rem, calc(env(safe-area-inset-top, 0px) + 3.75rem));
+		width: min(92vw, 20rem);
 	}
 
 	html[data-theme='universe'] #sun-text {
-		font-size: clamp(1.85rem, 8.5vw, 2.4rem);
-		letter-spacing: 0.03em;
-		animation: sun-breathe-mobile 3.6s ease-in-out infinite;
+		font-size: clamp(1.35rem, 6.2vw, 1.75rem);
+		letter-spacing: 0.14em;
+		animation: sun-breathe-mobile 4s ease-in-out infinite;
 	}
 
 	html[data-theme='universe'] .sun-glow {
-		height: 2.75rem;
-		width: min(120%, 18rem);
-	}
-}
-
-@keyframes sun-glow-breathe {
-	0% {
-		text-shadow:
-			0 0 10px rgba(255, 186, 80, 0.35),
-			0 0 24px rgba(255, 150, 40, 0.14);
-		color: #e8d4a8;
-	}
-	100% {
-		text-shadow:
-			0 0 16px rgba(255, 210, 110, 0.55),
-			0 0 36px rgba(255, 170, 50, 0.28);
-		color: #fff1cc;
+		height: 1.75rem;
+		width: min(110%, 16rem);
 	}
 }
 
@@ -756,28 +737,17 @@ html[data-theme='universe'] .sun-glow {
 	0%,
 	100% {
 		transform: scale(1);
-		opacity: 0.88;
+		opacity: 0.86;
 		text-shadow:
-			0 0 10px rgba(255, 186, 80, 0.35),
-			0 0 22px rgba(255, 150, 40, 0.14);
+			0 0 12px rgba(255, 186, 80, 0.22),
+			0 0 28px rgba(255, 150, 40, 0.1);
 	}
 	50% {
-		transform: scale(1.035);
+		transform: scale(1.028);
 		opacity: 1;
 		text-shadow:
-			0 0 16px rgba(255, 210, 110, 0.55),
-			0 0 34px rgba(255, 170, 50, 0.26);
-	}
-}
-
-@keyframes sun-halo-pulse {
-	0% {
-		opacity: 0.5;
-		transform: translate(-50%, -50%) scale(0.94);
-	}
-	100% {
-		opacity: 0.95;
-		transform: translate(-50%, -50%) scale(1.05);
+			0 0 18px rgba(255, 210, 110, 0.38),
+			0 0 40px rgba(255, 170, 50, 0.18);
 	}
 }
 
@@ -788,9 +758,9 @@ html[data-theme='universe'] .sun-glow {
 	left: unset;
 	transform: none;
 	pointer-events: none;
-	font-family: var(--font-body);
+	font-family: var(--font-display);
 	font-size: clamp(1rem, 2.5vw, 1.4rem);
-	letter-spacing: 0.04em;
+	letter-spacing: 0.12em;
 	text-transform: lowercase;
 	color: #f3e6c4;
 }
@@ -843,14 +813,6 @@ html[data-theme='beach'] #planet-label {
 		animation: none;
 		opacity: 1;
 		transform: none;
-		text-shadow:
-			0 0 12px rgba(255, 196, 90, 0.4),
-			0 0 28px rgba(255, 160, 40, 0.18);
-	}
-
-	html[data-theme='universe'] .sun-glow {
-		animation: none;
-		opacity: 0.7;
 	}
 }
 
