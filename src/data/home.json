@@ -1,0 +1,45 @@
+{
+  "hero_title": "aditi's universe",
+  "planet_label": "tap a planet to explore",
+  "tagline": "biomedical engineer · health analytics · robotics",
+  "hero_description": "MS Bioengineering at Columbia. I work across genomics pipelines, Medicare-scale outcomes research, EEG/brain–computer interfaces, and hardware — the full arc from model to bench to population data.",
+  "cta_primary_label": "See my work",
+  "cta_primary_href": "/projects",
+  "cta_secondary_label": "Let's talk",
+  "cta_secondary_href": "/services",
+  "about_heading": "About me",
+  "about_paragraphs": [
+    "I'm a biomedical engineering graduate student at Columbia. My background spans automated genomic pipelines and molecular dynamics, large-scale CMS Medicare analysis, EEG signal processing, and building things that move — quadruped robots, nanobot navigation concepts, and the occasional walking pipeline debug at 2 a.m.",
+    "Outside the lab I'm a lead at Nucleate New York and care about the gap between a promising innovation and one that actually reaches patients. This site is projects, writing, and the occasional dream journal — navigate with the tabs, the planets, or scroll."
+  ],
+  "resume_label": "Download résumé (PDF)",
+  "resume_href": "/resume.pdf",
+  "explore_heading": "Explore",
+  "explore_cards": [
+    {
+      "href": "/projects",
+      "title": "Projects",
+      "desc": "Research, engineering, and creative builds."
+    },
+    {
+      "href": "/blog",
+      "title": "Blog",
+      "desc": "Long-form essays and technical explorations."
+    },
+    {
+      "href": "/thoughts",
+      "title": "Thoughts",
+      "desc": "Shorter notes, observations, and fragments."
+    },
+    {
+      "href": "/photo-dump",
+      "title": "Photo Dump",
+      "desc": "Visual snapshots from life and work."
+    },
+    {
+      "href": "/services",
+      "title": "Services",
+      "desc": "Research consulting, writing, and design."
+    }
+  ]
+}
