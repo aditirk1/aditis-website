@@ -27,6 +27,67 @@ media_folder: public/uploads
 public_folder: /uploads
 
 collections:
+  # Single-file pages (homepage, services copy) — edit here, not in Astro.
+  - name: pages
+    label: Site pages
+    files:
+      - name: home
+        label: Home page
+        file: src/data/home.json
+        fields:
+          - { label: Hero title, name: hero_title, widget: string }
+          - { label: Planet hint, name: planet_label, widget: string }
+          - { label: Tagline, name: tagline, widget: string }
+          - { label: Hero description, name: hero_description, widget: text }
+          - { label: Primary button label, name: cta_primary_label, widget: string }
+          - { label: Primary button link, name: cta_primary_href, widget: string }
+          - { label: Secondary button label, name: cta_secondary_label, widget: string }
+          - { label: Secondary button link, name: cta_secondary_href, widget: string }
+          - { label: About heading, name: about_heading, widget: string }
+          - label: About paragraphs
+            name: about_paragraphs
+            widget: list
+            field: { label: Paragraph, name: paragraph, widget: text }
+          - { label: Resume link label, name: resume_label, widget: string }
+          - { label: Resume link URL, name: resume_href, widget: string }
+          - { label: Explore heading, name: explore_heading, widget: string }
+          - label: Explore cards
+            name: explore_cards
+            widget: list
+            fields:
+              - { label: Title, name: title, widget: string }
+              - { label: Description, name: desc, widget: string }
+              - { label: Link, name: href, widget: string }
+      - name: services
+        label: Services page
+        file: src/data/services.json
+        fields:
+          - { label: Page title, name: page_title, widget: string }
+          - { label: Intro, name: intro, widget: text }
+          - label: Service offerings
+            name: services
+            widget: list
+            fields:
+              - { label: Title, name: title, widget: string }
+              - { label: Teaser, name: teaser, widget: text }
+              - { label: Detail, name: detail, widget: text }
+              - label: Includes
+                name: includes
+                widget: list
+                field: { label: Item, name: item, widget: string }
+          - { label: Process heading, name: process_heading, widget: string }
+          - label: Process steps
+            name: process
+            widget: list
+            fields:
+              - { label: Step number, name: step, widget: string }
+              - { label: Title, name: title, widget: string }
+              - { label: Body, name: body, widget: text }
+          - { label: CTA heading, name: cta_heading, widget: string }
+          - { label: CTA body (contact form on), name: cta_body_contact, widget: text }
+          - { label: CTA body (Stripe on), name: cta_body_stripe, widget: text }
+          - { label: CTA body (LinkedIn only), name: cta_body_linkedin, widget: text }
+
   - name: projects
     label: Projects
     label_singular: project

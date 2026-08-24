@@ -2,20 +2,14 @@
 import Layout from '../layouts/Layout.astro';
 import SplashIntro from '../components/SplashIntro.astro';
 import LiveVisitorMap from '../components/LiveVisitorMap.astro';
+import home from '../data/home.json';
 
-const heroTitle = "aditi's universe";
+const heroTitle = home.hero_title;
 const heroChars = heroTitle.split('');
-
-const exploreCards = [
-	{ href: '/projects', title: 'Projects', desc: 'Research, engineering, and creative builds.' },
-	{ href: '/blog', title: 'Blog', desc: 'Long-form essays and technical explorations.' },
-	{ href: '/thoughts', title: 'Thoughts', desc: 'Shorter notes, observations, and fragments.' },
-	{ href: '/photo-dump', title: 'Photo Dump', desc: 'Visual snapshots from life and work.' },
-	{ href: '/services', title: 'Services', desc: 'Research consulting, writing, and design.' },
-];
+const exploreCards = home.explore_cards;
 ---
 
-<Layout title="aditi's universe · aditirk.me">
+<Layout title={`${home.hero_title} · aditirk.me`}>
 	<SplashIntro />
 
 	<!-- Hero: pointer-events-none so the starfield canvas can receive clicks (secret star). Interactive bits opt in. -->
@@ -38,34 +32,33 @@ const exploreCards = [
 			<span class="sparkle" style="--sx: -20px; --sy: 16px; --sd: 2.1s" aria-hidden="true"></span>
 		</div>
 		<div id="planet-label">
-			<span id="planet-label-text">tap a planet to explore</span>
+			<span id="planet-label-text">{home.planet_label}</span>
 		</div>
 		<p
 			class="home-hero-extra mt-4 text-xl font-medium tracking-wide text-[var(--color-amber)] md:mt-6 md:text-2xl"
 			style="font-family: var(--font-display)"
 			data-hero-tagline
 		>
-			biomedical engineer · health analytics · robotics
+			{home.tagline}
 		</p>
 		<p
 			class="home-hero-extra home-hero-desc mt-6 text-pretty text-lg leading-relaxed text-[var(--page-muted)] md:text-xl"
 			data-reveal-child
 		>
-			MS Bioengineering at Columbia. I work across genomics pipelines, Medicare-scale outcomes research,
-			EEG/brain–computer interfaces, and hardware — the full arc from model to bench to population data.
+			{home.hero_description}
 		</p>
 		<div class="home-hero-extra pointer-events-auto mt-10 flex flex-wrap gap-4" data-reveal-child>
 			<a
-				href="/projects"
+				href={home.cta_primary_href}
 				class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-6 py-3 text-sm font-bold text-[var(--page-fg)] backdrop-blur-sm transition hover:scale-105 hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)] hover:shadow-[0_0_28px_color-mix(in_srgb,var(--color-amber)_30%,transparent)]"
 			>
-				See my work
+				{home.cta_primary_label}
 			</a>
 			<a
-				href="/services"
+				href={home.cta_secondary_href}
 				class="rounded-full border border-[color-mix(in_srgb,var(--page-fg)_25%,transparent)] px-6 py-3 text-sm font-bold text-[var(--page-fg)] backdrop-blur-sm transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)]"
 			>
-				Let's talk
+				{home.cta_secondary_label}
 			</a>
 		</div>
 
@@ -83,26 +76,28 @@ const exploreCards = [
 			style="font-family: var(--font-display)"
 			data-reveal-child
 		>
-			About me
+			{home.about_heading}
 		</h2>
 		<div class="mt-1 h-0.5 w-12 rounded-full bg-[var(--color-amber)]" data-reveal-child></div>
-		<p class="mt-6 text-lg leading-relaxed text-[var(--page-muted)]" data-reveal-child>
-			I'm a biomedical engineering graduate student at Columbia. My background spans automated genomic
-			pipelines and molecular dynamics, large-scale CMS Medicare analysis, EEG signal processing, and
-			building things that move — quadruped robots, nanobot navigation concepts, and the occasional walking
-			pipeline debug at 2&nbsp;a.m.
-		</p>
-		<p class="mt-4 text-lg leading-relaxed text-[var(--page-muted)]" data-reveal-child>
-			Outside the lab I'm a lead at <strong class="font-medium text-[var(--page-fg)]">Nucleate New York</strong>
-			and care about the gap between a promising innovation and one that actually reaches patients. This site
-			is projects, writing, and the occasional dream journal — navigate with the tabs, the planets, or scroll.
-		</p>
+		{
+			home.about_paragraphs.map((paragraph, i) => (
+				<p
+					class:list={[
+						'text-lg leading-relaxed text-[var(--page-muted)]',
+						i === 0 ? 'mt-6' : 'mt-4',
+					]}
+					data-reveal-child
+				>
+					{paragraph}
+				</p>
+			))
+		}
 		<p class="mt-6" data-reveal-child>
 			<a
-				href="/resume.pdf"
+				href={home.resume_href}
 				class="text-sm font-semibold text-[var(--color-amber)] underline underline-offset-4 hover:opacity-90"
 			>
-				Download résumé (PDF)
+				{home.resume_label}
 			</a>
 		</p>
 	</section>
@@ -116,7 +111,7 @@ const exploreCards = [
 			style="font-family: var(--font-display)"
 			data-reveal-child
 		>
-			Explore
+			{home.explore_heading}
 		</h2>
 		<div class="mt-1 h-0.5 w-12 rounded-full bg-[var(--color-amber)]" data-reveal-child></div>
 		<div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

@@ -1,0 +1,58 @@
+{
+  "page_title": "Services",
+  "intro": "Research, writing, and design for biotech and health — from RNA-seq pipelines and survival models on Medicare claims to BCI signal processing, molecular dynamics, and prototype hardware. Most work starts with a conversation.",
+  "services": [
+    {
+      "title": "Research consulting",
+      "teaser": "Literature synthesis, experiment design, signal & systems thinking.",
+      "detail": "Scoped engagements from a single deep-dive memo to multi-week support. Pricing depends on scope — we align after a short intro call.",
+      "includes": [
+        "Problem framing and literature review",
+        "Experimental or analysis design",
+        "Written memos or slide summaries"
+      ]
+    },
+    {
+      "title": "Technical writing",
+      "teaser": "Grants, reports, and explainers that stay precise without going cold.",
+      "detail": "Per document or monthly retainer. Clear milestones and revision rounds baked in.",
+      "includes": [
+        "Grant sections, reports, and white papers",
+        "Editing for clarity and structure",
+        "Figure/diagram support where helpful"
+      ]
+    },
+    {
+      "title": "Design + prototyping",
+      "teaser": "Interfaces, diagrams, and small interactive proofs-of-concept.",
+      "detail": "Figma plus light front-end when it helps the story land. Milestone-based delivery.",
+      "includes": [
+        "UI flows and visual systems",
+        "Technical diagrams and schematics",
+        "Light prototypes (Figma, web) for demos"
+      ]
+    }
+  ],
+  "process_heading": "How it works",
+  "process": [
+    {
+      "step": "01",
+      "title": "Intro conversation",
+      "body": "Share context, timeline, and what success looks like. No commitment required."
+    },
+    {
+      "step": "02",
+      "title": "Scope & quote",
+      "body": "I send a short scope doc with deliverables, timeline, and fixed or hourly pricing."
+    },
+    {
+      "step": "03",
+      "title": "Delivery",
+      "body": "Work in agreed checkpoints. You get drafts early; we refine before final handoff."
+    }
+  ],
+  "cta_heading": "Start a project",
+  "cta_body_contact": "Use the contact form below — I reply by email, usually within a few days. Projects are scoped and invoiced after we talk.",
+  "cta_body_stripe": "Use the contact form for custom scope, or pay for a defined offering via Stripe when you are ready.",
+  "cta_body_linkedin": "Reach me on LinkedIn and tell me a little about the work. I reply within a few days. Projects are scoped and invoiced after we talk."
+}
