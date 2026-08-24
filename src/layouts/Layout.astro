@@ -162,7 +162,7 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 				data-site-header
 			>
 				<div class="pointer-events-auto flex items-center justify-between gap-3 md:contents">
-					<div class="order-1 flex shrink-0 items-center gap-2.5">
+					<div class="flex shrink-0 items-center gap-2.5 md:order-1">
 						{
 							isHome && (
 								<button
@@ -196,7 +196,7 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 
 					<button
 						type="button"
-						class="order-3 shrink-0 rounded-full border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_75%,transparent)] px-3.5 py-2 text-sm font-semibold text-[var(--page-fg)] backdrop-blur-sm transition fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)] md:ml-2 md:px-4 md:py-2"
+						class="shrink-0 rounded-full border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_75%,transparent)] px-3.5 py-2 text-sm font-semibold text-[var(--page-fg)] backdrop-blur-sm transition fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)] md:order-3 md:ml-2 md:px-4 md:py-2"
 						data-theme-toggle
 						aria-label="Toggle Universe and Beach theme"
 					>
@@ -204,7 +204,10 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 					</button>
 				</div>
 
-				<div class="pointer-events-auto order-2 min-w-0 md:ml-auto md:flex md:flex-1 md:justify-end">
+				<div
+					class="pointer-events-auto w-full min-w-0 md:order-2 md:ml-auto md:w-auto md:flex-1 md:flex md:justify-end"
+					data-site-nav-slot
+				>
 					<SiteNav />
 				</div>
 			</header>

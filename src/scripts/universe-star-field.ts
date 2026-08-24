@@ -779,6 +779,23 @@ export function initUniverseStarField(): () => void {
 		}
 	};
 
+	/** Outer orbit + planet/ring clearance — used to keep the system inside the viewport. */
+	const SOLAR_EXTENT = 27;
+
+	function fitSolarSystemToViewport() {
+		if (!isHomePage) {
+			solarSystemGroup.scale.setScalar(1);
+			return;
+		}
+		const dist = Math.max(1, camera.position.z - -8);
+		const halfFov = ((camera.fov * Math.PI) / 180) / 2;
+		const visibleHalfH = Math.tan(halfFov) * dist;
+		const visibleHalfW = visibleHalfH * camera.aspect;
+		// Leave a little margin so rings aren't clipped at the edges.
+		const fit = Math.min(visibleHalfW, visibleHalfH) / (SOLAR_EXTENT * 1.08);
+		solarSystemGroup.scale.setScalar(Math.min(1, Math.max(0.32, fit)));
+	}
+
 	function setSize() {
 		const w = window.innerWidth;
 		const h = window.innerHeight;
@@ -789,6 +806,7 @@ export function initUniverseStarField(): () => void {
 		renderer.setPixelRatio(pr);
 		renderer.setSize(w, h, false);
 		material.uniforms.uPixelRatio.value = pr;
+		fitSolarSystemToViewport();
 		placeSecretStar(performance.now());
 	}
 
