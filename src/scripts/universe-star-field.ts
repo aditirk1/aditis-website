@@ -794,14 +794,14 @@ export function initUniverseStarField(): () => void {
 		const halfFov = ((camera.fov * Math.PI) / 180) / 2;
 		const visibleHalfH = Math.tan(halfFov) * dist;
 		const visibleHalfW = visibleHalfH * camera.aspect;
-		// Leave room above for the brand title; scale so orbits stay on-screen.
-		const titleReserve = w < 768 ? 0.28 : 0.22;
+		// On desktop, keep the orrery more centered under the title; on mobile
+		// leave room for the top title band.
+		const titleReserve = w < 768 ? 0.3 : 0.08;
 		const usableHalfH = visibleHalfH * (1 - titleReserve);
 		const fit = Math.min(visibleHalfW, usableHalfH) / (SOLAR_EXTENT * 1.06);
 		const scale = Math.min(1, Math.max(0.3, fit));
 		solarSystemGroup.scale.setScalar(scale);
-		// Nudge the orrery down so it sits under the title band.
-		const downFrac = w < 768 ? 0.2 : 0.14;
+		const downFrac = w < 768 ? 0.18 : 0.02;
 		solarSystemGroup.position.set(0, -visibleHalfH * downFrac, 0);
 	}
 

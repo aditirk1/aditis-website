@@ -115,7 +115,7 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
-			href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Bangers&family=IBM+Plex+Mono:wght@400;500&display=swap"
+			href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Bangers&family=IBM+Plex+Mono:wght@400;500&display=swap"
 			rel="stylesheet"
 		/>
 
@@ -124,7 +124,6 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 		<style is:global>
 			:root {
 				--font-display: 'Inter', system-ui, sans-serif;
-				--font-brand: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
 				--font-body: 'EB Garamond', 'Georgia', serif;
 				--font-dream-comic: 'Bangers', 'Inter', cursive;
 				--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
@@ -162,54 +161,53 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 				class="pointer-events-none flex flex-col gap-2 px-4 py-3 transition-[padding,backdrop-filter] duration-300 sm:px-6 sm:py-4 md:flex-row md:items-center md:gap-4 md:px-10 md:py-5"
 				data-site-header
 			>
-				<div class="pointer-events-auto flex items-center justify-between gap-3 md:contents">
-					<div class="flex shrink-0 items-center gap-2.5 md:order-1">
-						{
-							isHome && (
-								<button
-									type="button"
-									class="beach-dream-pineapple border-0 bg-transparent p-0 text-sm leading-none opacity-[0.32] transition duration-300 fine-hover:scale-110 fine-hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-amber)] focus-visible:ring-offset-2"
-									data-beach-dream-journal
-									aria-label="A quiet corner of the site"
-									title=""
-								>
-									<span aria-hidden="true" class="select-none">🍍</span>
-									<span class="sr-only">Open dream journal</span>
-								</button>
-							)
-						}
-						<a
-							href="/"
-							class="flex items-center gap-2 text-lg font-bold tracking-tight text-[var(--page-fg)] md:text-xl"
-							style="font-family: var(--font-display)"
-						>
-							<img
-								src="/brand/logo-universe-32.png"
-								alt=""
-								class="h-8 w-8 select-none md:h-9 md:w-9"
-								decoding="async"
-								loading="eager"
-								data-site-logo
-							/>
-							Home
-						</a>
-					</div>
+				<div class="pointer-events-auto flex shrink-0 items-center gap-2.5 md:order-1">
+					{
+						isHome && (
+							<button
+								type="button"
+								class="beach-dream-pineapple border-0 bg-transparent p-0 text-sm leading-none opacity-[0.32] transition duration-300 fine-hover:scale-110 fine-hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-amber)] focus-visible:ring-offset-2"
+								data-beach-dream-journal
+								aria-label="A quiet corner of the site"
+								title=""
+							>
+								<span aria-hidden="true" class="select-none">🍍</span>
+								<span class="sr-only">Open dream journal</span>
+							</button>
+						)
+					}
+					<a
+						href="/"
+						class="flex items-center gap-2 text-lg font-bold tracking-tight text-[var(--page-fg)] md:text-xl"
+						style="font-family: var(--font-display)"
+					>
+						<img
+							src="/brand/logo-universe-32.png"
+							alt=""
+							class="h-8 w-8 select-none md:h-9 md:w-9"
+							decoding="async"
+							loading="eager"
+							data-site-logo
+						/>
+						Home
+					</a>
+				</div>
 
+				<div
+					class="pointer-events-auto flex w-full min-w-0 items-center gap-2 md:order-2 md:ml-auto md:w-auto md:flex-1 md:justify-end md:gap-3"
+					data-site-nav-slot
+				>
+					<div class="min-w-0 flex-1 md:flex-none md:w-auto">
+						<SiteNav />
+					</div>
 					<button
 						type="button"
-						class="shrink-0 rounded-full border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_75%,transparent)] px-3.5 py-2 text-sm font-semibold text-[var(--page-fg)] backdrop-blur-sm transition fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)] md:order-3 md:ml-2 md:px-4 md:py-2"
+						class="theme-toggle-btn shrink-0 rounded-full border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_75%,transparent)] px-2.5 py-1 text-[0.7rem] font-medium leading-none text-[var(--page-fg)] backdrop-blur-sm transition fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)] md:px-4 md:py-2 md:text-sm md:font-semibold"
 						data-theme-toggle
 						aria-label="Toggle Universe and Beach theme"
 					>
 						<span data-theme-toggle-label>Universe</span>
 					</button>
-				</div>
-
-				<div
-					class="pointer-events-auto w-full min-w-0 md:order-2 md:ml-auto md:w-auto md:flex-1 md:flex md:justify-end"
-					data-site-nav-slot
-				>
-					<SiteNav />
 				</div>
 			</header>
 
