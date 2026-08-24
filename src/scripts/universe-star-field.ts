@@ -785,15 +785,24 @@ export function initUniverseStarField(): () => void {
 	function fitSolarSystemToViewport() {
 		if (!isHomePage) {
 			solarSystemGroup.scale.setScalar(1);
+			solarSystemGroup.position.set(0, 0, 0);
 			return;
 		}
+		const w = window.innerWidth;
+		const h = window.innerHeight;
 		const dist = Math.max(1, camera.position.z - -8);
 		const halfFov = ((camera.fov * Math.PI) / 180) / 2;
 		const visibleHalfH = Math.tan(halfFov) * dist;
 		const visibleHalfW = visibleHalfH * camera.aspect;
-		// Leave a little margin so rings aren't clipped at the edges.
-		const fit = Math.min(visibleHalfW, visibleHalfH) / (SOLAR_EXTENT * 1.08);
-		solarSystemGroup.scale.setScalar(Math.min(1, Math.max(0.32, fit)));
+		// Leave room above for the brand title; scale so orbits stay on-screen.
+		const titleReserve = w < 768 ? 0.28 : 0.22;
+		const usableHalfH = visibleHalfH * (1 - titleReserve);
+		const fit = Math.min(visibleHalfW, usableHalfH) / (SOLAR_EXTENT * 1.06);
+		const scale = Math.min(1, Math.max(0.3, fit));
+		solarSystemGroup.scale.setScalar(scale);
+		// Nudge the orrery down so it sits under the title band.
+		const downFrac = w < 768 ? 0.2 : 0.14;
+		solarSystemGroup.position.set(0, -visibleHalfH * downFrac, 0);
 	}
 
 	function setSize() {
