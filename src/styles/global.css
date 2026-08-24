@@ -459,7 +459,11 @@ html[data-theme='universe'] .home-explore {
 	opacity: 1;
 }
 
-.site-nav-desktop {
+.site-nav-links {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: flex-start;
 	gap: 0.55rem;
 	font-size: 0.7rem;
 	letter-spacing: 0.04em;
@@ -501,17 +505,6 @@ html[data-theme='universe'] nav[aria-label='Primary'][data-home='true']:focus-wi
 	box-shadow: 0 10px 36px rgba(0, 0, 0, 0.4);
 	backdrop-filter: blur(14px);
 	pointer-events: auto;
-}
-
-/* On mobile universe home, focus-within still needs the scrollable pill row */
-@media (max-width: 767px) {
-	html[data-theme='universe'] nav[aria-label='Primary'][data-home='true']:focus-within .site-nav-mobile {
-		display: flex;
-	}
-
-	html[data-theme='universe'] nav[aria-label='Primary'][data-home='true']:focus-within .site-nav-desktop {
-		display: none;
-	}
 }
 
 /* Beach homepage only — dream journal pineapple beside Home */
@@ -572,21 +565,9 @@ nav[aria-label='Primary'] .nav-tab[data-active='true'] {
 	}
 }
 
-/* Mobile nav — single scroll row; only on small screens (never with desktop nav) */
-.site-nav-mobile {
-	display: none;
-}
-
+/* Mobile: horizontal scroll row for page links */
 @media (max-width: 767px) {
-	.site-nav-desktop {
-		display: none !important;
-	}
-
-	.site-nav-mobile {
-		display: flex;
-		flex-wrap: nowrap;
-		align-items: center;
-		justify-content: flex-start;
+	.site-nav-links {
 		gap: 0.4rem;
 		width: 100%;
 		max-width: 100%;
@@ -599,7 +580,7 @@ nav[aria-label='Primary'] .nav-tab[data-active='true'] {
 		padding: 0.1rem 0;
 	}
 
-	.site-nav-mobile::-webkit-scrollbar {
+	.site-nav-links::-webkit-scrollbar {
 		display: none;
 	}
 
@@ -635,12 +616,6 @@ nav[aria-label='Primary'] .nav-tab[data-active='true'] {
 		font-weight: 500;
 		min-height: 1.95rem;
 		line-height: 1;
-	}
-}
-
-@media (min-width: 768px) {
-	.site-nav-mobile {
-		display: none !important;
 	}
 }
 
