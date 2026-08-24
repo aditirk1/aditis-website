@@ -251,8 +251,8 @@ function createStarfieldMaterial(): THREE.ShaderMaterial {
 				vStrength = 0.22 + aDepth * 0.5 + wake * 0.55;
 
 				vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-				float baseSize = aSize * uPixelRatio * 240.0 / max(1.0, -mvPosition.z);
-				gl_PointSize = clamp(baseSize * (1.0 + wake * 1.15), 1.0, 16.0);
+				float baseSize = aSize * uPixelRatio * 180.0 / max(1.0, -mvPosition.z);
+				gl_PointSize = clamp(baseSize * (1.0 + wake * 0.85), 1.0, 9.0);
 				gl_Position = projectionMatrix * mvPosition;
 			}
 		`,
@@ -260,10 +260,11 @@ function createStarfieldMaterial(): THREE.ShaderMaterial {
 			varying float vStrength;
 			void main() {
 				vec2 c = gl_PointCoord - vec2(0.5);
-				float r = length(c);
-				if (r > 0.5) discard;
-				float alpha = smoothstep(0.5, 0.06, r) * vStrength;
-				vec3 col = mix(vec3(0.92, 0.94, 1.0), vec3(1.0, 0.88, 0.62), 0.1);
+				float r2 = dot(c, c);
+				if (r2 > 0.25) discard;
+				/* Soft gaussian — avoids square/+ aliasing on Safari */
+				float alpha = exp(-r2 * 14.0) * vStrength;
+				vec3 col = mix(vec3(0.9, 0.92, 1.0), vec3(1.0, 0.9, 0.7), 0.12);
 				gl_FragColor = vec4(col, alpha);
 			}
 		`,
@@ -794,14 +795,14 @@ export function initUniverseStarField(): () => void {
 		const halfFov = ((camera.fov * Math.PI) / 180) / 2;
 		const visibleHalfH = Math.tan(halfFov) * dist;
 		const visibleHalfW = visibleHalfH * camera.aspect;
-		// On desktop, keep the orrery more centered under the title; on mobile
-		// leave room for the top title band.
-		const titleReserve = w < 768 ? 0.3 : 0.08;
+		// Reserve upper band for the brand title; keep the orrery in the lower/center field.
+		const titleReserve = w < 768 ? 0.32 : 0.34;
 		const usableHalfH = visibleHalfH * (1 - titleReserve);
-		const fit = Math.min(visibleHalfW, usableHalfH) / (SOLAR_EXTENT * 1.06);
-		const scale = Math.min(1, Math.max(0.3, fit));
+		const fit = Math.min(visibleHalfW * 0.96, usableHalfH) / (SOLAR_EXTENT * 1.05);
+		const scale = Math.min(0.92, Math.max(0.28, fit));
 		solarSystemGroup.scale.setScalar(scale);
-		const downFrac = w < 768 ? 0.18 : 0.02;
+		// Push orbits clearly below the title.
+		const downFrac = w < 768 ? 0.22 : 0.28;
 		solarSystemGroup.position.set(0, -visibleHalfH * downFrac, 0);
 	}
 
