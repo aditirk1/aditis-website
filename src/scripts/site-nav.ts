@@ -9,15 +9,14 @@ function isMatch(href: string, pathname: string): boolean {
 
 /** Longest matching href wins, so `/blog/essays/x` prefers `/blog` over `/`. */
 function bestMatchingNavHref(pathname: string): string | null {
-	const nav = document.querySelector('[data-site-nav]');
+	const nav = document.querySelector('nav[aria-label="Primary"]');
 	if (!nav) return null;
 
 	let best: string | null = null;
 	let bestLen = -1;
 
 	nav.querySelectorAll<HTMLAnchorElement>('.nav-tab').forEach((a) => {
-		if (!a.offsetParent) return;
-		const href = a.getAttribute('href') ?? '';
+		const href = a.getAttribute('href') ?? a.getAttribute('data-nav-href') ?? '';
 		if (isMatch(href, pathname) && href.length > bestLen) {
 			best = href;
 			bestLen = href.length;
@@ -29,21 +28,14 @@ function bestMatchingNavHref(pathname: string): string | null {
 
 export function syncSiteNavActiveClasses(): void {
 	const activeHref = bestMatchingNavHref(window.location.pathname);
+	const nav = document.querySelector('nav[aria-label="Primary"]');
+	if (!nav) return;
 
-	document.querySelectorAll<HTMLAnchorElement>('[data-site-nav] .nav-tab').forEach((a) => {
-		const href = a.getAttribute('href') ?? '';
+	nav.querySelectorAll<HTMLAnchorElement>('.nav-tab').forEach((a) => {
+		const href = a.getAttribute('href') ?? a.getAttribute('data-nav-href') ?? '';
 		if (href === activeHref) a.dataset.active = 'true';
 		else delete a.dataset.active;
 	});
-
-	document
-		.querySelectorAll<HTMLAnchorElement>('[data-site-nav-mobile] a[data-nav-href]')
-		.forEach((a) => {
-			const href = a.getAttribute('data-nav-href') ?? a.getAttribute('href') ?? '';
-			a.className = 'nav-tab';
-			if (href === activeHref) a.dataset.active = 'true';
-			else delete a.dataset.active;
-		});
 }
 
 export function syncSiteNavChrome(): void {

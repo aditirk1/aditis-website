@@ -50,13 +50,13 @@ const exploreCards = home.explore_cards;
 		<div class="home-hero-extra pointer-events-auto mt-10 flex flex-wrap gap-4" data-reveal-child>
 			<a
 				href={home.cta_primary_href}
-				class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-6 py-3 text-sm font-bold text-[var(--page-fg)] backdrop-blur-sm transition hover:scale-105 hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)] hover:shadow-[0_0_28px_color-mix(in_srgb,var(--color-amber)_30%,transparent)]"
+				class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-6 py-3 text-sm font-bold text-[var(--page-fg)] backdrop-blur-sm transition fine-hover:scale-105 fine-hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)] fine-hover:shadow-[0_0_28px_color-mix(in_srgb,var(--color-amber)_30%,transparent)]"
 			>
 				{home.cta_primary_label}
 			</a>
 			<a
 				href={home.cta_secondary_href}
-				class="rounded-full border border-[color-mix(in_srgb,var(--page-fg)_25%,transparent)] px-6 py-3 text-sm font-bold text-[var(--page-fg)] backdrop-blur-sm transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)]"
+				class="rounded-full border border-[color-mix(in_srgb,var(--page-fg)_25%,transparent)] px-6 py-3 text-sm font-bold text-[var(--page-fg)] backdrop-blur-sm transition fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)]"
 			>
 				{home.cta_secondary_label}
 			</a>
@@ -118,16 +118,16 @@ const exploreCards = home.explore_cards;
 			{exploreCards.map(({ href, title, desc }) => (
 				<a
 					href={href}
-					class="group relative overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--page-fg)_12%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_70%,transparent)] p-6 backdrop-blur-md transition-all duration-300 hover:border-[var(--color-amber)] hover:shadow-[0_0_32px_color-mix(in_srgb,var(--color-amber)_15%,transparent)]"
+					class="home-explore-card group relative overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--page-fg)_12%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_70%,transparent)] p-6 backdrop-blur-md transition-all duration-300 fine-hover:border-[var(--color-amber)] fine-hover:shadow-[0_0_32px_color-mix(in_srgb,var(--color-amber)_15%,transparent)]"
 					data-reveal-child
 				>
 					<h3 class="text-lg font-semibold" style="font-family: var(--font-display)">
 						{title}
 					</h3>
-					<p class="mt-2 text-sm leading-relaxed text-[var(--page-muted)] transition-colors group-hover:text-[var(--page-fg)]">
+					<p class="mt-2 text-sm leading-relaxed text-[var(--page-muted)] transition-colors fine-group-hover:text-[var(--page-fg)]">
 						{desc}
 					</p>
-					<span class="explore-card-cta mt-3 inline-block text-xs font-bold tracking-wide text-[var(--color-amber)] opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+					<span class="explore-card-cta mt-3 inline-block text-xs font-bold tracking-wide text-[var(--color-amber)] opacity-0 transition-opacity fine-group-hover:opacity-100 group-focus-within:opacity-100">
 						Explore →
 					</span>
 				</a>
