@@ -57,7 +57,7 @@ aditis-website/
 │   └── _shared/              # KV aggregate helpers, CORS, country centroids
 ├── public/                   # Static assets (copied as-is)
 │   ├── visitor-map/README.txt
-│   ├── fonts/  photos/  audio/  …
+│   ├── fonts/  photos/  …
 │   └── …
 └── src/
     ├── content.config.ts     # Content Layer collections + Zod schemas
@@ -159,7 +159,7 @@ Draft fields exist on several schemas; pages should filter `draft: true` from pr
 | Beach layers | `BeachBackground.astro` |
 | Home hero motion | `index.astro`, `home-hero.ts` |
 | Page reveal / scroll | `page-reveal.ts`, `Layout.astro` |
-| Ambient audio | `AmbientAudio.astro`, `ambient-audio.ts` |
+| Reader text size | `TextSizeControl.astro`, `text-size-control.ts` |
 | Photo lightbox | `photo-lightbox.ts`, photo-dump page |
 | Contact / services | `ContactModal.astro`, services page (Web3Forms when key set) |
 | Live visitor map | `LiveVisitorMap.astro`, `live-visitor-map.ts`, `visitor-globe.ts` |
@@ -174,7 +174,7 @@ Key files under **`src/scripts/`**:
 - **`home-hero.ts`** — Homepage title / tagline animations.
 - **`page-reveal.ts`** — GSAP staggers for sections entering the viewport.
 - **`universe-star-field.ts`** — Star field behavior.
-- **`ambient-audio.ts`** — Audio UI and playback logic.
+- **`text-size-control.ts`** — Reader text-size preference and buttons.
 - **`photo-lightbox.ts`** — Lightbox for photo grids.
 - **`visitor-globe.ts`** — globe.gl setup (texture, atmosphere, pins, auto-rotate).
 - **`live-visitor-map.ts`** — Fetches stats, posts visits, updates totals, demo fallback.

@@ -40,7 +40,6 @@ aditis-website/
 ├── docs/                        # Longer technical docs (website-guide.md)
 ├── public/                      # Static assets served as-is
 │   ├── favicon.svg
-│   ├── audio/                   # Optional ambience MP3s (see README.txt)
 │   ├── beach/                   # Optional waves.mp4, palm.webp, etc.
 │   └── visitor-map/             # Notes for visitor globe / KV setup
 ├── functions/                   # Cloudflare edge APIs (visit/stats)
@@ -65,7 +64,7 @@ aditis-website/
     │   └── …
     ├── components/              # Reusable UI chunks
     │   ├── SiteNav.astro
-    │   ├── Layout pieces: StarFieldUniverse, BeachBackground, AmbientAudio, …
+    │   ├── Layout pieces: StarFieldUniverse, BeachBackground, TextSizeControl, …
     │   └── …
     ├── styles/
     │   └── global.css           # Global colors, themes, shared classes
@@ -74,7 +73,7 @@ aditis-website/
         ├── page-reveal.ts
         ├── home-hero.ts
         ├── splash-intro.ts
-        ├── ambient-audio.ts
+        ├── text-size-control.ts
         └── …
 ```
 
@@ -133,7 +132,7 @@ aditis-website/
 | **`src/components/SiteNav.astro`** | Main navigation |
 | **`src/components/ContactModal.astro`** | Contact / forms on services |
 | **`src/components/LiveVisitorMap.astro`** | Globe + visit count block |
-| **`src/components/AmbientAudio.astro`** | Bottom-right sound panel |
+| **`src/components/TextSizeControl.astro`** | Bottom-right reader text-size control |
 | **`src/components/BeachBackground.astro`** | Beach theme full-screen background |
 | **`src/components/StarFieldUniverse.astro`** | Universe WebGL canvas mount |
 
@@ -204,7 +203,7 @@ These are **illustrative**—copy the idea, adjust values slowly.
 | Change universe stars / Earth button | **`src/scripts/universe-star-field.ts`** |
 | Change beach look (waves, palm, starfish) | **`src/components/BeachBackground.astro`** |
 | Change splash / first visit effect | **`src/components/SplashIntro.astro`**, **`src/scripts/splash-intro.ts`** |
-| Change ambient sound UI | **`src/components/AmbientAudio.astro`**, **`src/scripts/ambient-audio.ts`** |
+| Change reader text-size control | **`src/components/TextSizeControl.astro`**, **`src/scripts/text-size-control.ts`** |
 | Change project cards / dialogs | **`src/pages/projects/index.astro`** |
 | Change visitor globe block | **`src/components/LiveVisitorMap.astro`**, **`src/scripts/live-visitor-map.ts`**, **`visitor-globe.ts`** |
 | Change contact / services modal | **`src/components/ContactModal.astro`**, **`src/pages/services/index.astro`** |
@@ -269,7 +268,7 @@ These tend to affect **many or all pages** when edited:
 
 | File | Why it’s global |
 |------|------------------|
-| **`src/layouts/Layout.astro`** | Wraps almost every page: fonts, theme script, Lenis, nav slot, ambient audio, page-reveal bootstrap. |
+| **`src/layouts/Layout.astro`** | Wraps almost every page: fonts, theme script, Lenis, nav slot, reader text size, page-reveal bootstrap. |
 | **`src/styles/global.css`** | Defines `--page-bg`, `--page-fg`, `.prose-shell`, `.card-3d-pop`, dream overrides, blog prose. |
 | **`src/components/SiteNav.astro`** | Same navigation on (responsive) header across routes. |
 | **`src/scripts/page-reveal.ts`** | Hooked from Layout; drives scroll reveals site-wide. |

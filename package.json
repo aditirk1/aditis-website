@@ -30,8 +30,13 @@
     "@tailwindcss/vite": "^4.2.2",
     "@types/three": "^0.183.1",
     "astro": "^7.2.4",
+    "playwright-core": "^1.63.0",
     "tailwindcss": "^4.2.2",
     "typescript": "^6.0.3",
     "wrangler": "^4.125.0"
+  },
+  "overrides": {
+    "trim": "0.0.3",
+    "fflate": "0.8.3"
   }
 }

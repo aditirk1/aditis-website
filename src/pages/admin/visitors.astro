@@ -95,6 +95,70 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 		errEl.classList.toggle('hidden', !msg);
 	}
 
+	function clearTable(tbody: HTMLElement) {
+		while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+	}
+
+	function appendEmptyRow(tbody: HTMLElement, colspan: number, message: string) {
+		const tr = document.createElement('tr');
+		const td = document.createElement('td');
+		td.colSpan = colspan;
+		td.className = 'px-3 py-3 text-[var(--page-muted)]';
+		td.textContent = message;
+		tr.appendChild(td);
+		tbody.appendChild(tr);
+	}
+
+	function appendCountryRows(tbody: HTMLElement, rows: { code: string; count: number }[]) {
+		clearTable(tbody);
+		if (!rows.length) {
+			appendEmptyRow(tbody, 2, 'No data yet.');
+			return;
+		}
+		for (const row of rows) {
+			const tr = document.createElement('tr');
+			tr.className = 'border-b border-[color-mix(in_srgb,var(--color-amber)_10%,transparent)]';
+			const codeTd = document.createElement('td');
+			codeTd.className = 'px-3 py-2 font-mono';
+			codeTd.textContent = String(row.code ?? '');
+			const countTd = document.createElement('td');
+			countTd.className = 'px-3 py-2 text-right tabular-nums';
+			countTd.textContent = String(row.count ?? 0);
+			tr.append(codeTd, countTd);
+			tbody.appendChild(tr);
+		}
+	}
+
+	function appendCityRows(
+		tbody: HTMLElement,
+		rows: { city: string; country: string; count: number }[],
+	) {
+		clearTable(tbody);
+		if (!rows.length) {
+			appendEmptyRow(
+				tbody,
+				3,
+				'No city data yet (Cloudflare does not always send city).',
+			);
+			return;
+		}
+		for (const row of rows) {
+			const tr = document.createElement('tr');
+			tr.className = 'border-b border-[color-mix(in_srgb,var(--color-amber)_10%,transparent)]';
+			const cityTd = document.createElement('td');
+			cityTd.className = 'px-3 py-2';
+			cityTd.textContent = String(row.city ?? '');
+			const countryTd = document.createElement('td');
+			countryTd.className = 'px-3 py-2 font-mono';
+			countryTd.textContent = String(row.country ?? '');
+			const countTd = document.createElement('td');
+			countTd.className = 'px-3 py-2 text-right tabular-nums';
+			countTd.textContent = String(row.count ?? 0);
+			tr.append(cityTd, countryTd, countTd);
+			tbody.appendChild(tr);
+		}
+	}
+
 	form?.addEventListener('submit', async (e) => {
 		e.preventDefault();
 		if (!(form instanceof HTMLFormElement) || !totalEl || !countriesEl || !citiesEl) return;
@@ -107,8 +171,8 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 
 		showError('');
 		totalEl.textContent = '…';
-		countriesEl.innerHTML = '';
-		citiesEl.innerHTML = '';
+		clearTable(countriesEl);
+		clearTable(citiesEl);
 
 		const base = form.dataset.apiBase ?? '';
 		try {
@@ -129,25 +193,8 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 			};
 
 			totalEl.textContent = String(d.total ?? 0);
-			countriesEl.innerHTML =
-				d.countries?.length ?
-					d.countries
-						.map(
-							(row) =>
-								`<tr class="border-b border-[color-mix(in_srgb,var(--color-amber)_10%,transparent)]"><td class="px-3 py-2 font-mono">${row.code}</td><td class="px-3 py-2 text-right tabular-nums">${row.count}</td></tr>`,
-						)
-						.join('')
-				:	'<tr><td class="px-3 py-3 text-[var(--page-muted)]" colspan="2">No data yet.</td></tr>';
-
-			citiesEl.innerHTML =
-				d.cities?.length ?
-					d.cities
-						.map(
-							(row) =>
-								`<tr class="border-b border-[color-mix(in_srgb,var(--color-amber)_10%,transparent)]"><td class="px-3 py-2">${row.city}</td><td class="px-3 py-2 font-mono">${row.country}</td><td class="px-3 py-2 text-right tabular-nums">${row.count}</td></tr>`,
-						)
-						.join('')
-				:	'<tr><td class="px-3 py-3 text-[var(--page-muted)]" colspan="3">No city data yet (Cloudflare does not always send city).</td></tr>';
+			appendCountryRows(countriesEl, d.countries ?? []);
+			appendCityRows(citiesEl, d.cities ?? []);
 		} catch {
 			showError('Could not reach /api/admin/stats. Deploy to Cloudflare Pages or use wrangler pages dev.');
 			totalEl.textContent = '—';

@@ -1,4 +1,4 @@
-import { corsOptions, json } from '../_shared/cors';
+import { corsOptions, forbidCrossOrigin, json } from '../_shared/cors';
 import { createStripeCheckoutSession } from '../_shared/stripe-checkout';
 
 interface Env {
@@ -7,9 +7,12 @@ interface Env {
 	STRIPE_PRICE_ID?: string;
 }
 
-export const onRequestOptions: PagesFunction<Env> = async () => corsOptions();
+export const onRequestOptions: PagesFunction<Env> = async ({ request }) => corsOptions(request);
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+	const blocked = forbidCrossOrigin(request);
+	if (blocked) return blocked;
+
 	const secret = env.STRIPE_SECRET_KEY?.trim();
 	const defaultPrice = env.STRIPE_PRICE_ID?.trim();
 	if (!secret || !defaultPrice) {
@@ -19,12 +22,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 				error: 'Stripe is not configured. Set STRIPE_SECRET_KEY and STRIPE_PRICE_ID on Cloudflare Pages.',
 			},
 			503,
+			request,
 		);
 	}
 
 	const priceId = defaultPrice;
 	if (!priceId.startsWith('price_')) {
-		return json({ ok: false, error: 'STRIPE_PRICE_ID must be a Price id (price_…).' }, 500);
+		return json({ ok: false, error: 'STRIPE_PRICE_ID must be a Price id (price_…).' }, 500, request);
 	}
 
 	const origin = new URL(request.url).origin;
@@ -40,8 +44,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	});
 
 	if (!result.ok) {
-		return json({ ok: false, error: result.message }, result.status && result.status !== 200 ? result.status : 502);
+		return json(
+			{ ok: false, error: result.message },
+			result.status && result.status !== 200 ? result.status : 502,
+			request,
+		);
 	}
 
-	return json({ ok: true, url: result.url });
+	return json({ ok: true, url: result.url }, 200, request);
 };

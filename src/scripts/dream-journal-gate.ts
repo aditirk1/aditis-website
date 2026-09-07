@@ -73,15 +73,20 @@ function singularForm(word: string): string {
 	return word;
 }
 
-function answersMatch(input: string, accepted: string): boolean {
-	if (input === accepted) return true;
-	return singularForm(input) === singularForm(accepted);
+async function sha256Hex(text: string): Promise<string> {
+	const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+	return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-export function checkGateAnswer(question: DreamGateQuestion, raw: string): boolean {
+export async function checkGateAnswer(question: DreamGateQuestion, raw: string): Promise<boolean> {
 	const normalized = normalizeAnswer(raw);
 	if (!normalized) return false;
-	return question.answers.some((a) => answersMatch(normalized, normalizeAnswer(a)));
+	const candidates = new Set([normalized, singularForm(normalized)]);
+	for (const candidate of candidates) {
+		const hash = await sha256Hex(candidate);
+		if (question.answerHashes.includes(hash)) return true;
+	}
+	return false;
 }
 
 export function initDreamJournalGate(root: HTMLElement): () => void {
@@ -133,16 +138,18 @@ export function initDreamJournalGate(root: HTMLElement): () => void {
 
 	const onSubmit = (e: Event) => {
 		e.preventDefault();
-		if (checkGateAnswer(active, input.value)) {
-			unlockDreamJournal();
-			reveal();
-			return;
-		}
-		if (errorEl) {
-			errorEl.textContent = 'Not quite — try again, or pick another question.';
-			errorEl.hidden = false;
-		}
-		input.select();
+		void (async () => {
+			if (await checkGateAnswer(active, input.value)) {
+				unlockDreamJournal();
+				reveal();
+				return;
+			}
+			if (errorEl) {
+				errorEl.textContent = 'Not quite — try again, or pick another question.';
+				errorEl.hidden = false;
+			}
+			input.select();
+		})();
 	};
 
 	const onRotate = () => {

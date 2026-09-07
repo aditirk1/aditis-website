@@ -37,7 +37,12 @@ collections:
         fields:
           - { label: Hero title, name: hero_title, widget: string }
           - { label: Planet hint, name: planet_label, widget: string }
-          - { label: Tagline, name: tagline, widget: string }
+          - label: Rotating taglines
+            name: taglines
+            widget: list
+            summary: '{{fields.item}}'
+            hint: Shown one at a time as a rotating carousel (not all at once). Edit the list here to change the roles.
+            field: { label: Tagline, name: item, widget: string }
           - { label: Hero description, name: hero_description, widget: text }
           - { label: Primary button label, name: cta_primary_label, widget: string }
           - { label: Primary button link, name: cta_primary_href, widget: string }

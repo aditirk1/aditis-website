@@ -5,59 +5,86 @@ import LiveVisitorMap from '../components/LiveVisitorMap.astro';
 import home from '../data/home.json';
 
 const heroTitle = home.hero_title;
-const heroChars = heroTitle.split('');
+/* Grouped by word so per-letter spans can't be broken mid-word by wrapping. */
+const heroWords = heroTitle.split(' ').map((word) => word.split(''));
+/* The displayed title ends in a full stop; the browser tab reads better without it. */
+const documentTitle = `${heroTitle.replace(/\.$/, '')} · aditirk.me`;
 const exploreCards = home.explore_cards;
+const taglines = Array.isArray(home.taglines) ? home.taglines.filter(Boolean) : [];
+const firstTagline = taglines[0] ?? '';
 ---
 
-<Layout title={`${home.hero_title} · aditirk.me`}>
+<Layout title={documentTitle}>
 	<SplashIntro />
 
 	<!-- Hero: pointer-events-none so the starfield canvas can receive clicks (secret star). Interactive bits opt in. -->
-	<section
-		class="pointer-events-none relative flex min-h-[100dvh] flex-col items-start justify-center px-5 pb-20 pt-6 sm:px-8 md:px-16 md:pb-24 md:pt-8 lg:px-24"
-		data-hero-root
-		data-reveal-stagger
-	>
-		<div id="sun-wrapper">
-			<h1 id="sun-text" data-hero-title>
-				{heroChars.map((ch) => (
-					<span class="hero-char">{ch === ' ' ? '\u00a0' : ch}</span>
-				))}
-			</h1>
-		</div>
-		<div id="planet-label">
-			<span id="planet-label-text">{home.planet_label}</span>
-		</div>
-		<p
-			class="home-hero-extra mt-4 text-xl font-medium tracking-wide text-[var(--color-amber)] md:mt-6 md:text-2xl"
-			style="font-family: var(--font-display)"
-			data-hero-tagline
-		>
-			{home.tagline}
-		</p>
-		<p
-			class="home-hero-extra home-hero-desc mt-6 text-pretty text-lg leading-relaxed text-[var(--page-muted)] md:text-xl"
-			data-reveal-child
-		>
-			{home.hero_description}
-		</p>
-		<div class="home-hero-extra pointer-events-auto mt-10 flex flex-wrap gap-4" data-reveal-child>
-			<a
-				href={home.cta_primary_href}
-				class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-6 py-3 text-sm font-bold text-[var(--page-fg)] backdrop-blur-sm transition fine-hover:scale-105 fine-hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)] fine-hover:shadow-[0_0_28px_color-mix(in_srgb,var(--color-amber)_30%,transparent)]"
-			>
-				{home.cta_primary_label}
-			</a>
-			<a
-				href={home.cta_secondary_href}
-				class="rounded-full border border-[color-mix(in_srgb,var(--page-fg)_25%,transparent)] px-6 py-3 text-sm font-bold text-[var(--page-fg)] backdrop-blur-sm transition fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)]"
-			>
-				{home.cta_secondary_label}
-			</a>
+	<section class="home-hero pointer-events-none relative" data-hero-root>
+		<div class="home-hero-grid">
+			<div class="home-hero-title-col">
+				<div id="sun-wrapper">
+					<h1 id="sun-text" data-hero-title>
+						{heroWords.map((chars, i) => (
+							<span class="hero-word">
+								{chars.map((ch) => (
+									<span class="hero-char">{ch}</span>
+								))}
+							</span>
+						))}
+					</h1>
+				</div>
+			</div>
+			<!--
+				RIGHT zone. Universe: the orrery renders here (WebGL, behind) and this
+				box is what it centres on; the caption is placed against its bottom edge.
+				Beach: the copy block is moved in by syncHeroLayout().
+			-->
+			<div class="home-hero-side-col" data-hero-side-slot>
+				<div id="planet-label">
+					<span id="planet-label-text">{home.planet_label}</span>
+				</div>
+			</div>
 		</div>
 
-		<div class="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2" aria-hidden="true">
+		<div class="hero-scroll-cue" aria-hidden="true">
 			<span class="inline-block text-3xl text-[var(--color-amber)] will-change-transform" data-hero-chevron>⌄</span>
+		</div>
+	</section>
+
+	<!--
+		Copy block: Beach only (right column via syncHeroLayout).
+		Universe hides this entire band — hero is title + planets only.
+	-->
+	<section class="home-intro pointer-events-none relative" data-hero-intro-home hidden>
+		<div class="home-intro-inner" data-hero-copy data-reveal-stagger>
+			<p
+				class="home-hero-extra text-xl font-medium tracking-wide text-[var(--color-amber)] md:text-2xl"
+				style="font-family: var(--font-display)"
+				data-hero-tagline
+				data-tagline-items={JSON.stringify(taglines)}
+				data-reveal-child
+			>
+				{firstTagline}
+			</p>
+			<p
+				class="home-hero-extra home-hero-desc mt-6 text-pretty text-lg leading-relaxed text-[var(--page-muted)] md:text-xl"
+				data-reveal-child
+			>
+				{home.hero_description}
+			</p>
+			<div class="home-hero-extra pointer-events-auto mt-10 flex flex-wrap gap-4" data-reveal-child>
+				<a
+					href={home.cta_primary_href}
+					class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-6 py-3 text-sm font-bold text-[var(--page-fg)] backdrop-blur-sm transition fine-hover:scale-105 fine-hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)] fine-hover:shadow-[0_0_28px_color-mix(in_srgb,var(--color-amber)_30%,transparent)]"
+				>
+					{home.cta_primary_label}
+				</a>
+				<a
+					href={home.cta_secondary_href}
+					class="rounded-full border border-[color-mix(in_srgb,var(--page-fg)_25%,transparent)] px-6 py-3 text-sm font-bold text-[var(--page-fg)] backdrop-blur-sm transition fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)]"
+				>
+					{home.cta_secondary_label}
+				</a>
+			</div>
 		</div>
 	</section>
 

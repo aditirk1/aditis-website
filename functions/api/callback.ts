@@ -29,6 +29,16 @@ function safeJson(value: unknown): string {
 	return JSON.stringify(value).replace(/</g, '\\u003c');
 }
 
+/** Escape untrusted text before interpolating into HTML. */
+function escapeHtml(text: string): string {
+	return text
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
+}
+
 function handshakePage(payload: string, origin: string): Response {
 	const html = `<!doctype html>
 <html lang="en">
@@ -59,9 +69,10 @@ function handshakePage(payload: string, origin: string): Response {
 }
 
 function errorPage(message: string, status: number): Response {
+	const safe = escapeHtml(message);
 	return new Response(
 		`<!doctype html><html lang="en"><head><meta charset="utf-8" /><title>Sign-in failed</title></head>` +
-			`<body style="font:16px system-ui;padding:2rem"><h1>Sign-in failed</h1><p>${message}</p>` +
+			`<body style="font:16px system-ui;padding:2rem"><h1>Sign-in failed</h1><p>${safe}</p>` +
 			`<p><a href="/admin/">Back to the CMS</a></p></body></html>`,
 		{ status, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } },
 	);

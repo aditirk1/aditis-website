@@ -1,10 +1,12 @@
 /**
  * Splash: logo + shimmer (2.5s) → logo rises, title fades in → scatter → reveal.
  * First visit per session only (sessionStorage).
+ *
+ * Logo shimmer uses the original img + overlay structure from before the redesign.
  */
 import { gsap } from 'gsap';
 
-const SPLASH_KEY = 'aditi-splash-seen';
+export const SPLASH_KEY = 'aditi-splash-seen';
 export const SPLASH_DONE_EVENT = 'aditi:splash-done';
 
 const LOGO_SHIMMER_TOTAL_S = 2.5;
@@ -22,7 +24,7 @@ function finish(overlay: HTMLElement) {
 
 function setSplashLogoSrc(logo: HTMLImageElement) {
 	const theme = document.documentElement.getAttribute('data-theme') === 'beach' ? 'beach' : 'universe';
-	logo.src = theme === 'beach' ? '/brand/logo-beach-180.png' : '/brand/logo-universe-180.png';
+	logo.src = theme === 'beach' ? '/brand/logo-beach-512.png' : '/brand/logo-universe-512.png';
 }
 
 export function initSplashIntro(): void {
@@ -114,10 +116,14 @@ export function initSplashIntro(): void {
 		'<',
 	);
 
-	tl.to(overlay, {
-		opacity: 0,
-		duration: 0.45,
-		ease: 'power2.inOut',
-		onComplete: () => finish(overlay),
-	}, '-=0.15');
+	tl.to(
+		overlay,
+		{
+			opacity: 0,
+			duration: 0.45,
+			ease: 'power2.inOut',
+			onComplete: () => finish(overlay),
+		},
+		'-=0.15',
+	);
 }
