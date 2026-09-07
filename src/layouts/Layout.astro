@@ -1,13 +1,13 @@
 ---
 /**
- * Global shell: theme, fonts, Lenis + ScrollTrigger, backgrounds, navigation, audio.
+ * Global shell: theme, fonts, Lenis + ScrollTrigger, backgrounds, navigation.
  * Standard full-page loads only — stable and predictable (no client router).
  */
 import '../styles/global.css';
 import StarFieldUniverse from '../components/StarFieldUniverse.astro';
 import BeachBackground from '../components/BeachBackground.astro';
 import SiteNav from '../components/SiteNav.astro';
-import AmbientAudio from '../components/AmbientAudio.astro';
+import TextSizeControl from '../components/TextSizeControl.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 
 interface Props {
@@ -75,6 +75,20 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 		</script>
 		<script is:inline>
 			(function () {
+				try {
+					var KEY = 'aditi-text-scale';
+					var DEF = 1.1;
+					var raw = localStorage.getItem(KEY);
+					var s = raw !== null ? parseFloat(raw) : DEF;
+					if (!isFinite(s) || s < 0.95 || s > 1.3) s = DEF;
+					document.documentElement.style.setProperty('--reader-text-scale', String(s));
+				} catch (e) {
+					document.documentElement.style.setProperty('--reader-text-scale', '1.1');
+				}
+			})();
+		</script>
+		<script is:inline>
+			(function () {
 				var reduce =
 					typeof window !== 'undefined' &&
 					window.matchMedia &&
@@ -115,7 +129,7 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
-			href="https://fonts.googleapis.com/css2?family=Castoro:ital@0;1&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Bangers&family=IBM+Plex+Mono:wght@400;500&display=swap"
+			href="https://fonts.googleapis.com/css2?family=Castoro:ital@0;1&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700;800&family=Bangers&family=IBM+Plex+Mono:wght@400;500&display=swap"
 			rel="stylesheet"
 		/>
 
@@ -124,7 +138,7 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 		<style is:global>
 			:root {
 				--font-display: 'Inter', system-ui, sans-serif;
-				--font-title: 'Castoro', 'EB Garamond', Georgia, serif;
+				--font-title: 'Inter', system-ui, sans-serif;
 				--font-body: 'EB Garamond', 'Georgia', serif;
 				--font-dream-comic: 'Bangers', 'Inter', cursive;
 				--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
@@ -132,7 +146,8 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 
 			html[data-reveal-bootstrap='1'] [data-reveal-stagger] [data-reveal-child] {
 				opacity: 0;
-				transform: translate3d(0, 1.15rem, 0);
+				transform: translate3d(0, 0.75rem, 0);
+				will-change: transform, opacity;
 			}
 		</style>
 	</head>
@@ -151,7 +166,7 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 			})();
 		</script>
 
-		<div class="universe-nebula-overlay" aria-hidden="true"></div>
+		<div class="dream-realm-tint" aria-hidden="true"></div>
 
 		<StarFieldUniverse />
 		<BeachBackground />
@@ -159,7 +174,7 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 		<div id="site-shell" class="relative z-10 flex min-h-dvh flex-col pointer-events-none">
 			<a href="#main-content" class="skip-link">Skip to content</a>
 			<header
-				class="pointer-events-none flex flex-col gap-2 px-4 py-3 transition-[padding,backdrop-filter] duration-300 sm:px-6 sm:py-4 md:flex-row md:items-center md:gap-4 md:px-10 md:py-5"
+				class="site-header pointer-events-none flex flex-col gap-2 px-4 py-3 sm:px-6 sm:py-4 md:flex-row md:items-center md:gap-4 md:px-10 md:py-5"
 				data-site-header
 			>
 				<div class="pointer-events-auto flex shrink-0 items-center gap-2.5 md:order-1">
@@ -226,7 +241,9 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 			<SiteFooter />
 		</div>
 
-		<AmbientAudio />
+		<div class="pointer-events-auto fixed bottom-5 right-5 z-[60]" data-reader-tools>
+			<TextSizeControl />
+		</div>
 
 		<script>
 			import Lenis from 'lenis';
@@ -235,6 +252,14 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 			import { ScrollTrigger } from 'gsap/ScrollTrigger';
 			import { initPageRevealAnimations } from '../scripts/page-reveal.ts';
 			import { syncSiteNavChrome } from '../scripts/site-nav.ts';
+			import { syncHeroLayout } from '../scripts/hero-layout.ts';
+			import {
+				initScrollOrchestrator,
+				publishScroll,
+				refreshScrollMetrics,
+				subscribeScroll,
+			} from '../scripts/scroll-orchestrator.ts';
+			import { initTextSizeControl } from '../scripts/text-size-control.ts';
 			import { initHomeHero } from '../scripts/home-hero.ts';
 			import { syncCoarsePointerAttribute } from '../utils/input-capabilities.ts';
 			import { readStoredTheme, resolveTheme, THEME_KEY } from '../utils/theme-preference.ts';
@@ -264,6 +289,7 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 			function applyTheme(theme: 'universe' | 'beach') {
 				html.setAttribute('data-theme', theme);
 				syncBrandAssets(theme);
+				syncHeroLayout(theme);
 				try {
 					localStorage.setItem(THEME_KEY, theme);
 				} catch {
@@ -271,6 +297,12 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 				}
 				const label = document.querySelector('[data-theme-toggle-label]');
 				if (label) label.textContent = theme === 'universe' ? 'Universe' : 'Beach';
+				/* Hero geometry changes with the theme — refresh scroll fade + triggers. */
+				requestAnimationFrame(() => {
+					refreshScrollMetrics();
+					ScrollTrigger.refresh();
+					lenis?.resize();
+				});
 			}
 
 			function onThemeToggleClick(e: MouseEvent) {
@@ -284,6 +316,18 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 			syncCoarsePointerAttribute();
 			syncSiteNavChrome();
 			document.addEventListener('click', onThemeToggleClick);
+			const stopTextSizeControl = initTextSizeControl();
+
+			/* Reader text size changes document height — trigger positions must follow. */
+			function onTextSizeChange(e: MouseEvent) {
+				if (!(e.target as HTMLElement).closest('[data-text-size-control]')) return;
+				requestAnimationFrame(() => {
+					refreshScrollMetrics();
+					ScrollTrigger.refresh();
+					lenis?.resize();
+				});
+			}
+			document.addEventListener('click', onTextSizeChange);
 
 			document.querySelector('[data-beach-dream-journal]')?.addEventListener('click', () => {
 				window.location.href = '/dream-journal';
@@ -294,9 +338,13 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 			let lenis: Lenis | null = null;
 			let lenisTick: ((t: number) => void) | null = null;
 
+			const stopScrollOrchestrator = initScrollOrchestrator();
+
 			if (!reduceMotion) {
 				lenis = new Lenis({
-					duration: 1.12,
+					duration: 1.15,
+					/* Long, flat-tailed ease — glides to rest instead of stopping dead. */
+					easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
 					smoothWheel: true,
 					touchMultiplier: 1.35,
 				});
@@ -318,7 +366,11 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 					},
 				});
 
-				lenis.on('scroll', ScrollTrigger.update);
+				/* Lenis is the visual scroll position, so it drives every subscriber. */
+				lenis.on('scroll', (e: { scroll: number }) => {
+					publishScroll(e.scroll);
+					ScrollTrigger.update();
+				});
 
 				lenisTick = (time: number) => {
 					if (lenis) lenis.raf(time * 1000);
@@ -335,27 +387,47 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 				stopHome = initHomeHero();
 			}
 
+			/* Reveal/GSAP may have just zeroed the Beach hero copy — re-sync layout
+			 * and scroll metrics so planets + Beach text are visible without a refresh. */
+			syncHeroLayout(getStoredTheme());
+			refreshScrollMetrics();
+			requestAnimationFrame(() => {
+				refreshScrollMetrics();
+				ScrollTrigger.refresh();
+				window.dispatchEvent(
+					new CustomEvent('aditi:theme-layout', { detail: { theme: getStoredTheme() } }),
+				);
+			});
+
+			/*
+			 * Compact state is a single attribute flipped only when it changes. All the
+			 * visual work lives in CSS, so scrolling never writes inline styles or
+			 * animates padding.
+			 */
 			const header = document.querySelector('[data-site-header]') as HTMLElement | null;
-			function onScrollHeader() {
-				if (!header) return;
-				const y = window.scrollY;
-				if (y > 24) {
-					header.style.paddingTop = '0.65rem';
-					header.style.paddingBottom = '0.65rem';
-					header.style.backdropFilter = 'blur(12px)';
-					header.style.backgroundColor =
-						html.getAttribute('data-theme') === 'beach'
-							? 'color-mix(in srgb, var(--color-beach-bg) 78%, transparent)'
-							: 'color-mix(in srgb, var(--color-universe-bg) 72%, transparent)';
-				} else {
-					header.style.paddingTop = '';
-					header.style.paddingBottom = '';
-					header.style.backdropFilter = '';
-					header.style.backgroundColor = '';
-				}
+
+			/* Hero height is viewport minus header; the header wraps at narrow widths. */
+			let headerResize: ResizeObserver | null = null;
+			if (header) {
+				const syncHeaderHeight = () => {
+					html.style.setProperty('--site-header-h', `${header.offsetHeight}px`);
+				};
+				syncHeaderHeight();
+				headerResize = new ResizeObserver(() => {
+					syncHeaderHeight();
+					refreshScrollMetrics();
+				});
+				headerResize.observe(header);
 			}
-			window.addEventListener('scroll', onScrollHeader, { passive: true });
-			onScrollHeader();
+
+			let headerCompact = false;
+			const unsubscribeHeader = subscribeScroll(({ y }) => {
+				if (!header) return;
+				const next = y > 24;
+				if (next === headerCompact) return;
+				headerCompact = next;
+				header.toggleAttribute('data-scrolled', next);
+			});
 
 			function onResizeNav() {
 				syncCoarsePointerAttribute();
@@ -367,8 +439,12 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 				import.meta.hot.dispose(() => {
 					stopReveal();
 					stopHome();
+					stopTextSizeControl();
+					unsubscribeHeader();
+					headerResize?.disconnect();
+					stopScrollOrchestrator();
 					document.removeEventListener('click', onThemeToggleClick);
-					window.removeEventListener('scroll', onScrollHeader);
+					document.removeEventListener('click', onTextSizeChange);
 					window.removeEventListener('resize', onResizeNav);
 					if (lenisTick) gsap.ticker.remove(lenisTick);
 					if (lenis) lenis.destroy();

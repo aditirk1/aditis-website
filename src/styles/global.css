@@ -20,11 +20,16 @@
 	}
 }
 
+/* Reader text scale — content only (not layout/rem spacing). Default 1.1 = 10% larger body copy. */
+:root {
+	--reader-text-scale: 1.1;
+}
+
 @theme {
 	--color-amber: #ffaa00;
 	--color-beach-accent: #2d7ec8;
 
-	--color-universe-bg: #0a0614;
+	--color-universe-bg: #05030c;
 	--color-universe-fg: #f7f4ec;
 	--color-universe-muted: color-mix(in srgb, #f7f4ec 58%, transparent);
 
@@ -113,6 +118,43 @@ body {
 	transition:
 		background-color 0.65s ease,
 		color 0.65s ease;
+}
+
+/* Readable copy scales; header/nav spacing stays on the original rem grid. */
+#site-shell {
+	--reader-scale: var(--reader-text-scale, 1.1);
+}
+
+#site-shell :is(#main-content, [data-site-footer]) {
+	font-size: calc(1.05rem * var(--reader-scale));
+}
+
+#site-shell :is(#main-content, [data-site-footer]) .text-xs {
+	font-size: calc(0.75rem * var(--reader-scale));
+}
+
+#site-shell :is(#main-content, [data-site-footer]) .text-sm {
+	font-size: calc(0.875rem * var(--reader-scale));
+}
+
+#site-shell :is(#main-content, [data-site-footer]) .text-base {
+	font-size: calc(1rem * var(--reader-scale));
+}
+
+#site-shell :is(#main-content, [data-site-footer]) .text-lg {
+	font-size: calc(1.125rem * var(--reader-scale));
+}
+
+#site-shell :is(#main-content, [data-site-footer]) .text-xl {
+	font-size: calc(1.25rem * var(--reader-scale));
+}
+
+#site-shell :is(#main-content, [data-site-footer]) .text-2xl {
+	font-size: calc(1.5rem * var(--reader-scale));
+}
+
+#site-shell :is(#main-content, [data-site-footer]) .text-3xl {
+	font-size: calc(1.875rem * var(--reader-scale));
 }
 
 /* Primary nav tab list pages — one shared width (detail routes stay full-bleed via immersive) */
@@ -272,28 +314,23 @@ html[data-coarse-pointer] .dream-hit:active {
 	text-transform: uppercase;
 }
 
-.universe-nebula-overlay {
+/*
+ * Dream Journal keeps a static tint. No blend mode and no animation, so it
+ * renders identically across displays.
+ */
+.dream-realm-tint {
 	pointer-events: none;
 	position: fixed;
 	inset: 0;
 	z-index: -5;
-	opacity: 0.52;
-	background:
-		radial-gradient(ellipse 90% 68% at 18% 82%, rgba(255, 170, 0, 0.22), transparent 50%),
-		radial-gradient(ellipse 82% 58% at 88% 12%, rgba(255, 120, 40, 0.26), transparent 48%),
-		radial-gradient(ellipse 75% 55% at 55% 45%, rgba(180, 30, 50, 0.24), transparent 52%),
-		radial-gradient(ellipse 70% 50% at 72% 68%, rgba(230, 90, 130, 0.14), transparent 50%),
-		radial-gradient(ellipse 110% 90% at 50% 50%, #140a12 0%, #0a0614 72%);
-	mix-blend-mode: screen;
-}
-
-html[data-theme='beach'] .universe-nebula-overlay {
 	opacity: 0;
+	background:
+		radial-gradient(ellipse 88% 66% at 22% 14%, rgba(120, 70, 200, 0.2), transparent 58%),
+		radial-gradient(ellipse 76% 58% at 82% 84%, rgba(70, 90, 190, 0.16), transparent 56%);
 }
 
-html[data-layout='dream'] .universe-nebula-overlay {
-	opacity: 0.62;
-	filter: saturate(1.15) hue-rotate(-8deg);
+html[data-layout='dream'] .dream-realm-tint {
+	opacity: 1;
 }
 
 /* Dream Journal on Beach (light) theme — match light blue sea palette */
@@ -403,40 +440,66 @@ dialog.app-modal-backdrop::backdrop {
 	}
 }
 
-/* Homepage: planet nav replaces hero CTAs and Explore grid in Universe theme (desktop) */
-html[data-theme='universe'] .home-hero-extra,
-html[data-theme='universe'] .home-explore {
-	display: none;
-}
+/*
+ * Universe hero is title + planets only. The copy band and Explore grid are no
+ * longer hidden — they belong to the scroll, below the fold.
+ */
 
-/* Mobile universe home: Explore cards as text fallback (top nav + tagline stay hidden — planets primary) */
-@media (max-width: 767px) {
-	html[data-theme='universe'] .home-explore {
-		display: block;
-	}
-}
-
-#planet-label,
-#sun-wrapper {
+#planet-label {
 	transition: opacity 0.4s ease;
 }
 
+/*
+ * Header compact state. A backdrop layer is faded with opacity rather than
+ * toggling backdrop-filter and background-color on the header itself, so the
+ * transition stays on the compositor and never triggers layout.
+ */
+.site-header {
+	position: relative;
+	isolation: isolate;
+}
+
+.site-header::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	opacity: 0;
+	background-color: color-mix(in srgb, var(--page-bg) 72%, transparent);
+	backdrop-filter: blur(12px);
+	transition: opacity 320ms cubic-bezier(0.22, 1, 0.36, 1);
+	will-change: opacity;
+}
+
+.site-header[data-scrolled]::before {
+	opacity: 1;
+}
+
+/*
+ * Caption for the orrery. Lives inside the RIGHT zone and is centred on it, so
+ * it sits under the widget's own width rather than the page's.
+ * universe-star-field.ts sets `top` to the widget's measured bottom edge.
+ */
 #planet-label {
-	position: fixed;
-	bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+	position: absolute;
+	top: 60%;
 	left: 50%;
 	transform: translateX(-50%);
 	z-index: 20;
 	pointer-events: none;
 	text-align: center;
-	max-width: min(92vw, 24rem);
-	padding-inline: 0.75rem;
+	/* Wide enough that "HOVER OVER A PLANET TO EXPLORE" stays on one line. */
+	width: max-content;
+	max-width: min(96vw, 28rem);
+	padding-inline: 0.5rem;
 }
 
 #planet-label-text {
+	display: block;
+	white-space: nowrap;
 	font-family: var(--font-mono);
-	font-size: clamp(0.74rem, 3.36vw, 0.84rem);
-	letter-spacing: 0.18em;
+	font-size: clamp(0.7rem, 2.8vw, 0.84rem);
+	letter-spacing: 0.14em;
 	text-transform: uppercase;
 	color: var(--color-amber);
 	opacity: 0.4;
@@ -446,12 +509,8 @@ html[data-theme='universe'] .home-explore {
 }
 
 @media (min-width: 768px) {
-	#planet-label {
-		bottom: 2.5rem;
-	}
-
 	#planet-label-text {
-		letter-spacing: 0.22em;
+		letter-spacing: 0.16em;
 	}
 }
 
@@ -465,7 +524,7 @@ html[data-theme='universe'] .home-explore {
 	align-items: center;
 	justify-content: flex-start;
 	gap: 0.55rem;
-	font-size: 0.7rem;
+	font-size: 0.78rem;
 	letter-spacing: 0.04em;
 	text-transform: capitalize;
 }
@@ -619,6 +678,77 @@ nav[aria-label='Primary'] .nav-tab[data-active='true'] {
 	}
 }
 
+/*
+ * Reader text-size control. Floats in the bottom-right corner with pill chrome,
+ * kept visually quiet so it never competes with page content.
+ */
+.text-size-control {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.15rem;
+	padding: 0.2rem 0.5rem;
+	border-radius: 9999px;
+	border: 1px solid color-mix(in srgb, var(--color-amber) 28%, transparent);
+	background: color-mix(in srgb, var(--page-bg) 88%, transparent);
+	backdrop-filter: blur(6px);
+	opacity: 0.62;
+	transition: opacity 200ms ease;
+}
+
+.text-size-label {
+	font-family: var(--font-mono);
+	font-size: 0.65rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--page-muted);
+	margin-right: 0.2rem;
+}
+
+.text-size-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 1.25rem;
+	padding: 0.1rem 0.25rem;
+	border: 0;
+	border-radius: 0.2rem;
+	background: transparent;
+	font-family: var(--font-display, Inter, sans-serif);
+	font-size: 0.68rem;
+	font-weight: 500;
+	line-height: 1;
+	color: var(--page-muted);
+	transition: color 200ms ease;
+}
+
+.text-size-btn-reset {
+	font-size: 0.72rem;
+	font-weight: 600;
+}
+
+.text-size-btn[aria-pressed='true'] {
+	color: var(--color-amber);
+}
+
+.text-size-btn:disabled {
+	opacity: 0.35;
+	cursor: not-allowed;
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.text-size-control:hover {
+		opacity: 0.85;
+	}
+
+	.text-size-btn:hover:not(:disabled) {
+		color: var(--color-amber);
+	}
+}
+
+html[data-coarse-pointer] .text-size-btn:active:not(:disabled) {
+	color: var(--color-amber);
+}
+
 /* Touch / mobile: use :active feedback instead of sticky hover */
 html[data-coarse-pointer] [data-theme-toggle]:active,
 html[data-coarse-pointer] .home-hero-extra a:active,
@@ -635,199 +765,248 @@ html[data-coarse-pointer] .home-explore-card .explore-card-cta {
 	opacity: 1;
 }
 
-#sun-wrapper {
-	position: absolute;
-	top: 40%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	z-index: 10;
-	pointer-events: none;
+/*
+ * Home hero — two real containers:
+ *   LEFT zone: tight two-line title stack (no dead band between the lines).
+ *   RIGHT zone: orrery fills this column; caption sits under it.
+ * The orrery sizes to the RIGHT zone — it is not squeezed into a title gap.
+ */
+.home-hero {
+	--hero-h: calc(100dvh - var(--site-header-h, 0px));
+	display: flex;
+	flex-direction: column;
+	min-height: var(--hero-h);
+	padding: 0;
+	box-sizing: border-box;
+}
+
+.home-hero-grid {
+	display: grid;
+	width: 100%;
+	flex: 1 1 auto;
+	grid-template-columns: 1fr;
+	grid-template-rows: auto minmax(0, 1fr);
+	align-items: stretch;
 }
 
 /*
- * Universe home brand title.
- * Desktop: centered in the middle of the orrery.
- * Mobile: top band + soft breathe.
- * Castoro bold + amber glow + real light-sweep shimmer (no + glyphs).
+ * ═══════════════════════════════════════════════════════════════════════════
+ * HOME HERO TITLE — edit these knobs yourself
+ * File: src/styles/global.css  (this block + the @media blocks just below)
+ *
+ * VERTICAL POSITION of the whole "aditi's / universe." stack
+ *   .home-hero-title-col { align-items: … }
+ *     center     → middle of the left column (current)
+ *     flex-start → top of the left column
+ *     flex-end   → bottom of the left column  ← use this to put universe near
+ *                  the bottom of the page
+ *   Also tweak padding on .home-hero-title-col, e.g.
+ *     padding: 0 0.5rem 8vh 2.75rem;   (bottom pad lifts it off the edge)
+ *
+ * FONT SIZE
+ *   #sun-text { font-size: clamp(MIN, PREFERRED, MAX); }
+ *   Desktop overrides are in the @media (min-width: 768px) and 1024px blocks.
+ *   Raise the middle value (e.g. 22cqi → 28cqi) and/or the MAX to go bigger.
+ *   cqi = % of the LEFT column width, so a wider left column also helps:
+ *     .home-hero-grid { grid-template-columns: 46% 54%; }  ← first % = left
+ *
+ * GAP / OVERLAP between the two lines
+ *   #sun-text { line-height: 0.8; }          ← raise toward 1.0 to add space
+ *   #sun-text .hero-word + .hero-word {
+ *     margin-top: -0.1em;                   ← less negative (e.g. 0) = more gap
+ *   }                                       ← more negative (e.g. -0.15em) = tighter
+ *
+ * HORIZONTAL inset from the left edge
+ *   .home-hero-title-col { padding-inline: 4rem 0.75rem; }  (left, right)
+ *
+ * The actual words come from src/data/home.json → hero_title
+ * (also editable in Decap at /admin/ → Home page).
+ * ═══════════════════════════════════════════════════════════════════════════
  */
-html[data-theme='universe'] #sun-wrapper {
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	width: min(90vw, 40rem);
-	text-align: center;
+
+/* LEFT zone. */
+.home-hero-title-col {
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	align-self: stretch;
+	padding: 1.5rem 1rem;
+	box-sizing: border-box;
+	container-type: inline-size;
+}
+
+/* RIGHT zone — orrery + caption. */
+.home-hero-side-col {
+	position: relative;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding-inline: 0.75rem;
+	box-sizing: border-box;
+}
+
+#sun-wrapper {
+	pointer-events: none;
+	display: flex;
+	width: 100%;
+	height: auto;
+}
+
+/* Tight two-line stack — no space-between stretch. */
+#sun-text {
+	margin: 0;
+	width: 100%;
+	height: auto;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: flex-start;
+	gap: 0;
+	font-family: var(--font-title);
+	font-weight: 800;
+	font-style: normal;
+	font-size: clamp(3rem, 22cqi, 9.5rem);
+	line-height: 0.92;
+	letter-spacing: -0.055em;
+	text-transform: lowercase;
+	text-align: left;
+	color: var(--page-fg);
+	text-shadow: none;
+	animation: none;
 }
 
 html[data-theme='universe'] #sun-text {
-	position: relative;
-	z-index: 1;
-	display: inline-block;
-	max-width: 100%;
-	margin: 0 auto;
-	font-family: var(--font-title);
-	font-size: clamp(1.75rem, 3.2vw, 2.65rem);
-	font-weight: 700;
-	font-style: normal;
-	letter-spacing: 0.06em;
-	line-height: 1.1;
-	text-transform: lowercase;
-	text-align: center;
-	color: #ffdd88;
-	text-shadow:
-		0 0 8px rgba(255, 200, 60, 0.85),
-		0 0 22px rgba(255, 160, 0, 0.45),
-		0 0 48px rgba(255, 120, 0, 0.18);
-	animation: sun-glow-breathe 3.5s ease-in-out infinite alternate;
+	color: #f4f6ff;
 }
 
-html[data-theme='universe'] #sun-text .hero-char {
-	display: inline-block;
-	will-change: transform, opacity;
+#sun-text .hero-word {
+	display: block;
+	white-space: nowrap;
 }
 
-/* Soft halo behind letters only — no rectangular shimmer overlay */
-html[data-theme='universe'] .sun-glow {
-	display: none;
-}
-
-@media (max-width: 767px) {
-	html[data-theme='universe'] #sun-wrapper {
-		top: max(4.75rem, calc(env(safe-area-inset-top, 0px) + 3.75rem));
-		left: 50%;
-		transform: translateX(-50%);
-		width: min(92vw, 22rem);
-	}
-
-	html[data-theme='universe'] #sun-text {
-		font-size: clamp(1.55rem, 6.5vw, 1.95rem);
-		letter-spacing: 0.04em;
-		animation:
-			sun-glow-breathe 3.5s ease-in-out infinite alternate,
-			sun-breathe-mobile 4s ease-in-out infinite;
-	}
-}
-
-@keyframes sun-glow-breathe {
-	0% {
-		color: #ffd066;
-		text-shadow:
-			0 0 6px rgba(255, 180, 40, 0.75),
-			0 0 16px rgba(255, 140, 0, 0.35),
-			0 0 32px rgba(255, 100, 0, 0.12);
-	}
-	50% {
-		color: #fff0aa;
-		text-shadow:
-			0 0 12px rgba(255, 220, 80, 1),
-			0 0 30px rgba(255, 180, 0, 0.6),
-			0 0 56px rgba(255, 140, 0, 0.22);
-	}
-	100% {
-		color: #ffdd88;
-		text-shadow:
-			0 0 8px rgba(255, 200, 60, 0.85),
-			0 0 22px rgba(255, 160, 0, 0.45),
-			0 0 44px rgba(255, 120, 0, 0.16);
-	}
-}
-
-@keyframes sun-breathe-mobile {
-	0%,
-	100% {
-		transform: scale(1);
-	}
-	50% {
-		transform: scale(1.03);
-	}
-}
-
-/* Legacy base (overridden by theme rules above / below) */
-#sun-text {
-	position: relative;
-	top: unset;
-	left: unset;
-	transform: none;
-	pointer-events: none;
-	font-family: var(--font-title);
-	font-size: clamp(1rem, 2.5vw, 1.4rem);
-	letter-spacing: 0.06em;
-	text-transform: lowercase;
-	color: #ffdd88;
+#sun-text .hero-word + .hero-word {
+	/* 0 = natural gap; negative pulls lines together (can cause overlap). */
+	margin-top: 0;
 }
 
 #sun-text .hero-char {
 	display: inline-block;
-	will-change: transform, opacity;
 }
 
-/* Beach theme: big left-aligned hero title (original layout). */
-html[data-theme='beach'] #sun-wrapper {
-	position: static;
-	top: auto;
-	left: auto;
-	transform: none;
-	width: auto;
-	max-width: none;
-	margin-inline: 0;
-	text-align: left;
+.sun-glow {
+	display: none;
+}
+
+.hero-scroll-cue {
+	position: absolute;
+	left: 50%;
+	bottom: 1rem;
+	transform: translateX(-50%);
+	pointer-events: none;
+	z-index: 5;
+}
+
+.home-intro {
+	position: relative;
+	margin-inline: auto;
+	max-width: 64rem;
+	padding: 4rem 2rem;
+}
+
+.home-hero-desc {
+	max-width: 40rem;
+}
+
+.home-hero-side-col [data-hero-copy] {
+	width: 100%;
+	max-width: 28rem;
 	pointer-events: auto;
 }
 
-html[data-theme='beach'] #sun-text {
-	font-family: var(--font-display);
-	font-size: clamp(2.75rem, 8vw, 5rem);
-	font-weight: 700;
-	font-style: normal;
-	letter-spacing: -0.02em;
-	line-height: 1.05;
-	text-transform: none;
-	text-align: left;
-	color: var(--page-fg);
-	text-shadow: none;
-	background: none;
-	animation: none;
-}
-
-html[data-theme='beach'] #sun-text::after {
-	display: none !important;
-	content: none;
-}
-
-html[data-theme='beach'] .sun-glow {
+.home-intro[data-empty],
+.home-intro[hidden] {
 	display: none !important;
 }
 
-html[data-theme='beach'] [data-hero-root] {
-	align-items: flex-start;
-	text-align: left;
-}
-
-html[data-theme='beach'] [data-hero-root] .home-hero-desc {
-	max-width: min(100%, 48rem);
-	margin-inline: 0;
-	text-align: left;
-}
-
-html[data-theme='beach'] [data-hero-root] .home-hero-extra {
-	margin-inline: 0;
-	text-align: left;
-}
-
-html[data-theme='beach'] [data-hero-root] .home-hero-extra.pointer-events-auto {
-	justify-content: flex-start;
+/* Universe homepage: no tagline carousel / hero blurb — title + planets only. */
+html[data-theme='universe'] .home-intro {
+	display: none !important;
 }
 
 html[data-theme='beach'] #planet-label {
 	display: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-	html[data-theme='universe'] #sun-text {
-		animation: none;
-		color: #ffdd88;
-		text-shadow:
-			0 0 10px rgba(255, 200, 60, 0.8),
-			0 0 24px rgba(255, 160, 0, 0.4);
+@media (max-width: 767px) {
+	.home-hero-grid {
+		/* Title on top (shrinks), orrery zone gets the rest — planets stay visible. */
+		grid-template-rows: auto minmax(42vh, 1fr);
+	}
+
+	.home-hero-side-col {
+		min-height: 42vh;
+	}
+
+	#sun-text {
+		font-size: clamp(2.5rem, 14vw, 3.75rem);
+	}
+
+	html[data-theme='beach'] .home-hero-grid {
+		grid-template-rows: auto auto;
+		align-content: center;
+	}
+
+	html[data-theme='beach'] .home-hero-side-col {
+		min-height: 0;
+	}
+
+	html[data-theme='beach'] .home-hero-title-col {
+		padding-block: 1.25rem;
+	}
+}
+
+@media (min-width: 768px) {
+	/* Half / half — orrery gets a full-height column to grow into. */
+	.home-hero-grid {
+		grid-template-columns: 46% 54%;
+		grid-template-rows: minmax(0, 1fr);
+	}
+
+	.home-hero-title-col {
+		/* Vertically centre the tight stack in the left column. */
+		align-items: center;
+		padding: 0 0.5rem 0 2.75rem;
+	}
+
+	.home-hero-side-col {
+		padding-inline: 0.25rem 1.25rem;
+	}
+
+	#sun-text {
+		font-size: clamp(4.75rem, 22cqi, 10.5rem);
+	}
+
+	.home-intro {
+		padding: 6rem 4rem;
+	}
+
+	html[data-theme='beach'] .home-hero-side-col [data-hero-copy] {
+		max-width: 26rem;
+	}
+}
+
+@media (min-width: 1024px) {
+	.home-hero-title-col {
+		padding-inline: 4rem 0.75rem;
+	}
+
+	#sun-text {
+		font-size: clamp(5.25rem, 23cqi, 11.5rem);
+	}
+
+	.home-intro {
+		padding: 7rem 4rem;
 	}
 }
 
@@ -837,16 +1016,14 @@ html[data-theme='beach'] #planet-label {
 	touch-action: pan-y;
 }
 
-html[data-coarse-pointer] [data-ambient-root] [data-ambient-toggle],
-html[data-coarse-pointer] [data-ambient-root] [data-audio-mute-toggle] {
-	min-height: 2.75rem;
-	min-width: 2.75rem;
-	padding: 0.5rem 0.85rem;
-}
-
-html[data-coarse-pointer] [data-ambient-root] {
+html[data-coarse-pointer] [data-reader-tools] {
 	bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 	right: max(1rem, env(safe-area-inset-right, 0px));
+}
+
+html[data-coarse-pointer] .text-size-btn {
+	min-height: 2.25rem;
+	min-width: 2rem;
 }
 
 html[data-coarse-pointer] .explore-card-cta {

@@ -1,21 +1,24 @@
 import { readAgg, writeAgg } from '../_shared/agg';
-import { corsOptions, json } from '../_shared/cors';
+import { corsOptions, forbidCrossOrigin, json } from '../_shared/cors';
 
 interface Env {
 	VISITOR_KV: KVNamespace;
 }
 
-export const onRequestOptions: PagesFunction<Env> = async () => corsOptions();
+export const onRequestOptions: PagesFunction<Env> = async ({ request }) => corsOptions(request);
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+	const blocked = forbidCrossOrigin(request);
+	if (blocked) return blocked;
+
 	if (!env.VISITOR_KV) {
-		return json({ ok: false, error: 'VISITOR_KV not configured' }, 503);
+		return json({ ok: false, error: 'VISITOR_KV not configured' }, 503, request);
 	}
 
 	const cf = request.cf as IncomingRequestCfProperties | undefined;
 	const country = cf?.country?.toUpperCase();
 	if (!country || country === 'XX' || country === 'T1') {
-		return json({ ok: true, recorded: false });
+		return json({ ok: true, recorded: false }, 200, request);
 	}
 
 	const cityRaw = cf?.city;
@@ -34,5 +37,5 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 		else agg.byCityKey[ck] = { country, city, count: 1 };
 	}
 	await writeAgg(env.VISITOR_KV, agg);
-	return json({ ok: true, recorded: true });
+	return json({ ok: true, recorded: true }, 200, request);
 };

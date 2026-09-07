@@ -6,11 +6,11 @@ interface Env {
 	VISITOR_KV: KVNamespace;
 }
 
-export const onRequestOptions: PagesFunction<Env> = async () => corsOptions();
+export const onRequestOptions: PagesFunction<Env> = async ({ request }) => corsOptions(request);
 
-export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
+export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 	if (!env.VISITOR_KV) {
-		return json({ total: 0, markers: [] });
+		return json({ total: 0, markers: [] }, 200, request);
 	}
 
 	const agg = await readAgg(env.VISITOR_KV);
@@ -22,5 +22,5 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
 		})
 		.filter((m): m is NonNullable<typeof m> => m !== null);
 
-	return json({ total: agg.total, markers });
+	return json({ total: agg.total, markers }, 200, request);
 };

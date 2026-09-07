@@ -2,9 +2,13 @@
 /**
  * First homepage visit per session: logo (shimmer) → title rises in below,
  * then letters scatter and the overlay reveals the site.
+ *
+ * Shimmer markup/CSS match the pre-redesign splash (img + screen overlay clipped
+ * to the circular wrap). Splash wordmark omits the hero's trailing full stop.
  */
-const splashText = "aditi's universe";
-const chars = splashText.split('');
+import home from '../data/home.json';
+
+const chars = home.hero_title.replace(/\.$/, '').split('');
 ---
 
 <!-- Runs before first paint when splash already completed this session -->
@@ -24,6 +28,15 @@ const chars = splashText.split('');
 	}
 </style>
 
+<script is:inline>
+	/* Title is static (no letter sweep) — mark ready immediately so CSS never hides it. */
+	(function () {
+		try {
+			document.documentElement.setAttribute('data-hero-ready', '1');
+		} catch (e) {}
+	})();
+</script>
+
 <div
 	id="splash-intro"
 	class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[var(--page-bg)]"
@@ -35,7 +48,7 @@ const chars = splashText.split('');
 		<div class="splash-logo-wrap relative" data-splash-logo-wrap>
 			<div class="splash-logo-shimmer" aria-hidden="true"></div>
 			<img
-				src="/brand/logo-universe-180.png"
+				src="/brand/logo-universe-512.png"
 				alt=""
 				class="splash-logo block h-[140px] w-[140px] select-none opacity-0 md:h-[180px] md:w-[180px]"
 				width="180"
@@ -48,7 +61,7 @@ const chars = splashText.split('');
 
 		<p
 			class="splash-title pointer-events-none m-0 mt-5 select-none whitespace-nowrap text-center text-[clamp(1.15rem,5.2vw,1.65rem)] font-light tracking-[0.12em] text-[var(--page-fg)] md:mt-6 md:text-6xl md:tracking-[0.28em] lg:text-7xl"
-			style="font-family: var(--font-display); visibility: hidden"
+			style="font-family: 'Inter', system-ui, sans-serif; font-weight: 400; visibility: hidden"
 			data-splash-title
 		>
 			{chars.map((ch) => (

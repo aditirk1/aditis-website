@@ -1,7 +1,7 @@
 {
-  "hero_title": "aditi's universe",
+  "hero_title": "aditi's universe.",
   "planet_label": "tap a planet to explore",
-  "tagline": "biomedical engineer · health analytics · robotics",
+  "taglines": ["biomedical engineer", "researcher", "writer"],
   "hero_description": "MS Bioengineering at Columbia. I work across genomics pipelines, Medicare-scale outcomes research, EEG/brain–computer interfaces, and hardware — the full arc from model to bench to population data.",
   "cta_primary_label": "See my work",
   "cta_primary_href": "/projects",

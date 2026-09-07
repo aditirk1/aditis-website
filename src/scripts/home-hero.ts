@@ -1,91 +1,84 @@
 /**
- * Home hero: title letters stagger in, tagline rotates every 4s with crossfade.
- * Chevron fades out once the user scrolls (no infinite bounce over content).
+ * Home hero helpers (no title letter animation — it flashed static then replayed).
+ * Chevron fades out once the user scrolls. Beach tagline carousel still runs.
  */
 import { gsap } from 'gsap';
-import { SPLASH_DONE_EVENT } from './splash-intro.ts';
+import { SPLASH_DONE_EVENT, SPLASH_KEY } from './splash-intro.ts';
+import { subscribeScroll } from './scroll-orchestrator.ts';
 
-const TAGLINES = ['biomedical engineer', 'researcher', 'writer'] as const;
-
-function isUniverseTheme(): boolean {
-	return document.documentElement.getAttribute('data-theme') !== 'beach';
+function markHeroReady(): void {
+	document.documentElement.setAttribute('data-hero-ready', '1');
 }
 
-function runHeroAnimations(): () => void {
+function splashAlreadyFinished(): boolean {
+	if (document.documentElement.getAttribute('data-splash-skip') === '1') return true;
+	try {
+		if (sessionStorage.getItem(SPLASH_KEY) === '1') return true;
+	} catch {
+		/* ignore */
+	}
+	return !document.getElementById('splash-intro');
+}
+
+function readTaglineItems(el: Element): string[] {
+	const raw = el.getAttribute('data-tagline-items');
+	if (!raw) return [];
+	try {
+		const parsed = JSON.parse(raw) as unknown;
+		if (!Array.isArray(parsed)) return [];
+		return parsed.map((item) => String(item).trim()).filter(Boolean);
+	} catch {
+		return [];
+	}
+}
+
+function runHeroExtras(): () => void {
+	markHeroReady();
+
 	const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-	const universe = isUniverseTheme();
-	const titleRoot = document.querySelector('[data-hero-title]');
-	const taglineEl = document.querySelector('[data-hero-tagline]');
+	const taglineEl = document.querySelector<HTMLElement>('[data-hero-tagline]');
 	const chevron = document.querySelector('[data-hero-chevron]') as HTMLElement | null;
 
-	if (!titleRoot) return () => {};
-	if (!universe && !taglineEl) return () => {};
-
-	if (reduce) {
-		titleRoot.querySelectorAll('.hero-char').forEach((el) => {
-			(el as HTMLElement).style.opacity = '1';
-		});
-		if (chevron) chevron.style.opacity = '0';
-		return () => {};
-	}
-
-	const chars = titleRoot.querySelectorAll<HTMLElement>('.hero-char');
-	if (chars.length) {
-		gsap.from(chars, {
-			opacity: 0,
-			y: 28,
-			rotateX: -55,
-			duration: 0.55,
-			stagger: 0.035,
-			ease: 'power3.out',
-			transformOrigin: '50% 100%',
-		});
-	}
-
 	let bounceTween: gsap.core.Tween | null = null;
+	let unsubscribeChevron = () => {};
+
 	if (chevron) {
-		gsap.set(chevron, { opacity: 1, visibility: 'visible' });
-		bounceTween = gsap.to(chevron, { y: 6, duration: 0.9, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+		if (reduce) {
+			chevron.style.opacity = '0';
+		} else {
+			gsap.set(chevron, { opacity: 1, visibility: 'visible' });
+			bounceTween = gsap.to(chevron, { y: 6, duration: 1.4, repeat: -1, yoyo: true, ease: 'sine.inOut' });
 
-		const heroRoot = document.querySelector('[data-hero-root]') as HTMLElement | null;
-		const shouldHideChevron = () => {
-			if (!heroRoot) {
-				return window.scrollY > window.innerHeight * 0.55;
-			}
-			const rect = heroRoot.getBoundingClientRect();
-			/* Fade once the hero has mostly left the viewport (not on tiny scroll nudges). */
-			return rect.bottom < window.innerHeight * 0.38;
-		};
-
-		const onScrollChevron = () => {
-			if (!shouldHideChevron()) return;
-			window.removeEventListener('scroll', onScrollChevron);
-			if (bounceTween) {
-				bounceTween.kill();
-				bounceTween = null;
-			}
-			gsap.to(chevron, {
-				opacity: 0,
-				y: 10,
-				duration: 0.42,
-				ease: 'power2.inOut',
-				onComplete: () => {
-					chevron.style.visibility = 'hidden';
-				},
+			let hidden = false;
+			unsubscribeChevron = subscribeScroll(({ heroBottom, viewportHeight }) => {
+				if (hidden || heroBottom >= viewportHeight * 0.38) return;
+				hidden = true;
+				unsubscribeChevron();
+				if (bounceTween) {
+					bounceTween.kill();
+					bounceTween = null;
+				}
+				gsap.to(chevron, {
+					opacity: 0,
+					y: 10,
+					duration: 0.5,
+					ease: 'power2.out',
+					onComplete: () => {
+						chevron.style.visibility = 'hidden';
+					},
+				});
 			});
-		};
-		window.addEventListener('scroll', onScrollChevron, { passive: true });
-		requestAnimationFrame(() => {
-			if (shouldHideChevron()) onScrollChevron();
-		});
+		}
 	}
 
 	let interval = 0;
-	if (!universe && taglineEl) {
+	const items = taglineEl ? readTaglineItems(taglineEl) : [];
+	if (!reduce && taglineEl && items.length > 1) {
 		let idx = 0;
+		taglineEl.textContent = items[0]!;
 		const runTagline = () => {
-			const next = TAGLINES[idx % TAGLINES.length];
-			idx++;
+			idx = (idx + 1) % items.length;
+			const next = items[idx]!;
 			gsap
 				.timeline()
 				.to(taglineEl, { opacity: 0, y: -8, duration: 0.35, ease: 'power2.in' })
@@ -94,26 +87,30 @@ function runHeroAnimations(): () => void {
 				})
 				.fromTo(taglineEl, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' });
 		};
-
 		interval = window.setInterval(runTagline, 4000);
+	} else if (taglineEl && items.length === 1) {
+		taglineEl.textContent = items[0]!;
 	}
 
 	return () => {
 		if (interval) clearInterval(interval);
+		unsubscribeChevron();
 		bounceTween?.kill();
 	};
 }
 
 export function initHomeHero(): () => void {
-	const splashOverlay = document.getElementById('splash-intro');
-	if (!splashOverlay) {
-		return runHeroAnimations();
+	if (splashAlreadyFinished()) {
+		const leftover = document.getElementById('splash-intro');
+		if (leftover) leftover.remove();
+		document.documentElement.removeAttribute('data-splash-skip');
+		return runHeroExtras();
 	}
 
 	let cleanup = () => {};
 	const onSplashDone = () => {
 		window.removeEventListener(SPLASH_DONE_EVENT, onSplashDone);
-		cleanup = runHeroAnimations();
+		cleanup = runHeroExtras();
 	};
 	window.addEventListener(SPLASH_DONE_EVENT, onSplashDone);
 

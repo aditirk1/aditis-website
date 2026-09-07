@@ -20,6 +20,9 @@ pnpm-debug.log*
 .env
 .env.production
 
+# local screenshots from scripts/shot-planets.mjs
+.screenshots/
+
 # macOS-specific files
 .DS_Store
 
