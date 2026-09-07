@@ -1,5 +1,6 @@
 import { readAgg, writeAgg } from '../_shared/agg';
 import { corsOptions, forbidCrossOrigin, json } from '../_shared/cors';
+import { shouldRecordVisitRequest } from '../_shared/visit-filter';
 
 interface Env {
 	VISITOR_KV: KVNamespace;
@@ -15,10 +16,15 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 		return json({ ok: false, error: 'VISITOR_KV not configured' }, 503, request);
 	}
 
+	const gated = shouldRecordVisitRequest(request);
+	if (!gated.ok) {
+		return json({ ok: true, recorded: false, reason: gated.reason }, 200, request);
+	}
+
 	const cf = request.cf as IncomingRequestCfProperties | undefined;
 	const country = cf?.country?.toUpperCase();
 	if (!country || country === 'XX' || country === 'T1') {
-		return json({ ok: true, recorded: false }, 200, request);
+		return json({ ok: true, recorded: false, reason: 'no-geo' }, 200, request);
 	}
 
 	const cityRaw = cf?.city;

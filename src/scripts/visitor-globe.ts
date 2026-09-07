@@ -1,6 +1,16 @@
 import Globe from 'globe.gl';
 
-export type GlobeMarker = { lat: number; lng: number; count?: number };
+export type GlobeMarker = { lat: number; lng: number; count?: number; country?: string };
+
+type PointDatum = {
+	lat: number;
+	lng: number;
+	size: number;
+	color: string;
+	count: number;
+	country?: string;
+	label: string;
+};
 
 /**
  * NASA Blue Marble–style texture, self-hosted so the globe still renders when a
@@ -8,10 +18,18 @@ export type GlobeMarker = { lat: number; lng: number; count?: number };
  */
 const EARTH_BLUE_MARBLE = '/visitor-map/earth-blue-marble.jpg';
 
-/** Read theme accent from CSS (`--color-amber` is gold on Universe, blue on Beach). */
 function accentColor(): string {
 	const v = getComputedStyle(document.documentElement).getPropertyValue('--color-amber').trim();
 	return v || '#ffaa00';
+}
+
+function countryLabel(code: string | undefined): string {
+	if (!code) return 'Unknown';
+	try {
+		return new Intl.DisplayNames(['en'], { type: 'region' }).of(code) ?? code;
+	} catch {
+		return code;
+	}
 }
 
 export function initVisitorGlobe(container: HTMLElement): {
@@ -23,12 +41,26 @@ export function initVisitorGlobe(container: HTMLElement): {
 		.backgroundColor('rgba(0,0,0,0)')
 		.showAtmosphere(true)
 		.atmosphereColor('#4a6fa8')
-		.atmosphereAltitude(0.15);
+		.atmosphereAltitude(0.15)
+		.pointAltitude(0.01)
+		.pointRadius('size')
+		.pointColor('color')
+		.pointsTransitionDuration(0)
+		.pointLabel((d: object) => {
+			const p = d as PointDatum;
+			return `<div style="padding:2px 0">${p.label} · ${p.count}</div>`;
+		});
 
 	const ctrls = globe.controls();
 	ctrls.autoRotate = true;
 	ctrls.autoRotateSpeed = 0.35;
 	ctrls.enableZoom = false;
+
+	/* Pause spin while hovering a pin so it's easier to read. */
+	globe.onPointHover((point: object | null) => {
+		ctrls.autoRotate = !point;
+		container.style.cursor = point ? 'pointer' : '';
+	});
 
 	const resize = () => {
 		const w = container.clientWidth || 200;
@@ -41,13 +73,19 @@ export function initVisitorGlobe(container: HTMLElement): {
 
 	const api = {
 		setMarkers(markers: GlobeMarker[]) {
+			const color = accentColor();
 			globe.pointsData(
-				markers.map((m) => ({
-					lat: m.lat,
-					lng: m.lng,
-					size: 0.35 + Math.min(1.2, (m.count ?? 1) * 0.08),
-					color: accentColor(),
-				})),
+				markers.map(
+					(m): PointDatum => ({
+						lat: m.lat,
+						lng: m.lng,
+						size: 0.35 + Math.min(1.2, (m.count ?? 1) * 0.08),
+						color,
+						count: m.count ?? 1,
+						country: m.country,
+						label: countryLabel(m.country),
+					}),
+				),
 			);
 		},
 		destroy() {
