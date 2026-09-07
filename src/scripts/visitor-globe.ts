@@ -192,12 +192,12 @@ export function initVisitorGlobe(container: HTMLElement): {
 		const w = box.width;
 		const h = box.height;
 
-		/* Put the label on whichever side actually has room for it. */
-		let side = vx >= 0 ? 1 : -1;
-		const roomRight = stageW - (ox + TICK_LEN + LABEL_GAP);
-		const roomLeft = ox - TICK_LEN - LABEL_GAP;
-		if (side === 1 && roomRight < w && roomLeft > roomRight) side = -1;
-		else if (side === -1 && roomLeft < w && roomRight > roomLeft) side = 1;
+		/*
+		 * Always away from the globe, never flipped back across it. Flipping to
+		 * "whichever side has room" is what dropped the box on top of the globe
+		 * with the leader trailing off the far side.
+		 */
+		const side = vx >= 0 ? 1 : -1;
 
 		/*
 		 * Place and clamp the label first, then derive the elbow from where it

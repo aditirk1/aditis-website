@@ -4,6 +4,7 @@ import { corsOptions, forbidCrossOrigin, json } from '../../_shared/cors';
 interface Env {
 	VISITOR_KV: KVNamespace;
 	ADMIN_STATS_SECRET: string;
+	VISITOR_COUNT_EPOCH?: string;
 }
 
 export const onRequestOptions: PagesFunction<Env> = async ({ request }) => corsOptions(request);
@@ -23,7 +24,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 		return json({ total: 0, countries: [], cities: [] }, 200, request);
 	}
 
-	const agg = await readAgg(env.VISITOR_KV);
+	const agg = await readAgg(env.VISITOR_KV, env.VISITOR_COUNT_EPOCH ?? '');
 	const countries = Object.entries(agg.byCountry)
 		.map(([code, count]) => ({ code, count }))
 		.sort((a, b) => b.count - a.count);

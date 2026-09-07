@@ -3,6 +3,7 @@ import { corsOptions, json } from '../_shared/cors';
 
 interface Env {
 	VISITOR_KV: KVNamespace;
+	VISITOR_COUNT_EPOCH?: string;
 }
 
 interface Marker {
@@ -20,7 +21,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 		return json({ total: 0, markers: [] }, 200, request);
 	}
 
-	const agg = await readAgg(env.VISITOR_KV);
+	const agg = await readAgg(env.VISITOR_KV, env.VISITOR_COUNT_EPOCH ?? '');
 
 	/*
 	 * Rows carrying coordinates get a pin where the visit actually happened,

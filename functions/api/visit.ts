@@ -4,6 +4,8 @@ import { shouldRecordVisitRequest, visitorDayHash } from '../_shared/visit-filte
 
 interface Env {
 	VISITOR_KV: KVNamespace;
+	/** Change this in the Pages environment to start the count over. */
+	VISITOR_COUNT_EPOCH?: string;
 }
 
 export const onRequestOptions: PagesFunction<Env> = async ({ request }) => corsOptions(request);
@@ -26,9 +28,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	 * covers a single tab, so repeat loads — a deploy check, a rebuild, an editor
 	 * preview — kept adding "visitors" until this landed.
 	 */
+	const epoch = env.VISITOR_COUNT_EPOCH ?? '';
+
 	const dayHash = await visitorDayHash(request);
 	if (dayHash) {
-		const seenKey = `visitor:seen:v1:${dayHash}`;
+		/* Epoch in the key so a reset also clears today's dedupe. */
+		const seenKey = `visitor:seen:v1:${epoch}:${dayHash}`;
 		if (await env.VISITOR_KV.get(seenKey)) {
 			return json({ ok: true, recorded: false, reason: 'counted-today' }, 200, request);
 		}
@@ -66,7 +71,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	const lng = coord(cf?.longitude);
 	const coords = lat !== undefined && lng !== undefined ? { lat, lng } : {};
 
-	const agg = await readAgg(env.VISITOR_KV);
+	const agg = await readAgg(env.VISITOR_KV, epoch);
 	agg.total += 1;
 	agg.byCountry[country] = (agg.byCountry[country] ?? 0) + 1;
 	/* Prefer city+region rows; if we only got a region, still tally it for hover labels. */
