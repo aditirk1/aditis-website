@@ -2,9 +2,12 @@
 /**
  * Visitor widget: marble globe + total (same for Universe and Beach).
  *
- * The hover callout and leader line live in this template on purpose — Astro
- * scopes <style> to elements rendered here, so nodes created in JS would come
- * out unstyled.
+ * The globe sits on its own full-width row so hover callouts have room to sit
+ * outside the frame. Side-by-side with the total, there wasn't enough width and
+ * labels had to be clamped back over the globe.
+ *
+ * The callout and leader markup live in this template on purpose — Astro scopes
+ * <style> to elements rendered here, so nodes created in JS come out unstyled.
  */
 const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '');
 ---
@@ -15,70 +18,142 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 	data-api-base={apiBase}
 	aria-label="Visitors"
 >
-	<div class="mb-3 flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-[var(--page-muted)]">
-		<span class="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--color-amber)]" aria-hidden="true"
-		></span>
-		<span>Visitors</span>
-	</div>
+	<div class="visitor-reach__card">
+		<div class="visitor-reach__head">
+			<span class="visitor-reach__eyebrow">
+				<span class="visitor-reach__pulse" aria-hidden="true"></span>
+				Visitors
+			</span>
+			<span class="visitor-reach__total">
+				<span class="visitor-reach__total-label">Total</span>
+				<span class="visitor-reach__total-value" data-visitor-total>—</span>
+			</span>
+		</div>
 
-	<div class="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-		<div class="flex w-full min-w-0 flex-1 flex-col items-center gap-2">
-			<span class="text-[9px] uppercase tracking-wider text-[var(--page-muted)]">By region</span>
-
-			<div class="visitor-globe-stage" data-globe-stage>
-				<div class="visitor-globe-circle">
-					<div
-						data-visitor-globe
-						class="absolute inset-0 [&_canvas]:!block"
-						role="img"
-						aria-label="Globe showing visitor regions"
-					>
-					</div>
-				</div>
-
-				<svg class="visitor-globe-leader" data-globe-leader aria-hidden="true"></svg>
-
-				<div class="visitor-globe-callout" data-globe-callout hidden>
-					<span class="visitor-globe-callout__place" data-globe-callout-place></span>
-					<span class="visitor-globe-callout__count" data-globe-callout-count></span>
+		<div class="visitor-globe-stage" data-globe-stage>
+			<div class="visitor-globe-circle">
+				<div
+					data-visitor-globe
+					class="absolute inset-0 [&_canvas]:!block"
+					role="img"
+					aria-label="Globe showing visitor regions"
+				>
 				</div>
 			</div>
 
-			<p class="text-[10px] text-[var(--page-muted)] opacity-80">
-				Hover a pin · scroll or pinch to zoom
-			</p>
+			<svg class="visitor-globe-leader" data-globe-leader aria-hidden="true"></svg>
+
+			<div class="visitor-globe-callout" data-globe-callout hidden>
+				<span class="visitor-globe-callout__place" data-globe-callout-place></span>
+				<span class="visitor-globe-callout__count" data-globe-callout-count></span>
+			</div>
 		</div>
 
-		<div class="flex w-full min-w-0 flex-col items-center gap-2 sm:w-[200px] sm:shrink-0 sm:items-start">
-			<span class="text-[9px] uppercase tracking-wider text-[var(--page-muted)]">Total</span>
-			<div
-				class="flex min-h-[72px] w-full max-w-[260px] flex-col justify-center gap-1 rounded-lg border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_55%,transparent)] px-4 py-3 backdrop-blur-sm"
-			>
-				<span
-					data-visitor-total
-					class="text-2xl font-semibold tabular-nums text-[var(--color-amber)]"
-					style="font-family: var(--font-mono, ui-monospace, monospace)">—</span>
-			</div>
-			<p data-visitor-note class="max-w-xs text-[10px] leading-snug text-[var(--page-muted)] opacity-90"></p>
-		</div>
+		<p class="visitor-reach__hint">Hover a pin · scroll or pinch to zoom</p>
+		<p class="visitor-reach__note" data-visitor-note></p>
 	</div>
 </aside>
 
 <style>
-	/* Stage is wider than the globe so callout labels have somewhere to land. */
+	.visitor-reach__card {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 1.25rem 1rem 1rem;
+		border-radius: 0.9rem;
+		border: 1px solid color-mix(in srgb, var(--color-amber) 32%, transparent);
+		background: color-mix(in srgb, var(--page-bg) 55%, transparent);
+		backdrop-filter: blur(4px);
+	}
+
+	.visitor-reach__head {
+		display: flex;
+		width: 100%;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.visitor-reach__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 10px;
+		text-transform: uppercase;
+		letter-spacing: 0.22em;
+		color: var(--page-muted);
+	}
+
+	.visitor-reach__pulse {
+		width: 6px;
+		height: 6px;
+		border-radius: 9999px;
+		background: var(--color-amber);
+		animation: visitor-pulse 2s ease-in-out infinite;
+	}
+
+	@keyframes visitor-pulse {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.35;
+		}
+	}
+
+	.visitor-reach__total {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 0.5rem;
+	}
+
+	.visitor-reach__total-label {
+		font-size: 9px;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		color: var(--page-muted);
+	}
+
+	.visitor-reach__total-value {
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 1.5rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		color: var(--color-amber);
+	}
+
+	.visitor-reach__hint,
+	.visitor-reach__note {
+		margin: 0;
+		font-size: 10px;
+		line-height: 1.4;
+		color: var(--page-muted);
+		opacity: 0.85;
+		text-align: center;
+	}
+
+	.visitor-reach__note:empty {
+		display: none;
+	}
+
+	/*
+	 * Stage spans the whole card so a callout can sit fully outside the globe.
+	 * Room needed per side ≈ label width + tick + gaps (~165px at desktop sizes).
+	 */
 	.visitor-globe-stage {
 		position: relative;
 		width: 100%;
-		max-width: 440px;
-		height: 244px;
+		height: 210px;
 	}
 
 	.visitor-globe-circle {
 		position: absolute;
 		left: 50%;
 		top: 50%;
-		width: 200px;
-		height: 200px;
+		width: 180px;
+		height: 180px;
 		transform: translate(-50%, -50%);
 		overflow: hidden;
 		border-radius: 9999px;
@@ -87,8 +162,13 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 	}
 
 	@media (min-width: 640px) {
+		.visitor-reach__card {
+			padding: 1.5rem 1.5rem 1.25rem;
+			gap: 1rem;
+		}
+
 		.visitor-globe-stage {
-			height: 264px;
+			height: 250px;
 		}
 
 		.visitor-globe-circle {
@@ -117,12 +197,18 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 		display: flex;
 		flex-direction: column;
 		gap: 0.1rem;
-		max-width: 108px;
+		max-width: 96px;
 		padding: 0.3rem 0.5rem;
 		border-radius: 0.35rem;
 		border: 1px solid color-mix(in srgb, var(--color-amber) 42%, transparent);
 		background: color-mix(in srgb, var(--page-bg) 92%, transparent);
 		box-shadow: 0 6px 20px color-mix(in srgb, #000 30%, transparent);
+	}
+
+	@media (min-width: 640px) {
+		.visitor-globe-callout {
+			max-width: 118px;
+		}
 	}
 
 	.visitor-globe-callout[hidden] {
@@ -146,7 +232,6 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 		font-variant-numeric: tabular-nums;
 		color: var(--color-amber);
 	}
-
 </style>
 
 <script>
