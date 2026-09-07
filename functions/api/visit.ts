@@ -1,6 +1,6 @@
 import { readAgg, writeAgg } from '../_shared/agg';
 import { corsOptions, forbidCrossOrigin, json } from '../_shared/cors';
-import { shouldRecordVisitRequest } from '../_shared/visit-filter';
+import { shouldRecordVisitRequest, visitorDayHash } from '../_shared/visit-filter';
 
 interface Env {
 	VISITOR_KV: KVNamespace;
@@ -19,6 +19,20 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	const gated = shouldRecordVisitRequest(request);
 	if (!gated.ok) {
 		return json({ ok: true, recorded: false, reason: gated.reason }, 200, request);
+	}
+
+	/*
+	 * One count per visitor per day. The client's sessionStorage guard only
+	 * covers a single tab, so repeat loads — a deploy check, a rebuild, an editor
+	 * preview — kept adding "visitors" until this landed.
+	 */
+	const dayHash = await visitorDayHash(request);
+	if (dayHash) {
+		const seenKey = `visitor:seen:v1:${dayHash}`;
+		if (await env.VISITOR_KV.get(seenKey)) {
+			return json({ ok: true, recorded: false, reason: 'counted-today' }, 200, request);
+		}
+		await env.VISITOR_KV.put(seenKey, '1', { expirationTtl: 60 * 60 * 26 });
 	}
 
 	const cf = request.cf as IncomingRequestCfProperties | undefined;

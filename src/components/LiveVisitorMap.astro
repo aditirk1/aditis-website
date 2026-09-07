@@ -69,7 +69,7 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 	.visitor-globe-stage {
 		position: relative;
 		width: 100%;
-		max-width: 420px;
+		max-width: 440px;
 		height: 244px;
 	}
 
@@ -101,7 +101,9 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 		position: absolute;
 		left: 0;
 		top: 0;
-		z-index: 15;
+		/* Above the label: if geometry ever gets cramped, a line crossing the box
+		   still reads as connected, where a hidden line reads as detached. */
+		z-index: 25;
 		pointer-events: none;
 		overflow: visible;
 		/* Children use currentColor, so they follow the theme accent. */
@@ -115,7 +117,7 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 		display: flex;
 		flex-direction: column;
 		gap: 0.1rem;
-		max-width: 132px;
+		max-width: 108px;
 		padding: 0.3rem 0.5rem;
 		border-radius: 0.35rem;
 		border: 1px solid color-mix(in srgb, var(--color-amber) 42%, transparent);

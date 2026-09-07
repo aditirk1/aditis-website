@@ -1,5 +1,4 @@
 import { readAgg } from '../_shared/agg';
-import { countryCentroid } from '../_shared/centroids';
 import { corsOptions, json } from '../_shared/cors';
 
 interface Env {
@@ -31,7 +30,6 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 		string,
 		{ country: string; region?: string; count: number; latSum: number; lngSum: number }
 	>();
-	const placedPerCountry = new Map<string, number>();
 
 	for (const row of Object.values(agg.byCityKey)) {
 		if (typeof row.lat !== 'number' || typeof row.lng !== 'number') continue;
@@ -51,27 +49,24 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 				lngSum: row.lng * row.count,
 			});
 		}
-		placedPerCountry.set(row.country, (placedPerCountry.get(row.country) ?? 0) + row.count);
 	}
 
+	/*
+	 * Only pins we can actually place, so every label reads "Region, Country".
+	 * Visits without a region (older rows, or geo Cloudflare couldn't resolve)
+	 * still land in the total — a pin at the country centroid would just be a
+	 * confident-looking guess in the middle of nowhere.
+	 */
 	const markers: Marker[] = [];
 	for (const g of grouped.values()) {
+		if (!g.region) continue;
 		markers.push({
 			lat: g.latSum / g.count,
 			lng: g.lngSum / g.count,
 			count: g.count,
 			country: g.country,
-			...(g.region ? { region: g.region } : {}),
+			region: g.region,
 		});
-	}
-
-	/* Visits recorded before coordinates were captured still need a pin. */
-	for (const [country, count] of Object.entries(agg.byCountry)) {
-		const leftover = count - (placedPerCountry.get(country) ?? 0);
-		if (leftover <= 0) continue;
-		const c = countryCentroid(country);
-		if (!c) continue;
-		markers.push({ lat: c[0], lng: c[1], count: leftover, country });
 	}
 
 	return json({ total: agg.total, markers }, 200, request);

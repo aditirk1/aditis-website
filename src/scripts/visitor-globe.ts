@@ -179,10 +179,10 @@ export function initVisitorGlobe(container: HTMLElement): {
 			vy /= len;
 		}
 
-		/* Elbow sits just outside the frame, along the pin's own radial line. */
+		/* Where the leader wants to leave the frame: outward along the pin's radius. */
 		const elbowDist = Math.max(len, radius) + ELBOW_GAP;
-		let ex = cx + vx * elbowDist;
-		let ey = cy + vy * elbowDist;
+		const ox = cx + vx * elbowDist;
+		const oy = cy + vy * elbowDist;
 
 		calloutPlace.textContent = p.placeLine;
 		calloutCount.textContent = String(p.count);
@@ -192,36 +192,36 @@ export function initVisitorGlobe(container: HTMLElement): {
 		const w = box.width;
 		const h = box.height;
 
-		/* Put the label on whichever side of the elbow actually has room. */
+		/* Put the label on whichever side actually has room for it. */
 		let side = vx >= 0 ? 1 : -1;
-		const roomRight = stageW - (ex + TICK_LEN + LABEL_GAP);
-		const roomLeft = ex - TICK_LEN - LABEL_GAP;
+		const roomRight = stageW - (ox + TICK_LEN + LABEL_GAP);
+		const roomLeft = ox - TICK_LEN - LABEL_GAP;
 		if (side === 1 && roomRight < w && roomLeft > roomRight) side = -1;
 		else if (side === -1 && roomLeft < w && roomRight > roomLeft) side = 1;
 
-		/* Centre on the elbow, clamp into the stage, then pull the elbow back to
-		 * the label's centre line so the final segment stays truly horizontal. */
-		const top = clamp(ey - h / 2, 0, Math.max(0, stageH - h));
-		ey = top + h / 2;
-
+		/*
+		 * Place and clamp the label first, then derive the elbow from where it
+		 * actually landed. Doing it the other way round let clamping slide the box
+		 * off the end of the line, and the box paints over the line, so the two
+		 * read as separate floating pieces.
+		 */
+		const nearEdgeWanted = ox + side * (TICK_LEN + LABEL_GAP);
 		const left = clamp(
-			side === 1 ? ex + TICK_LEN + LABEL_GAP : ex - TICK_LEN - LABEL_GAP - w,
+			side === 1 ? nearEdgeWanted : nearEdgeWanted - w,
 			0,
 			Math.max(0, stageW - w),
 		);
+		const top = clamp(oy - h / 2, 0, Math.max(0, stageH - h));
 
 		callout.style.left = `${left}px`;
 		callout.style.top = `${top}px`;
 
-		/*
-		 * Land the tick on the label's near edge. Clamping can move the label, so
-		 * deriving the endpoint from its final position is what keeps the line and
-		 * the box reading as one object instead of two floating pieces.
-		 */
-		const attachX = side === 1 ? left : left + w;
-		ex = side === 1 ? Math.min(ex, attachX - TICK_LEN) : Math.max(ex, attachX + TICK_LEN);
+		/* Tick lands on the label's near edge; the elbow sits a tick outside it. */
+		const attachX = side === 1 ? left - LABEL_GAP : left + w + LABEL_GAP;
+		const elbowX = attachX - side * TICK_LEN;
+		const attachY = top + h / 2;
 
-		leaderPath.setAttribute('points', `${px},${py} ${ex},${ey} ${attachX},${ey}`);
+		leaderPath.setAttribute('points', `${px},${py} ${elbowX},${attachY} ${attachX},${attachY}`);
 		leaderDot.setAttribute('cx', String(px));
 		leaderDot.setAttribute('cy', String(py));
 		leaderDot.setAttribute('r', '2.6');
