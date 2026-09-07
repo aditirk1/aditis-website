@@ -1,6 +1,10 @@
 ---
 /**
  * Visitor widget: marble globe + total (same for Universe and Beach).
+ *
+ * The hover callout and leader line live in this template on purpose — Astro
+ * scopes <style> to elements rendered here, so nodes created in JS would come
+ * out unstyled.
  */
 const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '');
 ---
@@ -18,14 +22,11 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 	</div>
 
 	<div class="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
-		<div class="flex flex-col items-center gap-2">
+		<div class="flex min-w-0 flex-col items-center gap-2">
 			<span class="text-[9px] uppercase tracking-wider text-[var(--page-muted)]">By region</span>
-			<div
-				class="visitor-globe-frame relative h-[200px] w-[200px] shrink-0 overflow-visible sm:h-[220px] sm:w-[220px]"
-			>
-				<div
-					class="relative h-full w-full overflow-hidden rounded-full border border-[color-mix(in_srgb,var(--color-amber)_45%,transparent)] shadow-[0_0_40px_color-mix(in_srgb,var(--color-amber)_18%,transparent)]"
-				>
+
+			<div class="visitor-globe-stage" data-globe-stage>
+				<div class="visitor-globe-circle">
 					<div
 						data-visitor-globe
 						class="absolute inset-0 [&_canvas]:!block"
@@ -34,8 +35,23 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 					>
 					</div>
 				</div>
+
+				<svg class="visitor-globe-leader" data-globe-leader aria-hidden="true"></svg>
+
+				<div class="visitor-globe-callout" data-globe-callout hidden>
+					<span class="visitor-globe-callout__place" data-globe-callout-place></span>
+					<span class="visitor-globe-callout__count" data-globe-callout-count></span>
+				</div>
+
+				<div class="visitor-globe-zoom">
+					<button type="button" data-globe-zoom="in" aria-label="Zoom in">+</button>
+					<button type="button" data-globe-zoom="out" aria-label="Zoom out">−</button>
+				</div>
 			</div>
-			<p class="text-[10px] text-[var(--page-muted)] opacity-80">Hover a pin for the count</p>
+
+			<p class="text-[10px] text-[var(--page-muted)] opacity-80">
+				Hover a pin · scroll or +/− to zoom
+			</p>
 		</div>
 
 		<div class="flex w-full min-w-0 flex-1 flex-col items-center gap-2 sm:items-start">
@@ -54,37 +70,115 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 </aside>
 
 <style>
-	.visitor-globe-frame {
+	/* Stage is wider than the globe so callout labels have somewhere to land. */
+	.visitor-globe-stage {
 		position: relative;
+		width: 100%;
+		max-width: 330px;
+		height: 244px;
 	}
 
-	.visitor-globe__tooltip {
+	.visitor-globe-circle {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: 200px;
+		height: 200px;
+		transform: translate(-50%, -50%);
+		overflow: hidden;
+		border-radius: 9999px;
+		border: 1px solid color-mix(in srgb, var(--color-amber) 45%, transparent);
+		box-shadow: 0 0 40px color-mix(in srgb, var(--color-amber) 18%, transparent);
+	}
+
+	@media (min-width: 640px) {
+		.visitor-globe-stage {
+			height: 264px;
+		}
+
+		.visitor-globe-circle {
+			width: 220px;
+			height: 220px;
+		}
+	}
+
+	.visitor-globe-leader {
+		position: absolute;
+		left: 0;
+		top: 0;
+		z-index: 15;
+		pointer-events: none;
+		overflow: visible;
+		/* Children use currentColor, so they follow the theme accent. */
+		color: var(--color-amber);
+	}
+
+	.visitor-globe-callout {
 		position: absolute;
 		z-index: 20;
 		pointer-events: none;
-		transform: translate(-50%, calc(-100% - 10px));
-		padding: 0.4rem 0.65rem;
-		border-radius: 0.4rem;
-		border: 1px solid color-mix(in srgb, var(--color-amber) 40%, transparent);
-		background: color-mix(in srgb, var(--page-bg) 94%, transparent);
-		color: var(--page-fg);
-		font-size: 0.7rem;
-		line-height: 1.25;
-		white-space: nowrap;
-		text-align: left;
-		box-shadow: 0 8px 24px color-mix(in srgb, #000 22%, transparent);
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+		max-width: 150px;
+		padding: 0.3rem 0.5rem;
+		border-radius: 0.35rem;
+		border: 1px solid color-mix(in srgb, var(--color-amber) 42%, transparent);
+		background: color-mix(in srgb, var(--page-bg) 92%, transparent);
+		box-shadow: 0 6px 20px color-mix(in srgb, #000 30%, transparent);
 	}
 
-	.visitor-globe__tooltip-place {
+	.visitor-globe-callout[hidden] {
+		display: none;
+	}
+
+	.visitor-globe-callout__place {
+		font-family: var(--font-display, system-ui, sans-serif);
+		font-size: 0.68rem;
 		font-weight: 500;
+		line-height: 1.2;
+		color: var(--page-fg);
 		opacity: 0.92;
 	}
 
-	.visitor-globe__tooltip-count {
-		margin-top: 0.15rem;
-		font-size: 0.9rem;
+	.visitor-globe-callout__count {
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 0.85rem;
 		font-weight: 700;
+		line-height: 1.1;
 		font-variant-numeric: tabular-nums;
+		color: var(--color-amber);
+	}
+
+	.visitor-globe-zoom {
+		position: absolute;
+		right: 2px;
+		bottom: 2px;
+		z-index: 25;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.visitor-globe-zoom button {
+		width: 1.5rem;
+		height: 1.5rem;
+		display: grid;
+		place-items: center;
+		border-radius: 9999px;
+		border: 1px solid color-mix(in srgb, var(--color-amber) 38%, transparent);
+		background: color-mix(in srgb, var(--page-bg) 82%, transparent);
+		color: var(--page-fg);
+		font-size: 0.8rem;
+		line-height: 1;
+		cursor: pointer;
+		transition:
+			border-color 150ms ease,
+			color 150ms ease;
+	}
+
+	.visitor-globe-zoom button:hover {
+		border-color: var(--color-amber);
 		color: var(--color-amber);
 	}
 </style>

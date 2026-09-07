@@ -830,7 +830,7 @@ html[data-coarse-pointer] .home-explore-card .explore-card-cta {
 	display: flex;
 	align-items: center;
 	align-self: stretch;
-	padding: 1.5rem 1rem;
+	padding: 0 0.5rem 20vh 2.75rem;
 	box-sizing: border-box;
 	container-type: inline-size;
 }
@@ -866,9 +866,9 @@ html[data-coarse-pointer] .home-explore-card .explore-card-cta {
 	font-family: var(--font-title);
 	font-weight: 800;
 	font-style: normal;
-	font-size: clamp(3rem, 22cqi, 9.5rem);
+	font-size: clamp(8rem, 28cqi, 9.5rem);
 	line-height: 0.92;
-	letter-spacing: -0.055em;
+	letter-spacing: -0.03em;
 	text-transform: lowercase;
 	text-align: left;
 	color: var(--page-fg);
