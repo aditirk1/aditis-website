@@ -219,7 +219,6 @@ function validatePlanetOrbits(): void {
 }
 
 type PlanetMeshUserData = PlanetConfig & {
-	rimMesh?: THREE.Mesh;
 	ringMesh?: THREE.Mesh;
 	baseRoughness: number;
 	baseMetalness: number;
@@ -316,62 +315,6 @@ function createStarfieldMaterial(): THREE.ShaderMaterial {
 
 				float alpha = clamp((core + halo) * vStrength, 0.0, 1.0);
 				gl_FragColor = vec4(col, alpha);
-			}
-		`,
-	});
-}
-
-/**
- * Fresnel rim for the halo shell drawn just outside each planet.
- *
- * Rendered BackSide so the planet itself occludes the near half and only the
- * limb annulus survives. `abs(dot(n, v))` is what makes that work: on the far
- * hemisphere the outward normal faces away from the camera, so the plain
- * `1 - dot` form would saturate to 1 everywhere instead of hugging the edge.
- */
-function createPlanetRimMaterial(color: number): THREE.ShaderMaterial {
-	return new THREE.ShaderMaterial({
-		transparent: true,
-		depthWrite: false,
-		blending: THREE.AdditiveBlending,
-		side: THREE.BackSide,
-		uniforms: {
-			uColor: { value: lightenPlanetColor(color, 0.4) },
-			uOpacity: { value: 0 },
-			uPower: { value: 2.6 },
-			uLightDir: { value: PLANET_LIGHT_DIR.clone() },
-		},
-		vertexShader: /* glsl */ `
-			varying vec3 vViewNormal;
-			varying vec3 vViewPos;
-			varying vec3 vWorldNormal;
-			void main() {
-				vec4 mv = modelViewMatrix * vec4(position, 1.0);
-				vViewPos = mv.xyz;
-				vViewNormal = normalize(normalMatrix * normal);
-				vWorldNormal = normalize(mat3(modelMatrix) * normal);
-				gl_Position = projectionMatrix * mv;
-			}
-		`,
-		fragmentShader: /* glsl */ `
-			uniform vec3 uColor;
-			uniform float uOpacity;
-			uniform float uPower;
-			uniform vec3 uLightDir;
-			varying vec3 vViewNormal;
-			varying vec3 vViewPos;
-			varying vec3 vWorldNormal;
-
-			void main() {
-				vec3 n = normalize(vViewNormal);
-				vec3 v = normalize(-vViewPos);
-				float fres = pow(1.0 - abs(dot(n, v)), uPower);
-
-				/* Brightest on the limb facing the key light — a wrap, not a uniform ring. */
-				float lit = smoothstep(-0.5, 0.9, dot(normalize(vWorldNormal), uLightDir));
-
-				float alpha = fres * uOpacity * (0.18 + lit * 1.0);
-				gl_FragColor = vec4(uColor, clamp(alpha, 0.0, 1.0));
 			}
 		`,
 	});
@@ -589,11 +532,6 @@ export function initUniverseStarField(): () => void {
 				baseMetalness: mat.metalness,
 			};
 			mesh.userData = userData;
-
-			const rimGeo = new THREE.SphereGeometry(p.radius * 1.18, 40, 40);
-			const rimMesh = new THREE.Mesh(rimGeo, createPlanetRimMaterial(p.color));
-			mesh.add(rimMesh);
-			userData.rimMesh = rimMesh;
 
 			if (p.id === 'services') {
 				const inner = p.radius * PLANET_RING_INNER_SCALE;
@@ -1257,14 +1195,6 @@ export function initUniverseStarField(): () => void {
 				mat.emissiveIntensity = 0;
 				mat.roughness = pd.baseRoughness - h * 0.22;
 				mat.metalness = pd.baseMetalness + h * 0.12;
-
-				const rimMesh = pd.rimMesh;
-				if (rimMesh) {
-					const rimMat = rimMesh.material as THREE.ShaderMaterial;
-					/* Visible at rest now — hover just pushes it brighter and wider. */
-					rimMat.uniforms.uOpacity.value = (0.6 + h * 0.9) * solarFadeLerp;
-					rimMesh.scale.setScalar(1 + h * 0.05);
-				}
 
 				const ringMesh = pd.ringMesh;
 				if (ringMesh) {
