@@ -7,6 +7,7 @@
  * - Satellite distance/speed: `SECRET_ORBIT_RADIUS`, `SECRET_ORBIT_SPEED`.
  * - Apparent size: `SECRET_RADIUS` (world units on its billboard plane).
  * - Look: edit `createSecretStarMaterial()` fragment shader (brightness, color mix, pulse).
+ * - Axial spin: `PLANET_SPIN_SPEED`. Orbital drift: `INNER_ORBIT_SPEED`.
  */
 import * as THREE from 'three';
 import {
@@ -69,7 +70,10 @@ const PLANET_LIGHT_DIR = new THREE.Vector3(-8, -2.5, 8).normalize();
 
 /** Inner-orbit angular speed (rad/ms); outer orbits use ω ∝ 1/r. */
 const INNER_ORBIT_R = 6;
-const INNER_ORBIT_SPEED = 0.00028;
+/** Slow orrery drift — roughly ⅓ of the previous pace. */
+const INNER_ORBIT_SPEED = 0.0001;
+/** Planetary axial spin (rad/s). Slow enough to read as gravity, fast enough to notice. */
+const PLANET_SPIN_SPEED = 0.22;
 
 function orbitSpeedFor(orbitR: number): number {
 	return (INNER_ORBIT_SPEED * INNER_ORBIT_R) / orbitR;
@@ -467,6 +471,8 @@ export function initUniverseStarField(): () => void {
 	scene.add(solarSystemGroup);
 
 	const planetMeshes: THREE.Mesh[] = [];
+	/** Orbital anchors — mesh children spin; pivots carry position on the orbit. */
+	const planetPivots: THREE.Group[] = [];
 	const planetHoverLerp: number[] = [];
 	const planetRingMeshes: THREE.Mesh[] = [];
 	const planetSurfaceMaps: PlanetSurfaceMaps[] = [];
@@ -482,10 +488,9 @@ export function initUniverseStarField(): () => void {
 	/* Reads cached geometry from the scroll orchestrator — no layout during the frame. */
 	function getHeroScrollFade(): number {
 		const { y, heroBottom, viewportHeight } = getScrollState();
-		/* Near the top of the page the orrery must stay visible even if hero metrics
-		 * are briefly stale after a theme swap or first paint. */
-		if (y < 48) return 1;
-		const vh = viewportHeight || 1;
+		/* Near the top — or with missing metrics after a theme swap — keep the orrery on. */
+		if (y < 80 || viewportHeight < 1) return 1;
+		const vh = viewportHeight;
 		const fadeStart = vh * 0.72;
 		const fadeEnd = vh * 0.2;
 		if (heroBottom >= fadeStart) return 1;
@@ -522,16 +527,23 @@ export function initUniverseStarField(): () => void {
 				transparent: true,
 				opacity: 1,
 			});
+			/*
+			 * Pivot holds orbital position; the mesh child carries tilt + Y spin so
+			 * axial rotation is independent of where the planet sits on its orbit.
+			 */
+			const pivot = new THREE.Group();
+			pivot.position.set(Math.cos(p.phase) * p.orbitR, Math.sin(p.phase) * p.orbitR, -8);
 			const mesh = new THREE.Mesh(geo, mat);
-			mesh.position.set(Math.cos(p.phase) * p.orbitR, Math.sin(p.phase) * p.orbitR, -8);
-			/* Axial tilt: with Euler XYZ the running Y spin stays inside this tilt. */
+			mesh.rotation.order = 'XYZ';
 			mesh.rotation.x = p.tilt;
+			pivot.add(mesh);
 			const userData: PlanetMeshUserData = {
 				...p,
 				baseRoughness: mat.roughness,
 				baseMetalness: mat.metalness,
 			};
 			mesh.userData = userData;
+			pivot.userData = userData;
 
 			if (p.id === 'services') {
 				const inner = p.radius * PLANET_RING_INNER_SCALE;
@@ -551,7 +563,8 @@ export function initUniverseStarField(): () => void {
 				userData.ringMesh = ringMesh;
 			}
 
-			solarSystemGroup.add(mesh);
+			solarSystemGroup.add(pivot);
+			planetPivots.push(pivot);
 			planetMeshes.push(mesh);
 			planetHoverLerp.push(0);
 		}
@@ -656,6 +669,7 @@ export function initUniverseStarField(): () => void {
 	const invStarGroup = new THREE.Matrix4();
 	const tmpHit = new THREE.Vector3();
 	const tmpMouseLocal = new THREE.Vector3();
+	const tmpWorld = new THREE.Vector3();
 	const mouseShell = new THREE.Sphere(new THREE.Vector3(0, 0, 0), MOUSE_SHELL_R);
 
 	let lastScroll = typeof window !== 'undefined' ? window.scrollY : 0;
@@ -668,7 +682,7 @@ export function initUniverseStarField(): () => void {
 
 	function placeSecretStar(tNow: number) {
 		if (!isHomePage) return;
-		const host = planetMeshes[SECRET_HOST_PLANET_INDEX];
+		const host = planetPivots[SECRET_HOST_PLANET_INDEX];
 		if (!host) return;
 		const angle = tNow * SECRET_ORBIT_SPEED;
 		secretStar.position.set(
@@ -680,17 +694,19 @@ export function initUniverseStarField(): () => void {
 	}
 
 	const hostPlanetMesh = planetMeshes[SECRET_HOST_PLANET_INDEX] ?? null;
+	const hostPlanetPivot = planetPivots[SECRET_HOST_PLANET_INDEX] ?? null;
 
 	/** When the secret star orbits inside its host sphere, screen distance picks star vs planet. */
 	function pointerTargetsSecretStar(clientX: number, clientY: number): boolean {
-		if (!hostPlanetMesh) return true;
+		if (!hostPlanetPivot) return true;
 		const w = window.innerWidth || 1;
 		const h = window.innerHeight || 1;
 		const ndcX = (clientX / w) * 2 - 1;
 		const ndcY = -(clientY / h) * 2 + 1;
 
-		const planetNdc = hostPlanetMesh.position.clone().project(camera);
-		const starNdc = secretStar.position.clone().project(camera);
+		const planetNdc = hostPlanetPivot.getWorldPosition(tmpWorld).clone().project(camera);
+		secretStar.getWorldPosition(tmpHit);
+		const starNdc = tmpHit.clone().project(camera);
 		const dPlanet = Math.hypot(ndcX - planetNdc.x, ndcY - planetNdc.y);
 		const dStar = Math.hypot(ndcX - starNdc.x, ndcY - starNdc.y);
 
@@ -715,13 +731,16 @@ export function initUniverseStarField(): () => void {
 		let best: THREE.Mesh | null = null;
 		let bestDist = Infinity;
 
-		for (const mesh of planetMeshes) {
-			const ndc = mesh.position.clone().project(camera);
+		for (let i = 0; i < planetMeshes.length; i++) {
+			const mesh = planetMeshes[i]!;
+			const pivot = planetPivots[i]!;
+			pivot.getWorldPosition(tmpWorld);
+			const ndc = tmpWorld.clone().project(camera);
 			const px = (ndc.x * 0.5 + 0.5) * w;
 			const py = (-ndc.y * 0.5 + 0.5) * h;
 			const dist = Math.hypot(clientX - px, clientY - py);
 			const pd = mesh.userData as PlanetConfig;
-			const camDist = camera.position.distanceTo(mesh.position);
+			const camDist = camera.position.distanceTo(tmpWorld);
 			const apparentR = (pd.radius / camDist) * h * 0.55;
 			const threshold = Math.max(TOUCH_PICK_MIN_PX, apparentR * 1.35);
 			if (dist < threshold && dist < bestDist) {
@@ -750,8 +769,12 @@ export function initUniverseStarField(): () => void {
 		if (rayHit && screenHit && rayHit !== screenHit) {
 			const w = window.innerWidth || 1;
 			const h = window.innerHeight || 1;
-			const ndcRay = rayHit.position.clone().project(camera);
-			const ndcScreen = screenHit.position.clone().project(camera);
+			const rayPivot = (rayHit.parent as THREE.Object3D | null) ?? rayHit;
+			const screenPivot = (screenHit.parent as THREE.Object3D | null) ?? screenHit;
+			rayPivot.getWorldPosition(tmpWorld);
+			const ndcRay = tmpWorld.clone().project(camera);
+			screenPivot.getWorldPosition(tmpWorld);
+			const ndcScreen = tmpWorld.clone().project(camera);
 			const dRay = Math.hypot(
 				clientX - (ndcRay.x * 0.5 + 0.5) * w,
 				clientY - (-ndcRay.y * 0.5 + 0.5) * h,
@@ -1172,14 +1195,16 @@ export function initUniverseStarField(): () => void {
 			applySolarFade(solarFadeLerp);
 
 			const tNow = performance.now();
+			const spinStep = delta * PLANET_SPIN_SPEED * (reducedMotion ? 0.45 : 1);
 			for (let i = 0; i < planetMeshes.length; i++) {
 				const mesh = planetMeshes[i]!;
+				const pivot = planetPivots[i]!;
 				const p = PLANETS[i]!;
 				const angle = tNow * p.speed + p.phase;
-				mesh.position.x = Math.cos(angle) * p.orbitR;
-				mesh.position.y = Math.sin(angle) * p.orbitR;
-				mesh.position.z = -8;
-				mesh.rotation.y += 0.0008;
+				pivot.position.x = Math.cos(angle) * p.orbitR;
+				pivot.position.y = Math.sin(angle) * p.orbitR;
+				/* Axial spin on the tilted mesh — textures crawl; uniform spheres wouldn't show it. */
+				mesh.rotation.y += spinStep;
 
 				const hoverTarget = mesh === currentHoveredPlanet ? 1 : 0;
 				planetHoverLerp[i] += (hoverTarget - planetHoverLerp[i]!) * 0.14;
@@ -1188,7 +1213,7 @@ export function initUniverseStarField(): () => void {
 
 				/* Slight scale + pull toward camera — keep lit shading (no flat emissive). */
 				mesh.scale.setScalar(1 + h * 0.09);
-				mesh.position.z = -8 + h * 1.25;
+				pivot.position.z = -8 + h * 1.25;
 
 				const mat = mesh.material as THREE.MeshStandardMaterial;
 				mat.emissive.setHex(0x000000);
@@ -1198,7 +1223,7 @@ export function initUniverseStarField(): () => void {
 
 				const ringMesh = pd.ringMesh;
 				if (ringMesh) {
-					ringMesh.position.copy(mesh.position);
+					ringMesh.position.copy(pivot.position);
 					ringMesh.scale.setScalar(1 + h * 0.09);
 					(ringMesh.material as THREE.ShaderMaterial).uniforms.uOpacity.value =
 						(0.9 + h * 0.25) * solarFadeLerp;
@@ -1234,24 +1259,61 @@ export function initUniverseStarField(): () => void {
 		applyVisibility();
 	}
 
+	let showRaf = 0;
+	let showRaf2 = 0;
+
+	function paintOrreryNow() {
+		/* Theme swaps leave stale scroll fade / zone size — snap visible and draw now. */
+		solarFade = 1;
+		solarFadeLerp = 1;
+		applySolarFade(1);
+		setSize();
+		start();
+		renderer.render(scene, camera);
+	}
+
 	function applyVisibility() {
 		const theme = getTheme();
 		const root = canvasEl.closest('[data-universe-canvas]') as HTMLElement | null;
+		window.cancelAnimationFrame(showRaf);
+		window.cancelAnimationFrame(showRaf2);
+
 		if (theme === 'beach') {
 			stop();
-			if (root) root.style.visibility = 'hidden';
+			/* opacity (not visibility:hidden) — Safari is less eager to drop the GL layer. */
+			if (root) {
+				root.style.visibility = '';
+				root.style.opacity = '0';
+				root.style.pointerEvents = 'none';
+				root.setAttribute('aria-hidden', 'true');
+			}
 			return;
 		}
-		if (root) root.style.visibility = 'visible';
-		/* Layout may have just changed (theme toggle) — remeasure before painting. */
-		setSize();
-		solarFade = getHeroScrollFade();
-		/* Stale scroll metrics (common right after a theme swap) read as fade=0 and
-		 * hide the orrery — prefer showing until the orchestrator catches up. */
-		if (solarFade < 0.05) solarFade = 1;
-		solarFadeLerp = solarFade;
-		applySolarFade(solarFadeLerp);
-		start();
+
+		if (root) {
+			root.style.visibility = '';
+			root.style.opacity = '1';
+			root.style.pointerEvents = 'auto';
+			root.removeAttribute('aria-hidden');
+		}
+
+		/*
+		 * Beach tears down its WebGL in the same theme MutationObserver turn.
+		 * Defer one microtask so that release lands before we resize/start, then
+		 * re-fit after layout (hero copy move) settles.
+		 */
+		queueMicrotask(() => {
+			if (getTheme() !== 'universe') return;
+			paintOrreryNow();
+			showRaf = requestAnimationFrame(() => {
+				if (getTheme() !== 'universe') return;
+				paintOrreryNow();
+				showRaf2 = requestAnimationFrame(() => {
+					if (getTheme() !== 'universe') return;
+					setSize();
+				});
+			});
+		});
 	}
 
 	function resetInteractionState() {
@@ -1329,6 +1391,8 @@ export function initUniverseStarField(): () => void {
 
 	return () => {
 		stop();
+		window.cancelAnimationFrame(showRaf);
+		window.cancelAnimationFrame(showRaf2);
 		mo.disconnect();
 		titleObserver?.disconnect();
 		window.removeEventListener('aditi:theme-layout', onThemeLayout);
@@ -1349,15 +1413,11 @@ export function initUniverseStarField(): () => void {
 		secretGeom.dispose();
 		secretMat.dispose();
 		for (const mesh of planetMeshes) {
-			mesh.traverse((child) => {
-				if (child instanceof THREE.Mesh && child !== mesh) {
-					child.geometry.dispose();
-					(child.material as THREE.Material).dispose();
-				}
-			});
 			mesh.geometry.dispose();
 			(mesh.material as THREE.Material).dispose();
-			solarSystemGroup.remove(mesh);
+		}
+		for (const pivot of planetPivots) {
+			solarSystemGroup.remove(pivot);
 		}
 		for (const ring of planetRingMeshes) {
 			ring.geometry.dispose();

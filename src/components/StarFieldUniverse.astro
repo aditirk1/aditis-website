@@ -9,7 +9,8 @@
  * How it behaves:
  * - The canvas sits behind page content (z-index below the main shell).
  * - Pointer events stay enabled on the canvas so the secret amber star remains clickable.
- * - When <html data-theme="beach">, the script pauses rendering to save battery/GPU.
+ * - When <html data-theme="beach">, the script pauses rendering and frees the
+ *   canvas layer (opacity) so Beach can own the single active WebGL context.
  */
 ---
 

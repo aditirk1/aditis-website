@@ -48,7 +48,11 @@ export function initVisitorGlobe(container: HTMLElement): {
 		.pointsTransitionDuration(0)
 		.pointLabel((d: object) => {
 			const p = d as PointDatum;
-			return `<div style="padding:2px 0">${p.label} · ${p.count}</div>`;
+			const accent = accentColor();
+			return `<div style="padding:2px 0;line-height:1.25;text-align:left">
+				<div style="font-size:11px;font-weight:500;opacity:0.92">${p.label}</div>
+				<div style="margin-top:2px;font-size:13px;font-weight:700;color:${accent}">${p.count}</div>
+			</div>`;
 		});
 
 	const ctrls = globe.controls();
