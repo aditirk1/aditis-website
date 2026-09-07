@@ -26,6 +26,16 @@ type PointDatum = {
  */
 const EARTH_BLUE_MARBLE = '/visitor-map/earth-blue-marble.jpg';
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+/** Leader geometry, in px. */
+const ELBOW_GAP = 16;
+const TICK_LEN = 16;
+const LABEL_GAP = 5;
+
+const MIN_ALTITUDE = 0.12;
+const MAX_ALTITUDE = 3.2;
+
 function accentColor(): string {
 	const v = getComputedStyle(document.documentElement).getPropertyValue('--color-amber').trim();
 	return v || '#ffaa00';
@@ -43,33 +53,44 @@ function countryLabel(code: string | undefined): string {
 function placeLine(m: { country?: string; region?: string }): string {
 	const country = countryLabel(m.country);
 	const region = m.region?.trim();
-	if (region) return `${region}, ${country}`;
-	return country;
+	return region ? `${region}, ${country}` : country;
 }
 
-function escapeHtml(s: string): string {
-	return s
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;');
+function clamp(v: number, lo: number, hi: number): number {
+	return Math.max(lo, Math.min(hi, v));
 }
 
 /**
- * Visitor globe (Universe + Beach). Uses a custom HTML tooltip outside the
- * clipped circle — globe.gl's built-in labels get clipped / miss pointer hits.
+ * Visitor globe (Universe + Beach).
+ *
+ * Hovering a pin draws a leader line out of the globe — slanted radial segment,
+ * short horizontal tick, then the label — instead of a centred tooltip that the
+ * round frame would clip. Zoom is available so sparse, single-visit pins are big
+ * enough to hit.
  */
 export function initVisitorGlobe(container: HTMLElement): {
 	setMarkers: (markers: GlobeMarker[]) => void;
 	destroy: () => void;
 } {
-	const host = container.parentElement ?? container;
+	const stage = container.closest<HTMLElement>('[data-globe-stage]');
+	const leaderSvg = stage?.querySelector<SVGSVGElement>('[data-globe-leader]') ?? null;
+	const callout = stage?.querySelector<HTMLElement>('[data-globe-callout]') ?? null;
+	const calloutPlace = stage?.querySelector<HTMLElement>('[data-globe-callout-place]') ?? null;
+	const calloutCount = stage?.querySelector<HTMLElement>('[data-globe-callout-count]') ?? null;
 
-	const tooltip = document.createElement('div');
-	tooltip.className = 'visitor-globe__tooltip';
-	tooltip.setAttribute('role', 'tooltip');
-	tooltip.hidden = true;
-	host.appendChild(tooltip);
+	const leaderPath = document.createElementNS(SVG_NS, 'polyline');
+	leaderPath.setAttribute('fill', 'none');
+	leaderPath.setAttribute('stroke', 'currentColor');
+	leaderPath.setAttribute('stroke-width', '1.1');
+	leaderPath.setAttribute('stroke-linecap', 'round');
+	leaderPath.setAttribute('stroke-linejoin', 'round');
+
+	const leaderDot = document.createElementNS(SVG_NS, 'circle');
+	leaderDot.setAttribute('r', '2.6');
+	leaderDot.setAttribute('fill', 'currentColor');
+
+	leaderSvg?.appendChild(leaderPath);
+	leaderSvg?.appendChild(leaderDot);
 
 	const globe = new Globe(container)
 		.globeImageUrl(EARTH_BLUE_MARBLE)
@@ -81,45 +102,172 @@ export function initVisitorGlobe(container: HTMLElement): {
 		.pointRadius('size')
 		.pointColor('color')
 		.pointsTransitionDuration(0)
+		/* Built-in labels sit inside the clipped circle — we draw our own. */
 		.pointLabel(() => '');
 
 	const ctrls = globe.controls();
 	ctrls.autoRotate = true;
 	ctrls.autoRotateSpeed = 0.35;
+	/*
+	 * Wheel zoom only after a deliberate pause over the globe, so scrolling the
+	 * page past this small widget doesn't get captured.
+	 */
 	ctrls.enableZoom = false;
 
-	function hideTip() {
-		tooltip.hidden = true;
-		tooltip.replaceChildren();
+	let hovered: PointDatum | null = null;
+	let followRaf = 0;
+	let zoomArmTimer = 0;
+
+	function hideCallout() {
+		hovered = null;
+		cancelAnimationFrame(followRaf);
+		followRaf = 0;
+		if (callout) callout.hidden = true;
+		leaderPath.setAttribute('points', '');
+		leaderDot.setAttribute('r', '0');
 	}
 
-	function showTip(p: PointDatum) {
-		const accent = accentColor();
-		tooltip.innerHTML = `<div class="visitor-globe__tooltip-place">${escapeHtml(p.placeLine)}</div><div class="visitor-globe__tooltip-count" style="color:${accent}">${p.count}</div>`;
-		tooltip.hidden = false;
-		/* Anchor above the globe centre — avoids clipped labels inside the circle. */
-		tooltip.style.left = '50%';
-		tooltip.style.top = '10px';
+	/**
+	 * A pin that has rotated behind the globe still projects inside the disc, but
+	 * the surface under that screen point is somewhere else entirely. Threshold is
+	 * deliberately loose — near the limb, parallax from the pin's altitude adds up,
+	 * and hiding a label the visitor is actually hovering is the worse failure.
+	 */
+	function isFacingCamera(p: PointDatum, sx: number, sy: number): boolean {
+		const surface = globe.toGlobeCoords(sx, sy);
+		if (!surface) return true;
+		const dLat = Math.abs(surface.lat - p.lat);
+		let dLng = Math.abs(surface.lng - p.lng);
+		if (dLng > 180) dLng = 360 - dLng;
+		return dLat < 30 && dLng < 30;
+	}
+
+	function drawCallout(p: PointDatum) {
+		if (!stage || !leaderSvg || !callout || !calloutPlace || !calloutCount) return;
+
+		const stageRect = stage.getBoundingClientRect();
+		const circleRect = container.getBoundingClientRect();
+		if (stageRect.width < 1 || circleRect.width < 1) return;
+
+		const screen = globe.getScreenCoords(p.lat, p.lng, 0.012);
+		if (!screen || !Number.isFinite(screen.x) || !Number.isFinite(screen.y)) return;
+
+		if (!isFacingCamera(p, screen.x, screen.y)) {
+			callout.hidden = true;
+			leaderPath.setAttribute('points', '');
+			leaderDot.setAttribute('r', '0');
+			return;
+		}
+
+		/* Globe coords are canvas-relative; the leader layer spans the stage. */
+		const offsetX = circleRect.left - stageRect.left;
+		const offsetY = circleRect.top - stageRect.top;
+		const px = screen.x + offsetX;
+		const py = screen.y + offsetY;
+
+		const cx = offsetX + circleRect.width / 2;
+		const cy = offsetY + circleRect.height / 2;
+		const radius = circleRect.width / 2;
+
+		let vx = px - cx;
+		let vy = py - cy;
+		const len = Math.hypot(vx, vy);
+		if (len < 1) {
+			vx = 0;
+			vy = -1;
+		} else {
+			vx /= len;
+			vy /= len;
+		}
+
+		/* Elbow sits just outside the frame, along the pin's own radial line. */
+		const elbowDist = Math.max(len, radius) + ELBOW_GAP;
+		const ex = cx + vx * elbowDist;
+		const ey = clamp(cy + vy * elbowDist, 8, stageRect.height - 8);
+
+		const side = vx >= 0 ? 1 : -1;
+		const tx = ex + side * TICK_LEN;
+
+		leaderPath.setAttribute('points', `${px},${py} ${ex},${ey} ${tx},${ey}`);
+		leaderDot.setAttribute('cx', String(px));
+		leaderDot.setAttribute('cy', String(py));
+		leaderDot.setAttribute('r', '2.6');
+
+		calloutPlace.textContent = p.placeLine;
+		calloutCount.textContent = String(p.count);
+		callout.hidden = false;
+
+		/* Measure, then clamp inside the stage so long names can't be cut off. */
+		const box = callout.getBoundingClientRect();
+		const left = side === 1 ? tx + LABEL_GAP : tx - LABEL_GAP - box.width;
+		const top = ey - box.height / 2;
+		callout.style.left = `${clamp(left, 0, Math.max(0, stageRect.width - box.width))}px`;
+		callout.style.top = `${clamp(top, 0, Math.max(0, stageRect.height - box.height))}px`;
+	}
+
+	function followHovered() {
+		if (!hovered) return;
+		drawCallout(hovered);
+		followRaf = requestAnimationFrame(followHovered);
 	}
 
 	globe.onPointHover((point: object | null) => {
-		ctrls.autoRotate = !point;
-		container.style.cursor = point ? 'pointer' : '';
-		if (point) showTip(point as PointDatum);
-		else hideTip();
+		const p = point as PointDatum | null;
+		ctrls.autoRotate = !p;
+		container.style.cursor = p ? 'pointer' : '';
+		if (!p) {
+			hideCallout();
+			return;
+		}
+		hovered = p;
+		drawCallout(p);
+		/* Keep the leader glued to the pin through drags and zooms. */
+		if (!followRaf) followRaf = requestAnimationFrame(followHovered);
 	});
+
+	function zoomBy(factor: number) {
+		const pov = globe.pointOfView();
+		globe.pointOfView({ altitude: clamp(pov.altitude * factor, MIN_ALTITUDE, MAX_ALTITUDE) }, 220);
+	}
+
+	const onZoomClick = (e: Event) => {
+		const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-globe-zoom]');
+		if (!btn) return;
+		e.preventDefault();
+		zoomBy(btn.dataset.globeZoom === 'in' ? 0.7 : 1.4);
+	};
+	stage?.addEventListener('click', onZoomClick);
+
+	const onPointerEnter = () => {
+		window.clearTimeout(zoomArmTimer);
+		zoomArmTimer = window.setTimeout(() => {
+			ctrls.enableZoom = true;
+		}, 320);
+	};
+	const onPointerLeave = () => {
+		window.clearTimeout(zoomArmTimer);
+		ctrls.enableZoom = false;
+	};
+	container.addEventListener('pointerenter', onPointerEnter);
+	container.addEventListener('pointerleave', onPointerLeave);
 
 	const resize = () => {
 		const w = container.clientWidth || 200;
 		const h = container.clientHeight || 200;
 		globe.width(w).height(h);
+		if (stage && leaderSvg) {
+			const r = stage.getBoundingClientRect();
+			leaderSvg.setAttribute('width', String(Math.round(r.width)));
+			leaderSvg.setAttribute('height', String(Math.round(r.height)));
+		}
 	};
 	resize();
 	const ro = new ResizeObserver(resize);
 	ro.observe(container);
+	if (stage) ro.observe(stage);
 
 	const onTheme = () => {
-		/* Refresh pin color when amber↔beach blue swaps. */
+		/* Refresh pin colour when amber ↔ beach blue swaps. */
 		const data = globe.pointsData() as PointDatum[];
 		if (!data.length) return;
 		const color = accentColor();
@@ -128,17 +276,17 @@ export function initVisitorGlobe(container: HTMLElement): {
 	const mo = new MutationObserver(onTheme);
 	mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-	const api = {
+	return {
 		setMarkers(markers: GlobeMarker[]) {
 			const color = accentColor();
-			hideTip();
+			hideCallout();
 			globe.pointsData(
 				markers.map(
 					(m): PointDatum => ({
 						lat: m.lat,
 						lng: m.lng,
-						/* Larger hit target so hover works on a small globe. */
-						size: 0.55 + Math.min(1.4, (m.count ?? 1) * 0.1),
+						/* Floor the size so a 1-visit pin is still a real hit target. */
+						size: 0.7 + Math.min(1.3, (m.count ?? 1) * 0.09),
 						color,
 						count: m.count ?? 1,
 						country: m.country,
@@ -151,11 +299,14 @@ export function initVisitorGlobe(container: HTMLElement): {
 		destroy() {
 			mo.disconnect();
 			ro.disconnect();
-			hideTip();
-			tooltip.remove();
+			hideCallout();
+			window.clearTimeout(zoomArmTimer);
+			stage?.removeEventListener('click', onZoomClick);
+			container.removeEventListener('pointerenter', onPointerEnter);
+			container.removeEventListener('pointerleave', onPointerLeave);
+			leaderPath.remove();
+			leaderDot.remove();
 			globe._destructor();
 		},
 	};
-
-	return api;
 }
