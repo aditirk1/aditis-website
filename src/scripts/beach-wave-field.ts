@@ -176,13 +176,10 @@ export function initBeachWaveField(): () => void {
 		scene = null;
 		camera = null;
 
-		try {
-			renderer.forceContextLoss();
-		} catch {
-			/* ignore */
-		}
+		/* Dispose only — forceContextLoss() stalls Safari's other WebGL canvases for seconds. */
 		renderer.dispose();
 		renderer = null;
+		window.dispatchEvent(new CustomEvent('aditi:beach-gl-released'));
 	}
 
 	function setSize() {

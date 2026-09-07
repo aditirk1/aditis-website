@@ -1,5 +1,4 @@
 import { initVisitorGlobe, type GlobeMarker } from './visitor-globe';
-import { initVisitorHorizon } from './visitor-horizon';
 import { markVisitRecorded, shouldRecordVisit } from '../utils/visit-recording';
 
 function apiUrl(base: string, path: string): string {
@@ -7,37 +6,23 @@ function apiUrl(base: string, path: string): string {
 	return b ? `${b}${path}` : path;
 }
 
-function currentTheme(): 'universe' | 'beach' {
-	return document.documentElement.getAttribute('data-theme') === 'beach' ? 'beach' : 'universe';
-}
-
-type Panel = {
-	setMarkers: (markers: GlobeMarker[]) => void;
-	destroy: () => void;
-};
-
 /**
- * Globe.gl is a full WebGL context. Creating it while the homepage orrery is
- * starting (especially on beach→universe) starves Safari for seconds. Only
- * mount when the widget is near the viewport, and never in the same turn as a
- * theme swap onto Universe.
+ * One marble globe for both themes. Mount only when near the viewport so it
+ * never fights the homepage orrery for WebGL on first paint / theme swap.
  */
 export function bootLiveVisitorMap(root: HTMLElement): () => void {
 	const apiBase = (root.dataset.apiBase ?? '').trim();
 	const globeEl = root.querySelector<HTMLElement>('[data-visitor-globe]');
-	const horizonEl = root.querySelector<HTMLElement>('[data-visitor-horizon]');
 	const totalTextEl = root.querySelector<HTMLElement>('[data-visitor-total]');
 	const noteEl = root.querySelector<HTMLElement>('[data-visitor-note]');
 
-	if (!totalTextEl || (!globeEl && !horizonEl)) {
+	if (!totalTextEl || !globeEl) {
 		return () => {};
 	}
 
 	const totalEl = totalTextEl;
 	let markers: GlobeMarker[] = [];
-	let globe: Panel | null = null;
-	let horizon: Panel | null = null;
-	let theme = currentTheme();
+	let globe: ReturnType<typeof initVisitorGlobe> | null = null;
 	let globeNear = false;
 	let globeMountTimer = 0;
 
@@ -54,38 +39,23 @@ export function bootLiveVisitorMap(root: HTMLElement): () => void {
 	}
 
 	function mountGlobeIfReady() {
-		if (theme !== 'universe' || !globeEl || globe || !globeNear) return;
+		if (!globeEl || globe || !globeNear) return;
 		globe = initVisitorGlobe(globeEl);
 		globe.setMarkers(markers);
 	}
 
 	function scheduleGlobeMount() {
 		window.clearTimeout(globeMountTimer);
-		/* Give the orrery a couple frames to claim the GPU after a theme swap. */
+		/* Stay clear of beach→universe orrery GPU claim. */
 		globeMountTimer = window.setTimeout(() => {
 			mountGlobeIfReady();
-		}, 120);
-	}
-
-	function ensurePanels() {
-		theme = currentTheme();
-		if (theme === 'beach') {
-			destroyGlobe();
-			if (horizonEl && !horizon) {
-				horizon = initVisitorHorizon(horizonEl);
-				horizon.setMarkers(markers);
-			}
-			return;
-		}
-		/* Universe: horizon can stay (hidden via CSS); defer WebGL globe. */
-		scheduleGlobeMount();
+		}, 200);
 	}
 
 	function applyMarkers(next: GlobeMarker[]) {
 		markers = next;
-		ensurePanels();
+		if (globeNear) scheduleGlobeMount();
 		globe?.setMarkers(markers);
-		horizon?.setMarkers(markers);
 	}
 
 	async function recordVisit() {
@@ -116,36 +86,26 @@ export function bootLiveVisitorMap(root: HTMLElement): () => void {
 	}
 
 	let io: IntersectionObserver | null = null;
-	if (globeEl && typeof IntersectionObserver !== 'undefined') {
+	if (typeof IntersectionObserver !== 'undefined') {
 		io = new IntersectionObserver(
 			(entries) => {
 				globeNear = entries.some((e) => e.isIntersecting);
 				if (globeNear) scheduleGlobeMount();
 				else destroyGlobe();
 			},
-			{ root: null, rootMargin: '120px 0px', threshold: 0.01 },
+			{ root: null, rootMargin: '160px 0px', threshold: 0.01 },
 		);
 		io.observe(globeEl);
 	} else {
 		globeNear = true;
+		scheduleGlobeMount();
 	}
 
-	ensurePanels();
 	void load();
 
-	const mo = new MutationObserver(() => {
-		if (currentTheme() === theme) return;
-		ensurePanels();
-		globe?.setMarkers(markers);
-		horizon?.setMarkers(markers);
-	});
-	mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-
 	return () => {
-		mo.disconnect();
 		io?.disconnect();
 		window.clearTimeout(globeMountTimer);
 		globe?.destroy();
-		horizon?.destroy();
 	};
 }
