@@ -1,6 +1,13 @@
 import Globe from 'globe.gl';
 
-export type GlobeMarker = { lat: number; lng: number; count?: number; country?: string };
+export type GlobeMarker = {
+	lat: number;
+	lng: number;
+	count?: number;
+	country?: string;
+	/** State / province when known (e.g. "California"). */
+	region?: string;
+};
 
 type PointDatum = {
 	lat: number;
@@ -9,7 +16,8 @@ type PointDatum = {
 	color: string;
 	count: number;
 	country?: string;
-	label: string;
+	region?: string;
+	placeLine: string;
 };
 
 /**
@@ -32,38 +40,73 @@ function countryLabel(code: string | undefined): string {
 	}
 }
 
+function placeLine(m: { country?: string; region?: string }): string {
+	const country = countryLabel(m.country);
+	const region = m.region?.trim();
+	if (region) return `${region}, ${country}`;
+	return country;
+}
+
+function escapeHtml(s: string): string {
+	return s
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;');
+}
+
+/**
+ * Visitor globe (Universe + Beach). Uses a custom HTML tooltip outside the
+ * clipped circle — globe.gl's built-in labels get clipped / miss pointer hits.
+ */
 export function initVisitorGlobe(container: HTMLElement): {
 	setMarkers: (markers: GlobeMarker[]) => void;
 	destroy: () => void;
 } {
+	const host = container.parentElement ?? container;
+
+	const tooltip = document.createElement('div');
+	tooltip.className = 'visitor-globe__tooltip';
+	tooltip.setAttribute('role', 'tooltip');
+	tooltip.hidden = true;
+	host.appendChild(tooltip);
+
 	const globe = new Globe(container)
 		.globeImageUrl(EARTH_BLUE_MARBLE)
 		.backgroundColor('rgba(0,0,0,0)')
 		.showAtmosphere(true)
 		.atmosphereColor('#4a6fa8')
 		.atmosphereAltitude(0.15)
-		.pointAltitude(0.01)
+		.pointAltitude(0.012)
 		.pointRadius('size')
 		.pointColor('color')
 		.pointsTransitionDuration(0)
-		.pointLabel((d: object) => {
-			const p = d as PointDatum;
-			const accent = accentColor();
-			return `<div style="padding:2px 0;line-height:1.25;text-align:left">
-				<div style="font-size:11px;font-weight:500;opacity:0.92">${p.label}</div>
-				<div style="margin-top:2px;font-size:13px;font-weight:700;color:${accent}">${p.count}</div>
-			</div>`;
-		});
+		.pointLabel(() => '');
 
 	const ctrls = globe.controls();
 	ctrls.autoRotate = true;
 	ctrls.autoRotateSpeed = 0.35;
 	ctrls.enableZoom = false;
 
-	/* Pause spin while hovering a pin so it's easier to read. */
+	function hideTip() {
+		tooltip.hidden = true;
+		tooltip.replaceChildren();
+	}
+
+	function showTip(p: PointDatum) {
+		const accent = accentColor();
+		tooltip.innerHTML = `<div class="visitor-globe__tooltip-place">${escapeHtml(p.placeLine)}</div><div class="visitor-globe__tooltip-count" style="color:${accent}">${p.count}</div>`;
+		tooltip.hidden = false;
+		/* Anchor above the globe centre — avoids clipped labels inside the circle. */
+		tooltip.style.left = '50%';
+		tooltip.style.top = '10px';
+	}
+
 	globe.onPointHover((point: object | null) => {
 		ctrls.autoRotate = !point;
 		container.style.cursor = point ? 'pointer' : '';
+		if (point) showTip(point as PointDatum);
+		else hideTip();
 	});
 
 	const resize = () => {
@@ -75,25 +118,41 @@ export function initVisitorGlobe(container: HTMLElement): {
 	const ro = new ResizeObserver(resize);
 	ro.observe(container);
 
+	const onTheme = () => {
+		/* Refresh pin color when amber↔beach blue swaps. */
+		const data = globe.pointsData() as PointDatum[];
+		if (!data.length) return;
+		const color = accentColor();
+		globe.pointsData(data.map((d) => ({ ...d, color })));
+	};
+	const mo = new MutationObserver(onTheme);
+	mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
 	const api = {
 		setMarkers(markers: GlobeMarker[]) {
 			const color = accentColor();
+			hideTip();
 			globe.pointsData(
 				markers.map(
 					(m): PointDatum => ({
 						lat: m.lat,
 						lng: m.lng,
-						size: 0.35 + Math.min(1.2, (m.count ?? 1) * 0.08),
+						/* Larger hit target so hover works on a small globe. */
+						size: 0.55 + Math.min(1.4, (m.count ?? 1) * 0.1),
 						color,
 						count: m.count ?? 1,
 						country: m.country,
-						label: countryLabel(m.country),
+						region: m.region,
+						placeLine: placeLine(m),
 					}),
 				),
 			);
 		},
 		destroy() {
+			mo.disconnect();
 			ro.disconnect();
+			hideTip();
+			tooltip.remove();
 			globe._destructor();
 		},
 	};

@@ -1,8 +1,6 @@
 ---
 /**
- * Theme-twin visitor widget:
- *   Universe → marble globe
- *   Beach    → 2D map with hoverable pins
+ * Visitor widget: marble globe + total (same for Universe and Beach).
  */
 const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '');
 ---
@@ -20,33 +18,21 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 	</div>
 
 	<div class="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
-		<div class="visitor-reach__universe flex flex-col items-center gap-2" data-reach-universe>
-			<span class="text-[9px] uppercase tracking-wider text-[var(--page-muted)]">By country</span>
+		<div class="flex flex-col items-center gap-2">
+			<span class="text-[9px] uppercase tracking-wider text-[var(--page-muted)]">By region</span>
 			<div
-				class="relative h-[200px] w-[200px] shrink-0 overflow-hidden rounded-full border border-[color-mix(in_srgb,var(--color-amber)_45%,transparent)] shadow-[0_0_40px_color-mix(in_srgb,var(--color-amber)_18%,transparent)] sm:h-[220px] sm:w-[220px]"
+				class="visitor-globe-frame relative h-[200px] w-[200px] shrink-0 overflow-visible sm:h-[220px] sm:w-[220px]"
 			>
 				<div
-					data-visitor-globe
-					class="absolute inset-0 [&_canvas]:!block"
-					role="img"
-					aria-label="Globe showing visitor countries"
+					class="relative h-full w-full overflow-hidden rounded-full border border-[color-mix(in_srgb,var(--color-amber)_45%,transparent)] shadow-[0_0_40px_color-mix(in_srgb,var(--color-amber)_18%,transparent)]"
 				>
-				</div>
-			</div>
-			<p class="text-[10px] text-[var(--page-muted)] opacity-80">Hover a pin for the count</p>
-		</div>
-
-		<div class="visitor-reach__beach flex w-full flex-col items-center gap-2 sm:max-w-[300px]" data-reach-beach>
-			<span class="text-[9px] uppercase tracking-wider text-[var(--page-muted)]">By country</span>
-			<div
-				class="visitor-horizon-frame relative h-[168px] w-full max-w-[300px] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--color-amber)_30%,transparent)] shadow-[0_12px_36px_color-mix(in_srgb,var(--color-amber)_12%,transparent)] sm:h-[190px]"
-			>
-				<div
-					data-visitor-horizon
-					class="absolute inset-0"
-					role="img"
-					aria-label="Map showing visitor countries"
-				>
+					<div
+						data-visitor-globe
+						class="absolute inset-0 [&_canvas]:!block"
+						role="img"
+						aria-label="Globe showing visitor regions"
+					>
+					</div>
 				</div>
 			</div>
 			<p class="text-[10px] text-[var(--page-muted)] opacity-80">Hover a pin for the count</p>
@@ -68,54 +54,38 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 </aside>
 
 <style>
-	html[data-theme='universe'] [data-reach-beach] {
-		display: none !important;
+	.visitor-globe-frame {
+		position: relative;
 	}
 
-	html[data-theme='beach'] [data-reach-universe] {
-		display: none !important;
-	}
-
-	.visitor-horizon__svg {
-		display: block;
-		width: 100%;
-		height: 100%;
-	}
-
-	.visitor-horizon__tooltip {
+	.visitor-globe__tooltip {
 		position: absolute;
-		z-index: 5;
+		z-index: 20;
 		pointer-events: none;
-		transform: translate(-50%, calc(-100% - 8px));
-		padding: 0.4rem 0.6rem;
+		transform: translate(-50%, calc(-100% - 10px));
+		padding: 0.4rem 0.65rem;
 		border-radius: 0.4rem;
 		border: 1px solid color-mix(in srgb, var(--color-amber) 40%, transparent);
-		background: color-mix(in srgb, var(--page-bg) 92%, transparent);
+		background: color-mix(in srgb, var(--page-bg) 94%, transparent);
 		color: var(--page-fg);
 		font-size: 0.7rem;
 		line-height: 1.25;
 		white-space: nowrap;
 		text-align: left;
-		box-shadow: 0 8px 24px color-mix(in srgb, #000 18%, transparent);
-		opacity: 0;
-		transition: opacity 120ms ease;
+		box-shadow: 0 8px 24px color-mix(in srgb, #000 22%, transparent);
 	}
 
-	.visitor-horizon__tooltip-place {
+	.visitor-globe__tooltip-place {
 		font-weight: 500;
 		opacity: 0.92;
 	}
 
-	.visitor-horizon__tooltip-count {
+	.visitor-globe__tooltip-count {
 		margin-top: 0.15rem;
-		font-size: 0.85rem;
+		font-size: 0.9rem;
 		font-weight: 700;
-		color: var(--color-amber);
 		font-variant-numeric: tabular-nums;
-	}
-
-	.visitor-horizon__tooltip[data-show='1'] {
-		opacity: 1;
+		color: var(--color-amber);
 	}
 </style>
 

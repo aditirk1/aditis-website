@@ -68,10 +68,10 @@ const PLANET_RING_ROLL_Z = 0.38;
  */
 const PLANET_LIGHT_DIR = new THREE.Vector3(-8, -2.5, 8).normalize();
 
-/** Inner-orbit angular speed (rad/ms); outer orbits use ω ∝ 1/r. */
+/** Inner-orbit angular speed (rad/ms); outer orbits use ω ∝ 1/r. Negative = reverse. */
 const INNER_ORBIT_R = 6;
-/** Slow orrery drift — roughly ⅓ of the previous pace. */
-const INNER_ORBIT_SPEED = 0.0001;
+/** +15% vs prior 0.0001, direction reversed. */
+const INNER_ORBIT_SPEED = -0.000115;
 /** Planetary axial spin (rad/s). Slow enough to read as gravity, fast enough to notice. */
 const PLANET_SPIN_SPEED = 0.22;
 
@@ -1122,8 +1122,8 @@ export function initUniverseStarField(): () => void {
 		const delta = Math.min(clock.getDelta(), 0.1);
 		const t = clock.elapsedTime;
 
-		/* Drift, not spin — roughly a third slower than it used to be. */
-		const baseSpin = reducedMotion ? 0.028 : isDreamRealmPage() ? 0.064 : 0.07;
+		/* Drift, not spin — 20% slower than the prior base rates. */
+		const baseSpin = reducedMotion ? 0.0224 : isDreamRealmPage() ? 0.0512 : 0.056;
 		spinY += delta * baseSpin;
 		starGroup.rotation.y = spinY + lastScroll * (reducedMotion ? 0.000026 : 0.00004);
 		starGroup.rotation.x =
@@ -1190,8 +1190,13 @@ export function initUniverseStarField(): () => void {
 		}
 
 		if (isHomePage) {
-			solarFade = getHeroScrollFade();
-			solarFadeLerp += (solarFade - solarFadeLerp) * 0.14;
+			if (performance.now() < forceOrreryVisibleUntil) {
+				solarFade = 1;
+				solarFadeLerp = 1;
+			} else {
+				solarFade = getHeroScrollFade();
+				solarFadeLerp += (solarFade - solarFadeLerp) * 0.14;
+			}
 			applySolarFade(solarFadeLerp);
 
 			const tNow = performance.now();
@@ -1261,15 +1266,54 @@ export function initUniverseStarField(): () => void {
 
 	let showRaf = 0;
 	let showRaf2 = 0;
+	let warmTimer = 0;
+	/** After beach→universe, ignore stale scroll fade so planets don't stay hidden. */
+	let forceOrreryVisibleUntil = 0;
+
+	function clearWarmTimer() {
+		window.clearTimeout(warmTimer);
+		warmTimer = 0;
+	}
+
+	function scheduleWarmFrame() {
+		clearWarmTimer();
+		warmTimer = window.setTimeout(() => {
+			warmTimer = 0;
+			if (getTheme() !== 'beach' || document.hidden) return;
+			/* One cheap frame keeps the universe GL context alive under Beach. */
+			renderer.render(scene, camera);
+			scheduleWarmFrame();
+		}, 480);
+	}
 
 	function paintOrreryNow() {
-		/* Theme swaps leave stale scroll fade / zone size — snap visible and draw now. */
+		forceOrreryVisibleUntil = performance.now() + 2800;
 		solarFade = 1;
 		solarFadeLerp = 1;
 		applySolarFade(1);
 		setSize();
 		start();
 		renderer.render(scene, camera);
+	}
+
+	function showUniverseCanvas() {
+		const root = canvasEl.closest('[data-universe-canvas]') as HTMLElement | null;
+		if (root) {
+			root.style.visibility = '';
+			root.style.opacity = '1';
+			root.style.pointerEvents = 'auto';
+			root.removeAttribute('aria-hidden');
+		}
+		clearWarmTimer();
+		paintOrreryNow();
+		showRaf = requestAnimationFrame(() => {
+			if (getTheme() !== 'universe') return;
+			paintOrreryNow();
+			showRaf2 = requestAnimationFrame(() => {
+				if (getTheme() !== 'universe') return;
+				setSize();
+			});
+		});
 	}
 
 	function applyVisibility() {
@@ -1287,33 +1331,15 @@ export function initUniverseStarField(): () => void {
 				root.style.pointerEvents = 'none';
 				root.setAttribute('aria-hidden', 'true');
 			}
+			scheduleWarmFrame();
 			return;
 		}
 
-		if (root) {
-			root.style.visibility = '';
-			root.style.opacity = '1';
-			root.style.pointerEvents = 'auto';
-			root.removeAttribute('aria-hidden');
-		}
+		showUniverseCanvas();
+	}
 
-		/*
-		 * Beach tears down its WebGL in the same theme MutationObserver turn.
-		 * Defer one microtask so that release lands before we resize/start, then
-		 * re-fit after layout (hero copy move) settles.
-		 */
-		queueMicrotask(() => {
-			if (getTheme() !== 'universe') return;
-			paintOrreryNow();
-			showRaf = requestAnimationFrame(() => {
-				if (getTheme() !== 'universe') return;
-				paintOrreryNow();
-				showRaf2 = requestAnimationFrame(() => {
-					if (getTheme() !== 'universe') return;
-					setSize();
-				});
-			});
-		});
+	function onBeachGlReleased() {
+		if (getTheme() === 'universe') showUniverseCanvas();
 	}
 
 	function resetInteractionState() {
@@ -1339,6 +1365,7 @@ export function initUniverseStarField(): () => void {
 		if (getTheme() === 'universe') applyVisibility();
 	};
 	window.addEventListener('aditi:theme-layout', onThemeLayout);
+	window.addEventListener('aditi:beach-gl-released', onBeachGlReleased);
 
 	const onResize = () => {
 		syncCoarsePointerAttribute();
@@ -1391,11 +1418,13 @@ export function initUniverseStarField(): () => void {
 
 	return () => {
 		stop();
+		clearWarmTimer();
 		window.cancelAnimationFrame(showRaf);
 		window.cancelAnimationFrame(showRaf2);
 		mo.disconnect();
 		titleObserver?.disconnect();
 		window.removeEventListener('aditi:theme-layout', onThemeLayout);
+		window.removeEventListener('aditi:beach-gl-released', onBeachGlReleased);
 		cancelSurfaceGeneration?.();
 		window.clearTimeout(navigationReleaseTimer);
 		window.removeEventListener('pagehide', onPageHide);

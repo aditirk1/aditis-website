@@ -42,6 +42,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	const agg = await readAgg(env.VISITOR_KV);
 	agg.total += 1;
 	agg.byCountry[country] = (agg.byCountry[country] ?? 0) + 1;
+	/* Prefer city+region rows; if we only got a region, still tally it for hover labels. */
 	if (city) {
 		const ck = `${country}|${city}`;
 		const cur = agg.byCityKey[ck];
@@ -51,6 +52,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 		} else {
 			agg.byCityKey[ck] = { country, city, count: 1, ...(region ? { region } : {}) };
 		}
+	} else if (region) {
+		const ck = `${country}|__region__:${region}`;
+		const cur = agg.byCityKey[ck];
+		if (cur) cur.count += 1;
+		else agg.byCityKey[ck] = { country, city: region, count: 1, region };
 	}
 	await writeAgg(env.VISITOR_KV, agg);
 	return json({ ok: true, recorded: true }, 200, request);
