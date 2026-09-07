@@ -1,8 +1,15 @@
 export interface VisitorAgg {
 	total: number;
 	byCountry: Record<string, number>;
-	/** City rollup; `region` is state/province when Cloudflare provided it. */
-	byCityKey: Record<string, { country: string; city: string; count: number; region?: string }>;
+	/**
+	 * City rollup. `region` is state/province and `lat`/`lng` are coarse
+	 * coordinates (1 decimal, ~11km) — both present only for visits recorded
+	 * after those fields were captured.
+	 */
+	byCityKey: Record<
+		string,
+		{ country: string; city: string; count: number; region?: string; lat?: number; lng?: number }
+	>;
 }
 
 const KEY = 'visitor:agg:v1';

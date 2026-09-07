@@ -937,11 +937,11 @@ export function initUniverseStarField(): () => void {
 	/** Resting tilt so the coplanar orbits read as a 3D orrery, not a flat diagram. */
 	const ORBIT_BASE_TILT = 0.72;
 	/** Clearance between orrery AABB and the title block. */
-	const TITLE_CLEARANCE_PX = 18;
+	const TITLE_CLEARANCE_PX = 8;
 	/** Caption height plus its offset from the widget's bottom edge. */
-	const CAPTION_RESERVE_PX = 32;
+	const CAPTION_RESERVE_PX = 26;
 	/** Grow past authored size so the orrery can fill the RIGHT zone. */
-	const MAX_ORRERY_SCALE = 2.15;
+	const MAX_ORRERY_SCALE = 2.9;
 
 	function getTitleBounds(): DOMRect | null {
 		if (!isHomePage) return null;
@@ -1068,7 +1068,8 @@ export function initUniverseStarField(): () => void {
 					bounds = projectedOrreryBounds(vw, vh);
 				}
 				if (aabbsOverlap(bounds, title, TITLE_CLEARANCE_PX)) {
-					solarSystemGroup.scale.setScalar(Math.max(0.22, solarSystemGroup.scale.x * 0.9));
+					/* Shave gently — a steep step used to cost most of the orrery's size. */
+					solarSystemGroup.scale.setScalar(Math.max(0.22, solarSystemGroup.scale.x * 0.96));
 					bounds = projectedOrreryBounds(vw, vh);
 					solarSystemGroup.position.x += (targetCenterX - (bounds.minX + bounds.maxX) / 2) * worldPerPx;
 					solarSystemGroup.position.y += ((bounds.minY + bounds.maxY) / 2 - targetCenterY) * worldPerPx;

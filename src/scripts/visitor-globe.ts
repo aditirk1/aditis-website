@@ -33,9 +33,6 @@ const ELBOW_GAP = 16;
 const TICK_LEN = 16;
 const LABEL_GAP = 5;
 
-const MIN_ALTITUDE = 0.12;
-const MAX_ALTITUDE = 3.2;
-
 function accentColor(): string {
 	const v = getComputedStyle(document.documentElement).getPropertyValue('--color-amber').trim();
 	return v || '#ffaa00';
@@ -168,6 +165,8 @@ export function initVisitorGlobe(container: HTMLElement): {
 		const cx = offsetX + circleRect.width / 2;
 		const cy = offsetY + circleRect.height / 2;
 		const radius = circleRect.width / 2;
+		const stageW = stageRect.width;
+		const stageH = stageRect.height;
 
 		let vx = px - cx;
 		let vy = py - cy;
@@ -182,27 +181,50 @@ export function initVisitorGlobe(container: HTMLElement): {
 
 		/* Elbow sits just outside the frame, along the pin's own radial line. */
 		const elbowDist = Math.max(len, radius) + ELBOW_GAP;
-		const ex = cx + vx * elbowDist;
-		const ey = clamp(cy + vy * elbowDist, 8, stageRect.height - 8);
-
-		const side = vx >= 0 ? 1 : -1;
-		const tx = ex + side * TICK_LEN;
-
-		leaderPath.setAttribute('points', `${px},${py} ${ex},${ey} ${tx},${ey}`);
-		leaderDot.setAttribute('cx', String(px));
-		leaderDot.setAttribute('cy', String(py));
-		leaderDot.setAttribute('r', '2.6');
+		let ex = cx + vx * elbowDist;
+		let ey = cy + vy * elbowDist;
 
 		calloutPlace.textContent = p.placeLine;
 		calloutCount.textContent = String(p.count);
 		callout.hidden = false;
 
-		/* Measure, then clamp inside the stage so long names can't be cut off. */
 		const box = callout.getBoundingClientRect();
-		const left = side === 1 ? tx + LABEL_GAP : tx - LABEL_GAP - box.width;
-		const top = ey - box.height / 2;
-		callout.style.left = `${clamp(left, 0, Math.max(0, stageRect.width - box.width))}px`;
-		callout.style.top = `${clamp(top, 0, Math.max(0, stageRect.height - box.height))}px`;
+		const w = box.width;
+		const h = box.height;
+
+		/* Put the label on whichever side of the elbow actually has room. */
+		let side = vx >= 0 ? 1 : -1;
+		const roomRight = stageW - (ex + TICK_LEN + LABEL_GAP);
+		const roomLeft = ex - TICK_LEN - LABEL_GAP;
+		if (side === 1 && roomRight < w && roomLeft > roomRight) side = -1;
+		else if (side === -1 && roomLeft < w && roomRight > roomLeft) side = 1;
+
+		/* Centre on the elbow, clamp into the stage, then pull the elbow back to
+		 * the label's centre line so the final segment stays truly horizontal. */
+		const top = clamp(ey - h / 2, 0, Math.max(0, stageH - h));
+		ey = top + h / 2;
+
+		const left = clamp(
+			side === 1 ? ex + TICK_LEN + LABEL_GAP : ex - TICK_LEN - LABEL_GAP - w,
+			0,
+			Math.max(0, stageW - w),
+		);
+
+		callout.style.left = `${left}px`;
+		callout.style.top = `${top}px`;
+
+		/*
+		 * Land the tick on the label's near edge. Clamping can move the label, so
+		 * deriving the endpoint from its final position is what keeps the line and
+		 * the box reading as one object instead of two floating pieces.
+		 */
+		const attachX = side === 1 ? left : left + w;
+		ex = side === 1 ? Math.min(ex, attachX - TICK_LEN) : Math.max(ex, attachX + TICK_LEN);
+
+		leaderPath.setAttribute('points', `${px},${py} ${ex},${ey} ${attachX},${ey}`);
+		leaderDot.setAttribute('cx', String(px));
+		leaderDot.setAttribute('cy', String(py));
+		leaderDot.setAttribute('r', '2.6');
 	}
 
 	function followHovered() {
@@ -225,30 +247,28 @@ export function initVisitorGlobe(container: HTMLElement): {
 		if (!followRaf) followRaf = requestAnimationFrame(followHovered);
 	});
 
-	function zoomBy(factor: number) {
-		const pov = globe.pointOfView();
-		globe.pointOfView({ altitude: clamp(pov.altitude * factor, MIN_ALTITUDE, MAX_ALTITUDE) }, 220);
-	}
-
-	const onZoomClick = (e: Event) => {
-		const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-globe-zoom]');
-		if (!btn) return;
-		e.preventDefault();
-		zoomBy(btn.dataset.globeZoom === 'in' ? 0.7 : 1.4);
-	};
-	stage?.addEventListener('click', onZoomClick);
-
+	/*
+	 * Trackpad two-finger scroll, mouse wheel and touch pinch all drive
+	 * OrbitControls zoom. It arms after a short pause so scrolling the page past
+	 * this small widget doesn't get swallowed, and immediately on touch since a
+	 * pinch is already deliberate.
+	 */
 	const onPointerEnter = () => {
 		window.clearTimeout(zoomArmTimer);
 		zoomArmTimer = window.setTimeout(() => {
 			ctrls.enableZoom = true;
-		}, 320);
+		}, 260);
+	};
+	const onPointerDown = () => {
+		window.clearTimeout(zoomArmTimer);
+		ctrls.enableZoom = true;
 	};
 	const onPointerLeave = () => {
 		window.clearTimeout(zoomArmTimer);
 		ctrls.enableZoom = false;
 	};
 	container.addEventListener('pointerenter', onPointerEnter);
+	container.addEventListener('pointerdown', onPointerDown);
 	container.addEventListener('pointerleave', onPointerLeave);
 
 	const resize = () => {
@@ -301,8 +321,8 @@ export function initVisitorGlobe(container: HTMLElement): {
 			ro.disconnect();
 			hideCallout();
 			window.clearTimeout(zoomArmTimer);
-			stage?.removeEventListener('click', onZoomClick);
 			container.removeEventListener('pointerenter', onPointerEnter);
+			container.removeEventListener('pointerdown', onPointerDown);
 			container.removeEventListener('pointerleave', onPointerLeave);
 			leaderPath.remove();
 			leaderDot.remove();

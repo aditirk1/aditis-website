@@ -39,24 +39,40 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 			? regionRaw
 			: undefined;
 
+	/*
+	 * Coarse coordinates so a pin lands on the actual region rather than the
+	 * country centroid. One decimal (~11km) keeps this well short of pinpointing
+	 * anyone while still putting New York in New York.
+	 */
+	const coord = (raw: unknown): number | undefined => {
+		const n = typeof raw === 'string' ? Number.parseFloat(raw) : typeof raw === 'number' ? raw : NaN;
+		return Number.isFinite(n) ? Math.round(n * 10) / 10 : undefined;
+	};
+	const lat = coord(cf?.latitude);
+	const lng = coord(cf?.longitude);
+	const coords = lat !== undefined && lng !== undefined ? { lat, lng } : {};
+
 	const agg = await readAgg(env.VISITOR_KV);
 	agg.total += 1;
 	agg.byCountry[country] = (agg.byCountry[country] ?? 0) + 1;
 	/* Prefer city+region rows; if we only got a region, still tally it for hover labels. */
-	if (city) {
-		const ck = `${country}|${city}`;
-		const cur = agg.byCityKey[ck];
+	const cityKey = city ? `${country}|${city}` : region ? `${country}|__region__:${region}` : null;
+	if (cityKey) {
+		const cur = agg.byCityKey[cityKey];
 		if (cur) {
 			cur.count += 1;
 			if (region && !cur.region) cur.region = region;
+			if (cur.lat === undefined && lat !== undefined) cur.lat = lat;
+			if (cur.lng === undefined && lng !== undefined) cur.lng = lng;
 		} else {
-			agg.byCityKey[ck] = { country, city, count: 1, ...(region ? { region } : {}) };
+			agg.byCityKey[cityKey] = {
+				country,
+				city: city ?? region ?? '',
+				count: 1,
+				...(region ? { region } : {}),
+				...coords,
+			};
 		}
-	} else if (region) {
-		const ck = `${country}|__region__:${region}`;
-		const cur = agg.byCityKey[ck];
-		if (cur) cur.count += 1;
-		else agg.byCityKey[ck] = { country, city: region, count: 1, region };
 	}
 	await writeAgg(env.VISITOR_KV, agg);
 	return json({ ok: true, recorded: true }, 200, request);

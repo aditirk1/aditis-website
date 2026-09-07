@@ -21,8 +21,8 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 		<span>Visitors</span>
 	</div>
 
-	<div class="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
-		<div class="flex min-w-0 flex-col items-center gap-2">
+	<div class="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+		<div class="flex w-full min-w-0 flex-1 flex-col items-center gap-2">
 			<span class="text-[9px] uppercase tracking-wider text-[var(--page-muted)]">By region</span>
 
 			<div class="visitor-globe-stage" data-globe-stage>
@@ -42,19 +42,14 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 					<span class="visitor-globe-callout__place" data-globe-callout-place></span>
 					<span class="visitor-globe-callout__count" data-globe-callout-count></span>
 				</div>
-
-				<div class="visitor-globe-zoom">
-					<button type="button" data-globe-zoom="in" aria-label="Zoom in">+</button>
-					<button type="button" data-globe-zoom="out" aria-label="Zoom out">−</button>
-				</div>
 			</div>
 
 			<p class="text-[10px] text-[var(--page-muted)] opacity-80">
-				Hover a pin · scroll or +/− to zoom
+				Hover a pin · scroll or pinch to zoom
 			</p>
 		</div>
 
-		<div class="flex w-full min-w-0 flex-1 flex-col items-center gap-2 sm:items-start">
+		<div class="flex w-full min-w-0 flex-col items-center gap-2 sm:w-[200px] sm:shrink-0 sm:items-start">
 			<span class="text-[9px] uppercase tracking-wider text-[var(--page-muted)]">Total</span>
 			<div
 				class="flex min-h-[72px] w-full max-w-[260px] flex-col justify-center gap-1 rounded-lg border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_55%,transparent)] px-4 py-3 backdrop-blur-sm"
@@ -74,7 +69,7 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 	.visitor-globe-stage {
 		position: relative;
 		width: 100%;
-		max-width: 330px;
+		max-width: 420px;
 		height: 244px;
 	}
 
@@ -120,7 +115,7 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 		display: flex;
 		flex-direction: column;
 		gap: 0.1rem;
-		max-width: 150px;
+		max-width: 132px;
 		padding: 0.3rem 0.5rem;
 		border-radius: 0.35rem;
 		border: 1px solid color-mix(in srgb, var(--color-amber) 42%, transparent);
@@ -150,37 +145,6 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 		color: var(--color-amber);
 	}
 
-	.visitor-globe-zoom {
-		position: absolute;
-		right: 2px;
-		bottom: 2px;
-		z-index: 25;
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-	}
-
-	.visitor-globe-zoom button {
-		width: 1.5rem;
-		height: 1.5rem;
-		display: grid;
-		place-items: center;
-		border-radius: 9999px;
-		border: 1px solid color-mix(in srgb, var(--color-amber) 38%, transparent);
-		background: color-mix(in srgb, var(--page-bg) 82%, transparent);
-		color: var(--page-fg);
-		font-size: 0.8rem;
-		line-height: 1;
-		cursor: pointer;
-		transition:
-			border-color 150ms ease,
-			color 150ms ease;
-	}
-
-	.visitor-globe-zoom button:hover {
-		border-color: var(--color-amber);
-		color: var(--color-amber);
-	}
 </style>
 
 <script>
