@@ -16,6 +16,12 @@ type Panel = {
 	destroy: () => void;
 };
 
+/**
+ * Globe.gl is a full WebGL context. Creating it while the homepage orrery is
+ * starting (especially on beach→universe) starves Safari for seconds. Only
+ * mount when the widget is near the viewport, and never in the same turn as a
+ * theme swap onto Universe.
+ */
 export function bootLiveVisitorMap(root: HTMLElement): () => void {
 	const apiBase = (root.dataset.apiBase ?? '').trim();
 	const globeEl = root.querySelector<HTMLElement>('[data-visitor-globe]');
@@ -32,27 +38,47 @@ export function bootLiveVisitorMap(root: HTMLElement): () => void {
 	let globe: Panel | null = null;
 	let horizon: Panel | null = null;
 	let theme = currentTheme();
+	let globeNear = false;
+	let globeMountTimer = 0;
 
 	function setTotal(n: number | null, note: string) {
 		totalEl.textContent = n === null ? '—' : String(n);
 		if (noteEl) noteEl.textContent = note;
 	}
 
+	function destroyGlobe() {
+		window.clearTimeout(globeMountTimer);
+		if (!globe) return;
+		globe.destroy();
+		globe = null;
+	}
+
+	function mountGlobeIfReady() {
+		if (theme !== 'universe' || !globeEl || globe || !globeNear) return;
+		globe = initVisitorGlobe(globeEl);
+		globe.setMarkers(markers);
+	}
+
+	function scheduleGlobeMount() {
+		window.clearTimeout(globeMountTimer);
+		/* Give the orrery a couple frames to claim the GPU after a theme swap. */
+		globeMountTimer = window.setTimeout(() => {
+			mountGlobeIfReady();
+		}, 120);
+	}
+
 	function ensurePanels() {
 		theme = currentTheme();
-		if (theme === 'universe' && globeEl && !globe) {
-			globe = initVisitorGlobe(globeEl);
-			globe.setMarkers(markers);
+		if (theme === 'beach') {
+			destroyGlobe();
+			if (horizonEl && !horizon) {
+				horizon = initVisitorHorizon(horizonEl);
+				horizon.setMarkers(markers);
+			}
+			return;
 		}
-		if (theme === 'beach' && horizonEl && !horizon) {
-			horizon = initVisitorHorizon(horizonEl);
-			horizon.setMarkers(markers);
-		}
-		/* Tear down the hidden WebGL globe so it doesn't keep spinning off-screen. */
-		if (theme === 'beach' && globe) {
-			globe.destroy();
-			globe = null;
-		}
+		/* Universe: horizon can stay (hidden via CSS); defer WebGL globe. */
+		scheduleGlobeMount();
 	}
 
 	function applyMarkers(next: GlobeMarker[]) {
@@ -89,6 +115,21 @@ export function bootLiveVisitorMap(root: HTMLElement): () => void {
 		}
 	}
 
+	let io: IntersectionObserver | null = null;
+	if (globeEl && typeof IntersectionObserver !== 'undefined') {
+		io = new IntersectionObserver(
+			(entries) => {
+				globeNear = entries.some((e) => e.isIntersecting);
+				if (globeNear) scheduleGlobeMount();
+				else destroyGlobe();
+			},
+			{ root: null, rootMargin: '120px 0px', threshold: 0.01 },
+		);
+		io.observe(globeEl);
+	} else {
+		globeNear = true;
+	}
+
 	ensurePanels();
 	void load();
 
@@ -102,6 +143,8 @@ export function bootLiveVisitorMap(root: HTMLElement): () => void {
 
 	return () => {
 		mo.disconnect();
+		io?.disconnect();
+		window.clearTimeout(globeMountTimer);
 		globe?.destroy();
 		horizon?.destroy();
 	};

@@ -32,6 +32,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 		typeof cityRaw === 'string' && cityRaw.length > 0 && cityRaw.toLowerCase() !== 'null'
 			? cityRaw
 			: undefined;
+	/* State / province when Cloudflare has it (e.g. "California"). */
+	const regionRaw = cf?.region;
+	const region =
+		typeof regionRaw === 'string' && regionRaw.length > 0 && regionRaw.toLowerCase() !== 'null'
+			? regionRaw
+			: undefined;
 
 	const agg = await readAgg(env.VISITOR_KV);
 	agg.total += 1;
@@ -39,8 +45,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	if (city) {
 		const ck = `${country}|${city}`;
 		const cur = agg.byCityKey[ck];
-		if (cur) cur.count += 1;
-		else agg.byCityKey[ck] = { country, city, count: 1 };
+		if (cur) {
+			cur.count += 1;
+			if (region && !cur.region) cur.region = region;
+		} else {
+			agg.byCityKey[ck] = { country, city, count: 1, ...(region ? { region } : {}) };
+		}
 	}
 	await writeAgg(env.VISITOR_KV, agg);
 	return json({ ok: true, recorded: true }, 200, request);

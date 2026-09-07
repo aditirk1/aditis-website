@@ -1,6 +1,9 @@
 /**
  * Beach theme: single full-screen shader — pale sky + light blue water,
  * with soft crests and a glow that travels along each wave (GPU, one rAF loop).
+ *
+ * WebGL is created only while Beach is active and fully released on leave so
+ * Safari isn't stuck juggling two contexts with the universe starfield.
  */
 import * as THREE from 'three';
 import { isMobileViewport } from '../utils/input-capabilities.ts';
@@ -117,43 +120,73 @@ export function initBeachWaveField(): () => void {
 		return () => {};
 	}
 
-	// Bound after the guard so the hoisted helpers below see a non-null type.
 	const canvas = canvasEl;
-
 	const root = canvas.closest('[data-beach-canvas]') as HTMLElement | null;
 	const reducedMotion = prefersReducedMotion();
 
-	const renderer = new THREE.WebGLRenderer({
-		canvas,
-		alpha: false,
-		antialias: false,
-		powerPreference: 'high-performance',
-	});
-	renderer.setClearColor(0xeaf6ff, 1);
-
-	const scene = new THREE.Scene();
-	const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-
-	const material = new THREE.ShaderMaterial({
-		vertexShader: VERT,
-		fragmentShader: FRAG,
-		uniforms: {
-			uTime: { value: 0 },
-			uResolution: { value: new THREE.Vector2(1, 1) },
-			uMotion: { value: reducedMotion ? 0 : 1 },
-		},
-		depthTest: false,
-		depthWrite: false,
-	});
-
-	const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
-	scene.add(mesh);
-
+	let renderer: THREE.WebGLRenderer | null = null;
+	let scene: THREE.Scene | null = null;
+	let camera: THREE.OrthographicCamera | null = null;
+	let material: THREE.ShaderMaterial | null = null;
+	let mesh: THREE.Mesh | null = null;
 	let running = false;
 	let raf = 0;
 	const clock = new THREE.Clock();
 
+	function ensureGl() {
+		if (renderer) return;
+
+		renderer = new THREE.WebGLRenderer({
+			canvas,
+			alpha: false,
+			antialias: false,
+			powerPreference: 'high-performance',
+		});
+		renderer.setClearColor(0xeaf6ff, 1);
+
+		scene = new THREE.Scene();
+		camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+		material = new THREE.ShaderMaterial({
+			vertexShader: VERT,
+			fragmentShader: FRAG,
+			uniforms: {
+				uTime: { value: 0 },
+				uResolution: { value: new THREE.Vector2(1, 1) },
+				uMotion: { value: reducedMotion ? 0 : 1 },
+			},
+			depthTest: false,
+			depthWrite: false,
+		});
+
+		mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+		scene.add(mesh);
+	}
+
+	function tearDownGl() {
+		stop();
+		if (!renderer) return;
+
+		if (mesh) {
+			mesh.geometry.dispose();
+			mesh = null;
+		}
+		material?.dispose();
+		material = null;
+		scene = null;
+		camera = null;
+
+		try {
+			renderer.forceContextLoss();
+		} catch {
+			/* ignore */
+		}
+		renderer.dispose();
+		renderer = null;
+	}
+
 	function setSize() {
+		if (!renderer || !material) return;
 		const w = window.innerWidth;
 		const h = window.innerHeight;
 		const maxPr = isMobileViewport() ? MOBILE_MAX_DPR : MAX_DPR;
@@ -164,14 +197,14 @@ export function initBeachWaveField(): () => void {
 	}
 
 	function tick() {
-		if (!running) return;
+		if (!running || !renderer || !scene || !camera || !material) return;
 		material.uniforms.uTime.value = clock.getElapsedTime();
 		renderer.render(scene, camera);
 		raf = requestAnimationFrame(tick);
 	}
 
 	function start() {
-		if (running) return;
+		if (running || !renderer) return;
 		running = true;
 		clock.start();
 		setSize();
@@ -187,7 +220,8 @@ export function initBeachWaveField(): () => void {
 	function applyVisibility() {
 		const beach = getTheme() === 'beach';
 		if (!beach || document.hidden) {
-			stop();
+			/* Release the GPU context so the universe orrery can resume immediately. */
+			tearDownGl();
 			if (root) {
 				root.hidden = true;
 				root.style.visibility = 'hidden';
@@ -198,6 +232,7 @@ export function initBeachWaveField(): () => void {
 			root.hidden = false;
 			root.style.visibility = 'visible';
 		}
+		ensureGl();
 		start();
 	}
 
@@ -209,12 +244,9 @@ export function initBeachWaveField(): () => void {
 	window.addEventListener('resize', setSize);
 
 	return () => {
-		stop();
+		tearDownGl();
 		mo.disconnect();
 		document.removeEventListener('visibilitychange', applyVisibility);
 		window.removeEventListener('resize', setSize);
-		mesh.geometry.dispose();
-		material.dispose();
-		renderer.dispose();
 	};
 }

@@ -87,7 +87,7 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 		z-index: 5;
 		pointer-events: none;
 		transform: translate(-50%, calc(-100% - 8px));
-		padding: 0.35rem 0.55rem;
+		padding: 0.4rem 0.6rem;
 		border-radius: 0.4rem;
 		border: 1px solid color-mix(in srgb, var(--color-amber) 40%, transparent);
 		background: color-mix(in srgb, var(--page-bg) 92%, transparent);
@@ -95,9 +95,23 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 		font-size: 0.7rem;
 		line-height: 1.25;
 		white-space: nowrap;
+		text-align: left;
 		box-shadow: 0 8px 24px color-mix(in srgb, #000 18%, transparent);
 		opacity: 0;
 		transition: opacity 120ms ease;
+	}
+
+	.visitor-horizon__tooltip-place {
+		font-weight: 500;
+		opacity: 0.92;
+	}
+
+	.visitor-horizon__tooltip-count {
+		margin-top: 0.15rem;
+		font-size: 0.85rem;
+		font-weight: 700;
+		color: var(--color-amber);
+		font-variant-numeric: tabular-nums;
 	}
 
 	.visitor-horizon__tooltip[data-show='1'] {

@@ -168,8 +168,9 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 
 		<div class="dream-realm-tint" aria-hidden="true"></div>
 
-		<StarFieldUniverse />
+		<!-- Beach before universe so its theme observer can release WebGL first. -->
 		<BeachBackground />
+		<StarFieldUniverse />
 
 		<div id="site-shell" class="relative z-10 flex min-h-dvh flex-col pointer-events-none">
 			<a href="#main-content" class="skip-link">Skip to content</a>
@@ -290,6 +291,8 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 				html.setAttribute('data-theme', theme);
 				syncBrandAssets(theme);
 				syncHeroLayout(theme);
+				/* Sync now so the orrery fade doesn't read a stale heroBottom=0. */
+				refreshScrollMetrics();
 				try {
 					localStorage.setItem(THEME_KEY, theme);
 				} catch {
@@ -297,7 +300,7 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 				}
 				const label = document.querySelector('[data-theme-toggle-label]');
 				if (label) label.textContent = theme === 'universe' ? 'Universe' : 'Beach';
-				/* Hero geometry changes with the theme — refresh scroll fade + triggers. */
+				/* Second pass after layout/fonts settle. */
 				requestAnimationFrame(() => {
 					refreshScrollMetrics();
 					ScrollTrigger.refresh();

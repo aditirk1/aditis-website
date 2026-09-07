@@ -99,7 +99,14 @@ export function initVisitorHorizon(container: HTMLElement): {
 		const top = clientY - rect.top;
 		tooltip.style.left = `${left}px`;
 		tooltip.style.top = `${top}px`;
-		tooltip.textContent = `${label} · ${count}`;
+		tooltip.replaceChildren();
+		const place = document.createElement('div');
+		place.className = 'visitor-horizon__tooltip-place';
+		place.textContent = label;
+		const n = document.createElement('div');
+		n.className = 'visitor-horizon__tooltip-count';
+		n.textContent = String(count);
+		tooltip.append(place, n);
 		tooltip.setAttribute('data-show', '1');
 	}
 
