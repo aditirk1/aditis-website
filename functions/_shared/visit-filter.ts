@@ -23,6 +23,28 @@ export function isBotUserAgent(ua: string | null): boolean {
 	return BOT_UA.test(ua);
 }
 
+/**
+ * Opaque per-day identity for a visitor: SHA-256 over IP + User-Agent + date,
+ * truncated. Never stores the address itself, and rolls over daily so it can't
+ * be used to follow anyone across days.
+ *
+ * This is what stops your own repeat loads, preview checks and deploy smoke
+ * tests from each landing as a separate "visitor".
+ */
+export async function visitorDayHash(request: Request): Promise<string | null> {
+	const ip = request.headers.get('CF-Connecting-IP') ?? '';
+	if (!ip) return null;
+	const ua = request.headers.get('User-Agent') ?? '';
+	const day = new Date().toISOString().slice(0, 10);
+	const digest = await crypto.subtle.digest(
+		'SHA-256',
+		new TextEncoder().encode(`${ip}|${ua}|${day}`),
+	);
+	return Array.from(new Uint8Array(digest).slice(0, 16))
+		.map((b) => b.toString(16).padStart(2, '0'))
+		.join('');
+}
+
 export function shouldRecordVisitRequest(request: Request): { ok: true } | { ok: false; reason: string } {
 	const host = request.headers.get('Host') ?? '';
 	if (isNonProductionHost(host)) {
