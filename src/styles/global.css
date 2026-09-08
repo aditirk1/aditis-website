@@ -922,13 +922,6 @@ html[data-theme='universe'] #sun-text {
 	width: 100%;
 	max-width: 28rem;
 	pointer-events: auto;
-	/*
-	 * alignHeroCopyToTitle() measures the CTA row against the title's last line
-	 * and writes the offset here, so "See my work" sits on the "universe." line.
-	 * `top` on purpose — GSAP's reveal owns `transform` on this node.
-	 */
-	position: relative;
-	top: var(--hero-copy-shift, 0px);
 }
 
 .home-intro[data-empty],
