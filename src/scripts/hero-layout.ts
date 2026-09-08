@@ -61,8 +61,19 @@ function alignHeroCopyToTitle(): void {
 	/* Stacked layout — the title is above the copy, nothing to line up with. */
 	if (!window.matchMedia(SIDE_BY_SIDE).matches) return;
 
+	/*
+	 * offsetTop/offsetHeight, not getBoundingClientRect: the reveal tween drives
+	 * `transform` on this same node, so a rect read mid-animation reports the
+	 * copy wherever the tween has it and bakes that offset into the result.
+	 * Layout offsets ignore transforms, so the answer no longer depends on when
+	 * this runs.
+	 */
+	const anchor = copy.offsetParent as HTMLElement | null;
+	const anchorTop = anchor ? anchor.getBoundingClientRect().top : 0;
+	const copyBottom = anchorTop + copy.offsetTop + copy.offsetHeight;
+
 	/* Only ever lift. If the copy is the shorter block, centred already reads fine. */
-	const drop = copy.getBoundingClientRect().bottom - titleBaselineY(title);
+	const drop = copyBottom - titleBaselineY(title);
 	if (drop > 1) copy.style.translate = `0 ${-Math.round(drop)}px`;
 }
 
