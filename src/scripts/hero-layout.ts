@@ -22,62 +22,76 @@ function revealHeroCopy(copy: HTMLElement): void {
 }
 
 /**
- * Beach: sit the CTA row on the same line as the title's last word, so the two
- * hero columns read as sharing a rule instead of floating independently.
+ * Beach sits the copy beside the title, both vertically centred in their own
+ * grid column. The copy is the taller block, so centring alone leaves the CTAs
+ * hanging below the title's last line. Lift it so the buttons finish level with
+ * the baseline of "universe."
  *
- * The nudge goes through `top` (with position: relative) rather than a
- * transform: GSAP's reveal writes `transform` on this very node and would
- * clobber anything we put there.
+ * Measured rather than hard-coded: the title is fluid (clamp + cqi) and the
+ * copy rewraps, so the gap between the two blocks changes with viewport width.
  */
-function alignHeroCopyToTitle(copy: HTMLElement): void {
-	const words = document.querySelectorAll<HTMLElement>('#sun-text .hero-word');
-	const lastWord = words[words.length - 1];
-	const cta = copy.querySelector<HTMLElement>('[data-hero-cta]');
-	if (!lastWord || !cta) return;
+const SIDE_BY_SIDE = '(min-width: 768px)';
 
-	/* Measure from rest — `top` doesn't move layout, but it does move the rect. */
-	copy.style.setProperty('--hero-copy-shift', '0px');
-	const line = lastWord.getBoundingClientRect();
-	const row = cta.getBoundingClientRect();
-	if (line.height < 1 || row.height < 1) return;
-
-	/* Centre-on-centre: a pill button reads as "on the line" of big display text
-	 * when their midlines agree, not when their baselines do. */
-	let shift = line.top + line.height / 2 - (row.top + row.height / 2);
-
-	/* Stacked layouts put the copy under the title — leave it where it is. */
-	if (window.innerWidth < 768) shift = 0;
-
-	const hero = copy.closest<HTMLElement>('.home-hero')?.getBoundingClientRect();
-	if (hero) {
-		/* Don't drag the block off the top of the hero. */
-		const minShift = hero.top + 8 - copy.getBoundingClientRect().top;
-		shift = Math.max(shift, minShift);
-	}
-
-	copy.style.setProperty('--hero-copy-shift', `${Math.round(shift)}px`);
+/**
+ * Y of the title's last baseline. An empty inline-block with clipped overflow
+ * takes its bottom margin edge as its baseline, so a zero-height one lands
+ * exactly on the text baseline — the h1's own box bottom sits a descender lower.
+ */
+function titleBaselineY(title: HTMLElement): number {
+	const lastLine = title.querySelector<HTMLElement>('.hero-word:last-of-type');
+	if (!lastLine) return title.getBoundingClientRect().bottom;
+	const probe = document.createElement('span');
+	probe.style.cssText =
+		'display:inline-block;width:0;height:0;overflow:hidden;vertical-align:baseline';
+	lastLine.appendChild(probe);
+	const y = probe.getBoundingClientRect().bottom;
+	probe.remove();
+	return y;
 }
 
-let alignQueued = false;
-function queueHeroCopyAlign(): void {
-	if (alignQueued) return;
-	alignQueued = true;
-	requestAnimationFrame(() => {
-		alignQueued = false;
-		const copy = document.querySelector<HTMLElement>('[data-hero-copy]');
-		if (copy && document.documentElement.getAttribute('data-theme') === 'beach') {
-			alignHeroCopyToTitle(copy);
-		}
-	});
+function alignHeroCopyToTitle(): void {
+	const copy = document.querySelector<HTMLElement>('[data-hero-copy]');
+	if (!copy) return;
+
+	/* Clear first: the old offset would otherwise skew the new measurement. */
+	copy.style.removeProperty('translate');
+
+	const title = document.querySelector<HTMLElement>('[data-hero-title]');
+	if (!title || !copy.closest('.home-hero-side-col')) return;
+	/* Stacked layout — the title is above the copy, nothing to line up with. */
+	if (!window.matchMedia(SIDE_BY_SIDE).matches) return;
+
+	/* Only ever lift. If the copy is the shorter block, centred already reads fine. */
+	const drop = copy.getBoundingClientRect().bottom - titleBaselineY(title);
+	if (drop > 1) copy.style.translate = `0 ${-Math.round(drop)}px`;
+}
+
+let alignFrame = 0;
+function scheduleHeroCopyAlign(): void {
+	cancelAnimationFrame(alignFrame);
+	alignFrame = requestAnimationFrame(alignHeroCopyToTitle);
 }
 
 let alignHooked = false;
 function hookHeroCopyAlign(): void {
 	if (alignHooked) return;
 	alignHooked = true;
-	window.addEventListener('resize', queueHeroCopyAlign, { passive: true });
-	/* The title is the reference, so re-run once its webfont settles. */
-	document.fonts?.ready.then(queueHeroCopyAlign).catch(() => {});
+	/* Viewport height shifts where the centred blocks sit, without resizing them. */
+	window.addEventListener('resize', scheduleHeroCopyAlign);
+	/* Title metrics move once the display face swaps in. */
+	document.fonts?.ready.then(scheduleHeroCopyAlign).catch(() => {});
+
+	/*
+	 * Either block can change height on its own — the tagline carousel swaps in
+	 * lines of different lengths, and the fluid title reflows. Offsetting with
+	 * `translate` leaves both sizes untouched, so this can't feed back.
+	 */
+	if (typeof ResizeObserver === 'undefined') return;
+	const observer = new ResizeObserver(scheduleHeroCopyAlign);
+	for (const sel of ['[data-hero-copy]', '[data-hero-title]']) {
+		const el = document.querySelector(sel);
+		if (el) observer.observe(el);
+	}
 }
 
 export function syncHeroLayout(theme: HeroTheme): void {
@@ -94,13 +108,13 @@ export function syncHeroLayout(theme: HeroTheme): void {
 		introBand.hidden = true;
 		revealHeroCopy(copy);
 		hookHeroCopyAlign();
-		queueHeroCopyAlign();
+		scheduleHeroCopyAlign();
 	} else {
 		/* Universe: park the node back in the band and hide the whole band. */
 		if (copy.parentElement !== introBand) {
 			introBand.appendChild(copy);
 		}
-		copy.style.removeProperty('--hero-copy-shift');
+		copy.style.removeProperty('translate');
 		introBand.toggleAttribute('data-empty', true);
 		introBand.hidden = true;
 	}
