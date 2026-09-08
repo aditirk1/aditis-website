@@ -940,8 +940,10 @@ export function initUniverseStarField(): () => void {
 	const TITLE_CLEARANCE_PX = 8;
 	/** Caption height plus its offset from the widget's bottom edge. */
 	const CAPTION_RESERVE_PX = 26;
-	/** Grow past authored size so the orrery can fill the RIGHT zone. */
-	const MAX_ORRERY_SCALE = 2.9;
+	/** Breathing room between the outer orbit and the right edge of the window. */
+	const RIGHT_EDGE_GAP_PX = 32;
+	/** Grow past authored size. High enough that the fit box is what limits size. */
+	const MAX_ORRERY_SCALE = 5;
 
 	function getTitleBounds(): DOMRect | null {
 		if (!isHomePage) return null;
@@ -1025,7 +1027,21 @@ export function initUniverseStarField(): () => void {
 		/* On stacked (mobile) layouts the title sits above the orrery zone — fit the
 		 * zone only. Side-by-side desktop still avoids overlapping the title. */
 		let left = zoneRect && zoneRect.width > 1 ? zoneRect.left + 2 : vw * 0.46;
-		const right = zoneRect && zoneRect.width > 1 ? zoneRect.right - 6 : vw - 10;
+		/*
+		 * Start clear of the title instead of fitting the column and shrinking out
+		 * of the overlap afterwards. Every shrink pass cost size the orrery never
+		 * got back, so it settled well under what actually fits.
+		 */
+		if (title && !isStacked) {
+			left = Math.max(left, title.right + TITLE_CLEARANCE_PX);
+		}
+		/*
+		 * Measure to the window, not the column: the column's own right inset was
+		 * stacking on top of the gap and costing the orrery ~40px of diameter.
+		 * clientWidth so the gap is measured from the edge of the page, not from
+		 * under a classic scrollbar.
+		 */
+		const right = (document.documentElement.clientWidth || vw) - RIGHT_EDGE_GAP_PX;
 		let top = zoneRect && zoneRect.height > 1 ? zoneRect.top + 4 : vh * 0.06;
 		let bottom =
 			(zoneRect && zoneRect.height > 1 ? zoneRect.bottom - 4 : vh - 12) - CAPTION_RESERVE_PX;
