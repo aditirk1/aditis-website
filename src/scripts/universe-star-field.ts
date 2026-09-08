@@ -942,6 +942,8 @@ export function initUniverseStarField(): () => void {
 	const CAPTION_RESERVE_PX = 26;
 	/** Grow past authored size so the orrery can fill the RIGHT zone. */
 	const MAX_ORRERY_SCALE = 2.9;
+	/** Below this much room above the title line, centre instead of seating. */
+	const MIN_SEAT_HEIGHT_PX = 240;
 
 	function getTitleBounds(): DOMRect | null {
 		if (!isHomePage) return null;
@@ -1039,10 +1041,34 @@ export function initUniverseStarField(): () => void {
 			}
 		}
 
+		/*
+		 * Desktop seats the orrery's lowest point on the title's last line, so the
+		 * outer orbit and "universe." read as sitting on one rule. That caps usable
+		 * height at the line, so the system also ends up a little smaller than a
+		 * free centred fit would give. Stacked layouts keep centring — there the
+		 * title is above the orrery, not beside it, so there's no line to share.
+		 */
+		const seatY =
+			title && !isStacked && title.bottom - top > MIN_SEAT_HEIGHT_PX
+				? Math.min(title.bottom, bottom)
+				: null;
+
+		const fitBottom = seatY ?? bottom;
 		const targetW = Math.max(isStacked ? 160 : 200, right - left);
-		const targetH = Math.max(isStacked ? 160 : 200, bottom - top);
+		const targetH = Math.max(isStacked ? 160 : 200, fitBottom - top);
 		let targetCenterX = (left + right) / 2;
-		const targetCenterY = (top + bottom) / 2;
+		const targetCenterY = (top + fitBottom) / 2;
+
+		function alignY(b: { minY: number; maxY: number }): void {
+			if (seatY === null) {
+				solarSystemGroup.position.y += ((b.minY + b.maxY) / 2 - targetCenterY) * worldPerPx;
+				return;
+			}
+			/* Seat on the line, but never at the cost of pushing the top of the
+			 * system out of the zone — clip the shift before the orrery clips. */
+			const lowest = Math.min(bottom, Math.max(seatY, b.maxY + (top - b.minY)));
+			solarSystemGroup.position.y += (b.maxY - lowest) * worldPerPx;
+		}
 
 		solarSystemGroup.scale.setScalar(1);
 		solarSystemGroup.position.set(0, 0, 0);
@@ -1055,7 +1081,7 @@ export function initUniverseStarField(): () => void {
 			solarSystemGroup.scale.setScalar(Math.min(MAX_ORRERY_SCALE, Math.max(0.22, next)));
 			bounds = projectedOrreryBounds(vw, vh);
 			solarSystemGroup.position.x += (targetCenterX - (bounds.minX + bounds.maxX) / 2) * worldPerPx;
-			solarSystemGroup.position.y += ((bounds.minY + bounds.maxY) / 2 - targetCenterY) * worldPerPx;
+			alignY(bounds);
 			bounds = projectedOrreryBounds(vw, vh);
 		}
 
@@ -1072,7 +1098,7 @@ export function initUniverseStarField(): () => void {
 					solarSystemGroup.scale.setScalar(Math.max(0.22, solarSystemGroup.scale.x * 0.96));
 					bounds = projectedOrreryBounds(vw, vh);
 					solarSystemGroup.position.x += (targetCenterX - (bounds.minX + bounds.maxX) / 2) * worldPerPx;
-					solarSystemGroup.position.y += ((bounds.minY + bounds.maxY) / 2 - targetCenterY) * worldPerPx;
+					alignY(bounds);
 					bounds = projectedOrreryBounds(vw, vh);
 				}
 			}
