@@ -33,7 +33,7 @@
     "playwright-core": "^1.63.0",
     "tailwindcss": "^4.2.2",
     "typescript": "^6.0.3",
-    "wrangler": "^4.125.0"
+    "wrangler": "^4.131.0"
   },
   "overrides": {
     "trim": "0.0.3",
