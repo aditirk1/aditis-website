@@ -1058,7 +1058,8 @@ export function initUniverseStarField(): () => void {
 		const targetW = Math.max(isStacked ? 160 : 200, right - left);
 		const targetH = Math.max(isStacked ? 160 : 200, bottom - top);
 		let targetCenterX = (left + right) / 2;
-		const targetCenterY = (top + bottom) / 2;
+		/* Screen Y grows downward — subtract to nudge the whole orrery upward. */
+		const targetCenterY = (top + bottom) / 2 - targetH * 0.1;
 
 		solarSystemGroup.scale.setScalar(1);
 		solarSystemGroup.position.set(0, 0, 0);

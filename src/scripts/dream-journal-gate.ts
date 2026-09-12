@@ -1,5 +1,7 @@
 import {
+	DREAM_JOURNAL_ATTEMPTS_KEY,
 	DREAM_JOURNAL_GATE_QUESTIONS,
+	DREAM_JOURNAL_MAX_ATTEMPTS,
 	DREAM_JOURNAL_QUESTION_KEY,
 	DREAM_JOURNAL_UNLOCK_KEY,
 	type DreamGateQuestion,
@@ -25,9 +27,32 @@ export function isDreamJournalUnlocked(): boolean {
 export function unlockDreamJournal(): void {
 	try {
 		sessionStorage.setItem(DREAM_JOURNAL_UNLOCK_KEY, '1');
+		localStorage.removeItem(DREAM_JOURNAL_ATTEMPTS_KEY);
 	} catch {
 		/* ignore */
 	}
+}
+
+function getAttemptCount(): number {
+	try {
+		const raw = localStorage.getItem(DREAM_JOURNAL_ATTEMPTS_KEY);
+		const n = raw ? Number.parseInt(raw, 10) : 0;
+		return Number.isFinite(n) && n > 0 ? n : 0;
+	} catch {
+		return 0;
+	}
+}
+
+function setAttemptCount(n: number): void {
+	try {
+		localStorage.setItem(DREAM_JOURNAL_ATTEMPTS_KEY, String(n));
+	} catch {
+		/* ignore */
+	}
+}
+
+export function isDreamJournalLockedOut(): boolean {
+	return getAttemptCount() >= DREAM_JOURNAL_MAX_ATTEMPTS;
 }
 
 function pickRandomQuestion(excludeId?: string): DreamGateQuestion {
@@ -89,6 +114,18 @@ export async function checkGateAnswer(question: DreamGateQuestion, raw: string):
 	return false;
 }
 
+function shakeWrong(el: HTMLElement): void {
+	el.classList.remove('dream-gate-shake');
+	// Force reflow so the animation can restart on repeated wrongs.
+	void el.offsetWidth;
+	el.classList.add('dream-gate-shake');
+	const onEnd = () => {
+		el.classList.remove('dream-gate-shake');
+		el.removeEventListener('animationend', onEnd);
+	};
+	el.addEventListener('animationend', onEnd);
+}
+
 export function initDreamJournalGate(root: HTMLElement): () => void {
 	const gateEl = root.querySelector<HTMLElement>('[data-dream-gate]');
 	const contentEl = root.querySelector<HTMLElement>('[data-dream-gate-content]');
@@ -97,23 +134,42 @@ export function initDreamJournalGate(root: HTMLElement): () => void {
 	const questionTextEl = root.querySelector<HTMLElement>('[data-dream-gate-question]');
 	const errorEl = root.querySelector<HTMLElement>('[data-dream-gate-error]');
 	const rotateBtn = root.querySelector<HTMLButtonElement>('[data-dream-gate-rotate]');
+	const lockoutEl = root.querySelector<HTMLElement>('[data-dream-gate-lockout]');
+	const panelEl = root.querySelector<HTMLElement>('[data-dream-gate-panel]');
 
-	if (!gateEl || !contentEl || !form || !inputEl || !questionTextEl) {
+	if (!gateEl || !contentEl || !form || !inputEl || !questionTextEl || !lockoutEl) {
 		return () => {};
 	}
 
-	// Bound after the guard so the hoisted helpers below see non-null types.
 	const gate = gateEl;
 	const content = contentEl;
 	const input = inputEl;
 	const questionEl = questionTextEl;
+	const lockout = lockoutEl;
+	const shakeTarget = panelEl ?? form;
 
 	let active = getActiveGateQuestion();
+	let submitting = false;
 
 	function reveal() {
 		gate.hidden = true;
+		lockout.hidden = true;
 		content.hidden = false;
 		root.removeAttribute('data-dream-locked');
+		root.removeAttribute('data-dream-lockout');
+	}
+
+	function showLockout() {
+		root.setAttribute('data-dream-locked', '1');
+		root.setAttribute('data-dream-lockout', '1');
+		content.hidden = true;
+		form.hidden = true;
+		lockout.hidden = false;
+		gate.hidden = false;
+		if (errorEl) {
+			errorEl.textContent = '';
+			errorEl.hidden = true;
+		}
 	}
 
 	function showQuestion(q: DreamGateQuestion) {
@@ -132,27 +188,55 @@ export function initDreamJournalGate(root: HTMLElement): () => void {
 		return () => {};
 	}
 
+	if (isDreamJournalLockedOut()) {
+		showLockout();
+		return () => {};
+	}
+
 	root.setAttribute('data-dream-locked', '1');
 	content.hidden = true;
+	lockout.hidden = true;
+	form.hidden = false;
 	showQuestion(active);
 
 	const onSubmit = (e: Event) => {
 		e.preventDefault();
+		if (submitting || isDreamJournalLockedOut()) return;
+		submitting = true;
 		void (async () => {
-			if (await checkGateAnswer(active, input.value)) {
-				unlockDreamJournal();
-				reveal();
-				return;
+			try {
+				if (await checkGateAnswer(active, input.value)) {
+					unlockDreamJournal();
+					reveal();
+					return;
+				}
+
+				const attempts = getAttemptCount() + 1;
+				setAttemptCount(attempts);
+				shakeWrong(shakeTarget);
+
+				if (attempts >= DREAM_JOURNAL_MAX_ATTEMPTS) {
+					showLockout();
+					return;
+				}
+
+				const remaining = DREAM_JOURNAL_MAX_ATTEMPTS - attempts;
+				showQuestion(rotateGateQuestion(active.id));
+				if (errorEl) {
+					errorEl.textContent =
+						remaining === 1
+							? 'Not quite — one try left.'
+							: `Not quite — ${remaining} tries left.`;
+					errorEl.hidden = false;
+				}
+			} finally {
+				submitting = false;
 			}
-			if (errorEl) {
-				errorEl.textContent = 'Not quite — try again, or pick another question.';
-				errorEl.hidden = false;
-			}
-			input.select();
 		})();
 	};
 
 	const onRotate = () => {
+		if (isDreamJournalLockedOut()) return;
 		showQuestion(rotateGateQuestion(active.id));
 	};
 
