@@ -1,5 +1,5 @@
 /**
- * Splash: logo fades in → logo rises + title fades in → hold → scatter → reveal.
+ * Splash: logo fades in → hold → logo rises + title → hold → scatter → reveal.
  * First visit per session only (sessionStorage).
  *
  * Logo shimmer uses the original img + overlay structure from before the redesign.
@@ -10,6 +10,8 @@ export const SPLASH_KEY = 'aditi-splash-seen';
 export const SPLASH_DONE_EVENT = 'aditi:splash-done';
 
 const LOGO_INTRO_S = 0.65;
+/** Logo alone on screen before the wordmark appears. */
+const LOGO_HOLD_S = 2.5;
 const TITLE_FADE_S = 0.6;
 const TITLE_HOLD_S = 1.0;
 
@@ -64,14 +66,16 @@ export function initSplashIntro(): void {
 
 	const tl = gsap.timeline();
 
-	/* Phase 1 — logo fades in */
+	/* Phase 1 — logo fades in, then holds alone */
 	tl.to(logo, {
 		opacity: 1,
 		duration: LOGO_INTRO_S,
 		ease: 'power2.out',
 	});
 
-	/* Phase 2 — logo rises; title fades in immediately after */
+	tl.to({}, { duration: LOGO_HOLD_S });
+
+	/* Phase 2 — logo rises; title fades in */
 	tl.to(logoWrap, {
 		y: logoLift,
 		duration: 0.85,

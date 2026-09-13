@@ -1,6 +1,6 @@
 ---
 /**
- * First homepage visit per session: logo fades in, title rises in below,
+ * First homepage visit per session: logo alone, then title rises in below,
  * then letters scatter and the overlay reveals the site.
  *
  * Shimmer markup/CSS match the pre-redesign splash (img + screen overlay clipped
@@ -60,8 +60,8 @@ const chars = home.hero_title.replace(/\.$/, '').split('');
 		</div>
 
 		<p
-			class="splash-title pointer-events-none m-0 mt-5 select-none whitespace-nowrap text-center text-[clamp(1.15rem,5.2vw,1.65rem)] font-light tracking-[0.12em] text-[var(--page-fg)] md:mt-6 md:text-6xl md:tracking-[0.28em] lg:text-7xl"
-			style="font-family: 'Inter', system-ui, sans-serif; font-weight: 400; visibility: hidden"
+			class="splash-title pointer-events-none m-0 mt-5 select-none whitespace-nowrap text-center text-[clamp(1.15rem,5.2vw,1.65rem)] font-extralight tracking-[0.12em] text-[var(--page-fg)] md:mt-6 md:text-6xl md:tracking-[0.28em] lg:text-7xl"
+			style="font-family: 'Inter', system-ui, sans-serif; font-weight: 200; visibility: hidden"
 			data-splash-title
 		>
 			{chars.map((ch) => (
