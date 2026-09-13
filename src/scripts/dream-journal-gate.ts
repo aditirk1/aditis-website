@@ -1,3 +1,7 @@
+/**
+ * Dream journal client: quiz → OAuth → fetch entries from /api/dreams (cookie).
+ * Dream HTML is never embedded in the static page build.
+ */
 import {
 	DREAM_JOURNAL_ATTEMPTS_KEY,
 	DREAM_JOURNAL_GATE_QUESTIONS,
@@ -6,6 +10,13 @@ import {
 	DREAM_JOURNAL_UNLOCK_KEY,
 	type DreamGateQuestion,
 } from '../data/dream-journal-gate.ts';
+
+export type DreamListItem = {
+	id: string;
+	date: string;
+	mood: string | null;
+	preview: string;
+};
 
 function normalizeAnswer(raw: string): string {
 	return raw
@@ -16,7 +27,7 @@ function normalizeAnswer(raw: string): string {
 		.replace(/\s+/g, ' ');
 }
 
-export function isDreamJournalUnlocked(): boolean {
+export function isQuizPassed(): boolean {
 	try {
 		return sessionStorage.getItem(DREAM_JOURNAL_UNLOCK_KEY) === '1';
 	} catch {
@@ -24,7 +35,7 @@ export function isDreamJournalUnlocked(): boolean {
 	}
 }
 
-export function unlockDreamJournal(): void {
+export function markQuizPassed(): void {
 	try {
 		sessionStorage.setItem(DREAM_JOURNAL_UNLOCK_KEY, '1');
 		localStorage.removeItem(DREAM_JOURNAL_ATTEMPTS_KEY);
@@ -90,7 +101,6 @@ export function rotateGateQuestion(currentId: string): DreamGateQuestion {
 	return q;
 }
 
-/** egg ↔ eggs, beach ↔ beaches (simple trailing-s only) */
 function singularForm(word: string): string {
 	if (word.length > 3 && word.endsWith('s') && !word.endsWith('ss')) {
 		return word.slice(0, -1);
@@ -116,7 +126,6 @@ export async function checkGateAnswer(question: DreamGateQuestion, raw: string):
 
 function shakeWrong(el: HTMLElement): void {
 	el.classList.remove('dream-gate-shake');
-	// Force reflow so the animation can restart on repeated wrongs.
 	void el.offsetWidth;
 	el.classList.add('dream-gate-shake');
 	const onEnd = () => {
@@ -124,6 +133,62 @@ function shakeWrong(el: HTMLElement): void {
 		el.removeEventListener('animationend', onEnd);
 	};
 	el.addEventListener('animationend', onEnd);
+}
+
+async function fetchSession(): Promise<{ authenticated: boolean; name?: string | null }> {
+	try {
+		const res = await fetch('/api/dream-session', { credentials: 'same-origin' });
+		if (!res.ok) return { authenticated: false };
+		const data = (await res.json()) as { authenticated?: boolean; name?: string | null };
+		return { authenticated: !!data.authenticated, name: data.name };
+	} catch {
+		return { authenticated: false };
+	}
+}
+
+async function fetchDreamList(): Promise<DreamListItem[]> {
+	const res = await fetch('/api/dreams', { credentials: 'same-origin' });
+	if (res.status === 401) throw new Error('unauthorized');
+	if (!res.ok) throw new Error('failed');
+	const data = (await res.json()) as { entries?: DreamListItem[] };
+	return Array.isArray(data.entries) ? data.entries : [];
+}
+
+async function fetchDreamEntry(id: string): Promise<{ id: string; date: string; mood: string | null; html: string }> {
+	const res = await fetch(`/api/dreams/${encodeURIComponent(id)}`, { credentials: 'same-origin' });
+	if (res.status === 401) throw new Error('unauthorized');
+	if (res.status === 404) throw new Error('notfound');
+	if (!res.ok) throw new Error('failed');
+	const data = (await res.json()) as {
+		entry?: { id: string; date: string; mood: string | null; html: string };
+	};
+	if (!data.entry) throw new Error('failed');
+	return data.entry;
+}
+
+function formatDate(iso: string): string {
+	const d = new Date(`${iso}T12:00:00`);
+	if (Number.isNaN(d.valueOf())) return iso;
+	return d.toLocaleDateString(undefined, {
+		weekday: 'long',
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+	});
+}
+
+function bindDreamHits(root: Element): void {
+	const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	if (reduce) return;
+	root.querySelectorAll('.dream-hit').forEach((el) => {
+		el.addEventListener('mouseenter', () => {
+			(el as HTMLElement).style.transform = 'scale(1.08)';
+			(el as HTMLElement).style.transition = 'transform 0.22s ease';
+		});
+		el.addEventListener('mouseleave', () => {
+			(el as HTMLElement).style.transform = 'scale(1)';
+		});
+	});
 }
 
 export function initDreamJournalGate(root: HTMLElement): () => void {
@@ -136,8 +201,14 @@ export function initDreamJournalGate(root: HTMLElement): () => void {
 	const rotateBtn = root.querySelector<HTMLButtonElement>('[data-dream-gate-rotate]');
 	const lockoutEl = root.querySelector<HTMLElement>('[data-dream-gate-lockout]');
 	const panelEl = root.querySelector<HTMLElement>('[data-dream-gate-panel]');
+	const authEl = root.querySelector<HTMLElement>('[data-dream-gate-auth]');
+	const formWrap = root.querySelector<HTMLElement>('[data-dream-gate-form-wrap]');
+	const listEl = root.querySelector<HTMLElement>('[data-dream-list]');
+	const detailEl = root.querySelector<HTMLElement>('[data-dream-detail]');
+	const statusEl = root.querySelector<HTMLElement>('[data-dream-status]');
+	const signOutBtn = root.querySelector<HTMLButtonElement>('[data-dream-sign-out]');
 
-	if (!gateEl || !contentEl || !form || !inputEl || !questionTextEl || !lockoutEl) {
+	if (!gateEl || !contentEl || !form || !inputEl || !questionTextEl || !lockoutEl || !authEl) {
 		return () => {};
 	}
 
@@ -146,30 +217,54 @@ export function initDreamJournalGate(root: HTMLElement): () => void {
 	const input = inputEl;
 	const questionEl = questionTextEl;
 	const lockout = lockoutEl;
+	const auth = authEl;
+	const quizForm = form;
 	const shakeTarget = panelEl ?? form;
 
 	let active = getActiveGateQuestion();
 	let submitting = false;
 
-	function reveal() {
-		gate.hidden = true;
-		lockout.hidden = true;
-		content.hidden = false;
-		root.removeAttribute('data-dream-locked');
-		root.removeAttribute('data-dream-lockout');
-	}
-
-	function showLockout() {
-		root.setAttribute('data-dream-locked', '1');
-		root.setAttribute('data-dream-lockout', '1');
-		content.hidden = true;
-		form.hidden = true;
-		lockout.hidden = false;
-		gate.hidden = false;
-		if (errorEl) {
-			errorEl.textContent = '';
-			errorEl.hidden = true;
+	function setPhase(phase: 'quiz' | 'auth' | 'lockout' | 'content') {
+		if (phase === 'content') {
+			root.removeAttribute('data-dream-locked');
+			root.removeAttribute('data-dream-lockout');
+			root.removeAttribute('data-dream-auth');
+			gate.hidden = true;
+			content.hidden = false;
+			lockout.hidden = true;
+			auth.hidden = true;
+			if (formWrap) formWrap.hidden = true;
+			return;
 		}
+
+		content.hidden = true;
+		gate.hidden = false;
+		root.setAttribute('data-dream-locked', '1');
+
+		if (phase === 'lockout') {
+			root.setAttribute('data-dream-lockout', '1');
+			root.removeAttribute('data-dream-auth');
+			lockout.hidden = false;
+			auth.hidden = true;
+			if (formWrap) formWrap.hidden = true;
+			quizForm.hidden = true;
+			return;
+		}
+
+		root.removeAttribute('data-dream-lockout');
+		lockout.hidden = true;
+		quizForm.hidden = false;
+
+		if (phase === 'auth') {
+			root.setAttribute('data-dream-auth', '1');
+			auth.hidden = false;
+			if (formWrap) formWrap.hidden = true;
+			return;
+		}
+
+		root.removeAttribute('data-dream-auth');
+		auth.hidden = true;
+		if (formWrap) formWrap.hidden = false;
 	}
 
 	function showQuestion(q: DreamGateQuestion) {
@@ -183,21 +278,119 @@ export function initDreamJournalGate(root: HTMLElement): () => void {
 		input.focus();
 	}
 
-	if (isDreamJournalUnlocked()) {
-		reveal();
-		return () => {};
+	function renderList(entries: DreamListItem[]) {
+		if (!listEl) return;
+		if (entries.length === 0) {
+			listEl.innerHTML = `<div class="dream-realm-panel relative rounded-2xl px-6 py-6 md:px-8 md:py-8">
+				<p class="text-[var(--page-muted)]">Nothing to see here yet — more to come very soon.</p>
+				<p class="mt-2 text-sm text-[var(--page-muted)]">You made it past the gate, though.</p>
+			</div>`;
+			return;
+		}
+		listEl.innerHTML = entries
+			.map(
+				(e) => `<article class="dream-realm-panel relative rounded-2xl px-6 py-6 md:px-8 md:py-8">
+					<p class="dream-entry-meta mb-3">${formatDate(e.date)}${e.mood ? ` · ${escapeHtml(e.mood)}` : ''}</p>
+					<p class="text-[var(--page-muted)]">${escapeHtml(e.preview)}</p>
+					<button type="button" data-dream-open="${escapeAttr(e.id)}" class="mt-4 inline-block text-sm font-bold tracking-wide text-[var(--color-amber)] underline-offset-2 hover:underline">
+						Read full dream →
+					</button>
+				</article>`,
+			)
+			.join('');
 	}
 
-	if (isDreamJournalLockedOut()) {
-		showLockout();
-		return () => {};
+	function escapeHtml(s: string): string {
+		return s
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;');
 	}
 
-	root.setAttribute('data-dream-locked', '1');
-	content.hidden = true;
-	lockout.hidden = true;
-	form.hidden = false;
-	showQuestion(active);
+	function escapeAttr(s: string): string {
+		return escapeHtml(s).replace(/'/g, '&#39;');
+	}
+
+	async function showDetail(id: string) {
+		if (!detailEl || !listEl) return;
+		listEl.hidden = true;
+		detailEl.hidden = false;
+		detailEl.innerHTML = `<p class="text-[var(--page-muted)]">Loading…</p>`;
+		try {
+			const entry = await fetchDreamEntry(id);
+			detailEl.innerHTML = `
+				<p class="mb-8 flex flex-wrap items-center gap-x-4 gap-y-2">
+					<button type="button" data-dream-back class="article-back-link">← All dreams</button>
+				</p>
+				<article class="dream-realm-panel relative px-6 py-8 md:px-8 md:py-10">
+					<div class="dream-realm-article">
+						<p class="dream-entry-meta mb-5">${formatDate(entry.date)}${entry.mood ? ` · ${escapeHtml(entry.mood)}` : ''}</p>
+						<div class="dream-md space-y-4 text-lg leading-relaxed text-[var(--page-fg)] [&_p]:mb-4">${entry.html}</div>
+					</div>
+				</article>`;
+			bindDreamHits(detailEl);
+			const url = new URL(window.location.href);
+			url.searchParams.set('id', id);
+			history.replaceState({}, '', url);
+		} catch {
+			detailEl.innerHTML = `<p class="text-[var(--page-muted)]">Couldn’t load that dream.</p>
+				<button type="button" data-dream-back class="mt-4 article-back-link">← All dreams</button>`;
+		}
+	}
+
+	function showListView() {
+		if (!detailEl || !listEl) return;
+		detailEl.hidden = true;
+		detailEl.innerHTML = '';
+		listEl.hidden = false;
+		const url = new URL(window.location.href);
+		url.searchParams.delete('id');
+		url.searchParams.delete('dream_auth');
+		history.replaceState({}, '', url);
+	}
+
+	async function loadContent() {
+		setPhase('content');
+		if (statusEl) statusEl.textContent = 'Loading dreams…';
+		try {
+			const entries = await fetchDreamList();
+			if (statusEl) statusEl.textContent = '';
+			renderList(entries);
+			const id = new URL(window.location.href).searchParams.get('id');
+			if (id) await showDetail(id);
+			else showListView();
+		} catch {
+			if (statusEl) {
+				statusEl.textContent =
+					'Couldn’t load dreams. Sign-in may have expired — try signing in again.';
+			}
+			markQuizPassed();
+			setPhase('auth');
+		}
+	}
+
+	async function boot() {
+		if (isDreamJournalLockedOut() && !isQuizPassed()) {
+			setPhase('lockout');
+			return;
+		}
+
+		const session = await fetchSession();
+		if (session.authenticated) {
+			markQuizPassed();
+			await loadContent();
+			return;
+		}
+
+		if (isQuizPassed()) {
+			setPhase('auth');
+			return;
+		}
+
+		setPhase('quiz');
+		showQuestion(active);
+	}
 
 	const onSubmit = (e: Event) => {
 		e.preventDefault();
@@ -206,8 +399,8 @@ export function initDreamJournalGate(root: HTMLElement): () => void {
 		void (async () => {
 			try {
 				if (await checkGateAnswer(active, input.value)) {
-					unlockDreamJournal();
-					reveal();
+					markQuizPassed();
+					setPhase('auth');
 					return;
 				}
 
@@ -216,7 +409,7 @@ export function initDreamJournalGate(root: HTMLElement): () => void {
 				shakeWrong(shakeTarget);
 
 				if (attempts >= DREAM_JOURNAL_MAX_ATTEMPTS) {
-					showLockout();
+					setPhase('lockout');
 					return;
 				}
 
@@ -240,11 +433,37 @@ export function initDreamJournalGate(root: HTMLElement): () => void {
 		showQuestion(rotateGateQuestion(active.id));
 	};
 
-	form.addEventListener('submit', onSubmit);
+	const onContentClick = (e: Event) => {
+		const t = e.target as HTMLElement | null;
+		if (!t) return;
+		const open = t.closest<HTMLElement>('[data-dream-open]');
+		if (open?.dataset.dreamOpen) {
+			void showDetail(open.dataset.dreamOpen);
+			return;
+		}
+		if (t.closest('[data-dream-back]')) {
+			showListView();
+		}
+	};
+
+	const onSignOut = () => {
+		void (async () => {
+			await fetch('/api/dream-session', { method: 'DELETE', credentials: 'same-origin' });
+			setPhase('auth');
+		})();
+	};
+
+	quizForm.addEventListener('submit', onSubmit);
 	rotateBtn?.addEventListener('click', onRotate);
+	content.addEventListener('click', onContentClick);
+	signOutBtn?.addEventListener('click', onSignOut);
+
+	void boot();
 
 	return () => {
-		form.removeEventListener('submit', onSubmit);
+		quizForm.removeEventListener('submit', onSubmit);
 		rotateBtn?.removeEventListener('click', onRotate);
+		content.removeEventListener('click', onContentClick);
+		signOutBtn?.removeEventListener('click', onSignOut);
 	};
 }

@@ -1,77 +1,15 @@
 ---
-import fs from 'node:fs';
-import path from 'node:path';
+/**
+ * Legacy /dream-journal/:id URLs redirect to the shell with ?id=
+ * (entry HTML still comes from the authenticated API).
+ */
 import { getCollection } from 'astro:content';
-import Layout from '../../layouts/Layout.astro';
-import DreamJournalGate from '../../components/DreamJournalGate.astro';
-import { stripFrontmatter, dreamMarkdownToHtml } from '../../utils/dream-markdown.ts';
 
 export async function getStaticPaths() {
 	const entries = await getCollection('dreams', ({ data }) => data.draft !== true);
-	return entries.map((entry) => ({
-		params: { id: entry.id },
-		props: { entry },
-	}));
+	return entries.map((entry) => ({ params: { id: entry.id } }));
 }
 
-const { entry } = Astro.props;
-const fp = path.join(process.cwd(), 'src', 'content', 'dreams', `${entry.id}.md`);
-const rawFile = fs.readFileSync(fp, 'utf8');
-const md = stripFrontmatter(rawFile);
-const html = await dreamMarkdownToHtml(md, entry.data['highlight-words'], entry.data['word-styles']);
+const id = Astro.params.id ?? '';
+return Astro.redirect(`/dream-journal?id=${encodeURIComponent(id)}`, 302);
 ---
-
-<Layout layoutVariant="dream" title={`Dream · ${entry.data.date.toLocaleDateString()}`} noindex={true}>
-	<DreamJournalGate>
-	<div class="pointer-events-auto mx-auto max-w-2xl pb-16 pt-4" data-dream-entrance>
-		<p class="mb-8 flex flex-wrap items-center gap-x-4 gap-y-2">
-			<a href="/" class="article-back-link">← Back to the universe</a>
-			<a
-				href="/dream-journal"
-				class="text-sm text-[var(--page-muted)] underline-offset-2 hover:text-[var(--color-amber)] hover:underline"
-			>
-				All dreams
-			</a>
-		</p>
-		<article class="dream-realm-panel relative px-6 py-8 md:px-8 md:py-10">
-			<div class="dream-realm-article">
-				<p class="dream-entry-meta mb-5">
-					{entry.data.date.toLocaleDateString(undefined, {
-						weekday: 'long',
-						year: 'numeric',
-						month: 'long',
-						day: 'numeric',
-					})}
-					{entry.data.mood && <> · {entry.data.mood}</>}
-				</p>
-				<div class="dream-md space-y-4 text-lg leading-relaxed text-[var(--page-fg)] [&_p]:mb-4" set:html={html} />
-			</div>
-		</article>
-	</div>
-	</DreamJournalGate>
-</Layout>
-<script>
-	import { gsap } from 'gsap';
-
-	const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-	const entrance = document.querySelector('[data-dream-entrance]') as HTMLElement | null;
-
-	if (!reduce && entrance) {
-		gsap.fromTo(
-			entrance,
-			{ opacity: 0, filter: 'blur(12px)', y: 12 },
-			{ opacity: 1, filter: 'blur(0px)', y: 0, duration: 1.25, ease: 'power2.out', delay: 0.08 },
-		);
-	}
-
-	if (!reduce) {
-		document.querySelectorAll('.dream-hit').forEach((el) => {
-			el.addEventListener('mouseenter', () => {
-				gsap.to(el, { scale: 1.08, duration: 0.22, ease: 'power2.out' });
-			});
-			el.addEventListener('mouseleave', () => {
-				gsap.to(el, { scale: 1, duration: 0.35, ease: 'power3.inOut' });
-			});
-		});
-	}
-</script>
