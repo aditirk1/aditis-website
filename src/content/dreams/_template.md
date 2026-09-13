@@ -1,6 +1,13 @@
 ---
-# Copy this file, rename to a-slug.md (no leading underscore), set draft: false.
-# Entries are private behind the gate in src/data/dream-journal-gate.ts.
+# Dream entry template
+#
+# 1. Copy this file → rename to my-dream-slug.md (no leading underscore).
+# 2. Set draft: false when it should appear after login.
+# 3. Commit + push (or publish via /admin/ → Dream journal).
+# 4. Cloudflare rebuild runs `dreams:bundle` and packs entries into the
+#    Functions bundle (not public static HTML). Quiz + Google/GitHub unlock them.
+#
+# Keep the GitHub repo private if the Markdown itself must stay secret.
 
 date: 2026-01-15
 draft: true

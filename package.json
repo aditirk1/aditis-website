@@ -5,15 +5,16 @@
   "engines": {
     "node": ">=22.12.0"
   },
-  "scripts": {
-    "dev": "astro dev",
-    "prebuild": "node scripts/copy-decap.mjs",
-    "build": "node scripts/copy-decap.mjs && astro build",
-    "preview": "astro preview",
-    "check": "astro check",
-    "astro": "astro",
-    "cms:local": "npx decap-server"
-  },
+	"scripts": {
+		"dev": "astro dev",
+		"prebuild": "node scripts/copy-decap.mjs && node --experimental-strip-types scripts/bundle-dreams.ts",
+		"build": "node scripts/copy-decap.mjs && node --experimental-strip-types scripts/bundle-dreams.ts && astro build",
+		"dreams:bundle": "node --experimental-strip-types scripts/bundle-dreams.ts",
+		"preview": "astro preview",
+		"check": "astro check",
+		"astro": "astro",
+		"cms:local": "npx decap-server"
+	},
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
