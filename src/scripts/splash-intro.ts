@@ -11,7 +11,7 @@ export const SPLASH_DONE_EVENT = 'aditi:splash-done';
 
 const LOGO_INTRO_S = 0.65;
 /** Logo alone on screen before the wordmark appears. */
-const LOGO_HOLD_S = 2.5;
+const LOGO_HOLD_S = 1.5;
 const TITLE_FADE_S = 0.6;
 const TITLE_HOLD_S = 1.0;
 
