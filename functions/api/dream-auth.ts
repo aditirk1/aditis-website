@@ -27,12 +27,33 @@ function redirectWithCookies(location: string, cookies: string[]): Response {
 	return new Response(null, { status: 302, headers });
 }
 
+function plain(message: string, status = 503): Response {
+	return new Response(message, {
+		status,
+		headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+	});
+}
+
+function envStr(value: unknown): string {
+	return typeof value === 'string' ? value.trim() : '';
+}
+
+/** Real OAuth client IDs never contain spaces (placeholder notes often do). */
+function looksLikeClientId(value: string): boolean {
+	return value.length >= 8 && !/\s/.test(value);
+}
+
+function missingList(flags: Record<string, boolean>): string {
+	return Object.entries(flags)
+		.filter(([, ok]) => !ok)
+		.map(([name]) => name)
+		.join(', ');
+}
+
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
-	if (!env.DREAM_SESSION_SECRET) {
-		return new Response('Dream sign-in is not configured (missing DREAM_SESSION_SECRET).', {
-			status: 503,
-			headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
-		});
+	const sessionSecret = envStr(env.DREAM_SESSION_SECRET);
+	if (!sessionSecret) {
+		return plain('Dream sign-in is not configured (missing DREAM_SESSION_SECRET).');
 	}
 
 	const url = new URL(request.url);
@@ -41,18 +62,25 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 	const state = crypto.randomUUID().replace(/-/g, '');
 
 	if (provider === 'github') {
-		if (!env.DREAM_GITHUB_CLIENT_ID || !env.DREAM_GITHUB_CLIENT_SECRET) {
-			return new Response(
-				'Set DREAM_GITHUB_CLIENT_ID and DREAM_GITHUB_CLIENT_SECRET (OAuth App callback: /api/dream-callback).',
-				{
-					status: 503,
-					headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
-				},
+		const clientId = envStr(env.DREAM_GITHUB_CLIENT_ID);
+		const clientSecret = envStr(env.DREAM_GITHUB_CLIENT_SECRET);
+		const missing = missingList({
+			DREAM_GITHUB_CLIENT_ID: !!clientId,
+			DREAM_GITHUB_CLIENT_SECRET: !!clientSecret,
+		});
+		if (missing) {
+			return plain(
+				`GitHub sign-in missing env: ${missing}. Use the Client ID from GitHub → Settings → Developer settings → OAuth Apps (callback must be ${origin}/api/dream-callback).`,
+			);
+		}
+		if (!looksLikeClientId(clientId)) {
+			return plain(
+				`DREAM_GITHUB_CLIENT_ID looks like a note, not a Client ID (got "${clientId.slice(0, 64)}"). Paste the real Client ID string from the GitHub OAuth App page.`,
 			);
 		}
 
 		const authorize = new URL('https://github.com/login/oauth/authorize');
-		authorize.searchParams.set('client_id', env.DREAM_GITHUB_CLIENT_ID);
+		authorize.searchParams.set('client_id', clientId);
 		authorize.searchParams.set('redirect_uri', `${origin}/api/dream-callback`);
 		authorize.searchParams.set('scope', 'read:user user:email');
 		authorize.searchParams.set('state', state);
@@ -64,15 +92,33 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 	}
 
 	if (provider === 'google') {
-		if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
-			return new Response('Google sign-in is not configured (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET).', {
-				status: 503,
-				headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
-			});
+		const clientId = envStr(env.GOOGLE_CLIENT_ID);
+		const clientSecret = envStr(env.GOOGLE_CLIENT_SECRET);
+		const present = {
+			GOOGLE_CLIENT_ID: !!clientId,
+			GOOGLE_CLIENT_SECRET: !!clientSecret,
+		};
+		const missing = missingList(present);
+		if (missing) {
+			return plain(
+				`Google sign-in missing env: ${missing}. ` +
+					`Present: ${
+						Object.entries(present)
+							.filter(([, ok]) => ok)
+							.map(([n]) => n)
+							.join(', ') || '(none)'
+					}. ` +
+					`Fix the name/value in Cloudflare → Variables and secrets, then Redeploy.`,
+			);
+		}
+		if (!looksLikeClientId(clientId) || !clientId.includes('.apps.googleusercontent.com')) {
+			return plain(
+				`GOOGLE_CLIENT_ID does not look like a Google OAuth client ID (should end with .apps.googleusercontent.com). Check the value in Cloudflare.`,
+			);
 		}
 
 		const authorize = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-		authorize.searchParams.set('client_id', env.GOOGLE_CLIENT_ID);
+		authorize.searchParams.set('client_id', clientId);
 		authorize.searchParams.set('redirect_uri', `${origin}/api/dream-callback`);
 		authorize.searchParams.set('response_type', 'code');
 		authorize.searchParams.set('scope', 'openid email profile');
@@ -85,8 +131,5 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 		]);
 	}
 
-	return new Response('Use ?provider=github or ?provider=google', {
-		status: 400,
-		headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
-	});
+	return plain('Use ?provider=github or ?provider=google', 400);
 };
