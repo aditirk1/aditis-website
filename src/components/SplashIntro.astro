@@ -45,7 +45,7 @@ const chars = home.hero_title.replace(/\.$/, '').split('');
 	<div class="splash-starfield pointer-events-none absolute inset-0" aria-hidden="true"></div>
 
 	<div class="splash-stage relative z-10 flex flex-col items-center justify-center" data-splash-stage>
-		<div class="splash-logo-wrap relative" data-splash-logo-wrap>
+		<div class="splash-logo-wrap relative shrink-0" data-splash-logo-wrap>
 			<div class="splash-logo-shimmer" aria-hidden="true"></div>
 			<img
 				src="/brand/logo-universe-512.png"
@@ -60,7 +60,7 @@ const chars = home.hero_title.replace(/\.$/, '').split('');
 		</div>
 
 		<p
-			class="splash-title pointer-events-none m-0 mt-5 select-none whitespace-nowrap text-center text-[clamp(1.15rem,5.2vw,1.65rem)] font-extralight tracking-[0.12em] text-[var(--page-fg)] md:mt-6 md:text-6xl md:tracking-[0.28em] lg:text-7xl"
+			class="splash-title pointer-events-none m-0 mt-5 select-none whitespace-nowrap text-center text-[clamp(1.15rem,5.2vw,1.65rem)] font-extralight text-[var(--page-fg)] md:mt-6 md:text-6xl lg:text-7xl"
 			style="font-family: 'Inter', system-ui, sans-serif; font-weight: 200; visibility: hidden"
 			data-splash-title
 		>
@@ -84,6 +84,27 @@ const chars = home.hero_title.replace(/\.$/, '').split('');
 			radial-gradient(1px 1px at 90% 45%, rgba(255, 255, 255, 0.3), transparent);
 		background-size: 100% 100%;
 		opacity: 0.55;
+	}
+
+	.splash-stage {
+		width: 100%;
+		max-width: 100%;
+	}
+
+	/*
+	 * Letter-spacing adds extra space after the last glyph, which makes the
+	 * wordmark look left of the logo. Negative margin cancels that trailing gap.
+	 */
+	.splash-title {
+		letter-spacing: 0.12em;
+		margin-right: -0.12em;
+	}
+
+	@media (min-width: 768px) {
+		.splash-title {
+			letter-spacing: 0.28em;
+			margin-right: -0.28em;
+		}
 	}
 
 	.splash-logo-wrap {
