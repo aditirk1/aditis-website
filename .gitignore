@@ -28,3 +28,7 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# CMS browser bundles (copied from node_modules on build / npm run cms:copy)
+public/admin/sveltia-cms.js
+public/admin/decap-cms.js

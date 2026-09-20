@@ -1,14 +1,13 @@
-# Decap CMS — write and publish from the browser at /admin/
+# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms/schema/sveltia-cms.json
+# Sveltia CMS — write and publish from the browser at /admin/
 #
 # Auth: GitHub OAuth, handled by functions/api/auth.ts + functions/api/callback.ts
 # on Cloudflare Pages. Set these in Cloudflare → Pages → Settings → Environment
 # variables (both encrypted): GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET.
 # The GitHub OAuth app's callback URL must be https://aditirk.me/api/callback
 #
-# Local editing: `npm run cms:local` alongside `astro dev`, then open /admin/.
-# local_backend only activates on localhost, so it is safe to leave enabled.
-
-local_backend: true
+# Local editing: `astro dev`, open http://127.0.0.1:4321/admin/, then
+# “Work with Local Repository” and pick this project folder (no proxy server).
 
 backend:
   name: github
@@ -25,6 +24,10 @@ backend:
 
 media_folder: public/uploads
 public_folder: /uploads
+
+# Keep frontmatter tidy for Astro content collections.
+output:
+  omit_empty_optional_fields: true
 
 collections:
   # Single-file pages (homepage, services copy) — edit here, not in Astro.
