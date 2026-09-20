@@ -5,14 +5,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { dreamMarkdownToHtml, stripFrontmatter } from '../src/utils/dream-markdown.ts';
+import { dreamMarkdownToHtml, normalizeHighlightWords, stripFrontmatter } from '../src/utils/dream-markdown.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
 const dreamsDir = path.join(root, 'src', 'content', 'dreams');
 const outFile = path.join(root, 'functions', '_data', 'dreams.json');
-
-type WordStyle = 'amber' | 'violet' | 'burst';
 
 function parseSimpleFrontmatter(raw: string): {
 	data: Record<string, unknown>;
@@ -37,18 +35,50 @@ function parseSimpleFrontmatter(raw: string): {
 		const rest = keyed[2]!;
 		if (rest === '' || rest === '|' || rest === '>') {
 			if (key === 'highlight-words') {
-				const items: string[] = [];
+				const items: Array<string | { word: string }> = [];
 				i++;
 				while (i < lines.length && /^\s+-\s+/.test(lines[i] ?? '')) {
-					items.push((lines[i] ?? '').replace(/^\s+-\s+/, '').replace(/^["']|["']$/g, '').trim());
+					const itemLine = lines[i] ?? '';
+					const bare = itemLine.match(/^\s+-\s+(.+)$/);
+					const asObj = itemLine.match(/^\s+-\s+word:\s*(.+)$/);
+					if (asObj) {
+						items.push({ word: asObj[1]!.trim().replace(/^["']|["']$/g, '') });
+						i++;
+						continue;
+					}
+					if (bare) {
+						items.push(bare[1]!.trim().replace(/^["']|["']$/g, ''));
+					}
 					i++;
 				}
 				data[key] = items;
 				continue;
 			}
 			if (key === 'word-styles') {
-				const map: Record<string, string> = {};
 				i++;
+				const next = lines[i] ?? '';
+				/* CMS list: - word: door / style: burst */
+				if (/^\s+-\s+/.test(next)) {
+					const list: Array<{ word: string; style: string }> = [];
+					while (i < lines.length && /^\s+-\s+/.test(lines[i] ?? '')) {
+						const entry: { word?: string; style?: string } = {};
+						const first = (lines[i] ?? '').match(/^\s+-\s+(\w+):\s*(.*)$/);
+						if (first) {
+							entry[first[1] as 'word' | 'style'] = first[2]!.trim().replace(/^["']|["']$/g, '');
+						}
+						i++;
+						while (i < lines.length && /^\s{2,}\w+:/.test(lines[i] ?? '') && !/^\s+-\s+/.test(lines[i] ?? '')) {
+							const mm = (lines[i] ?? '').match(/^\s+(\w+):\s*(.*)$/);
+							if (mm) entry[mm[1] as 'word' | 'style'] = mm[2]!.trim().replace(/^["']|["']$/g, '');
+							i++;
+						}
+						if (entry.word && entry.style) list.push({ word: entry.word, style: entry.style });
+					}
+					data[key] = list;
+					continue;
+				}
+				/* Classic map: door: burst */
+				const map: Record<string, string> = {};
 				while (i < lines.length && /^\s+\S/.test(lines[i] ?? '') && !/^\s+-\s+/.test(lines[i] ?? '')) {
 					const mm = (lines[i] ?? '').match(/^\s+([^:]+):\s*(.*)$/);
 					if (mm) map[mm[1]!.trim()] = mm[2]!.trim().replace(/^["']|["']$/g, '');
@@ -110,10 +140,11 @@ async function main() {
 		}
 
 		const md = stripFrontmatter(raw).trim() ? stripFrontmatter(raw) : body;
-		const highlight = Array.isArray(data['highlight-words'])
-			? (data['highlight-words'] as string[])
-			: undefined;
-		const wordStyles = (data['word-styles'] as Record<string, WordStyle> | undefined) ?? undefined;
+		const highlight = normalizeHighlightWords(data['highlight-words']);
+		const wordStyles = data['word-styles'] as
+			| Record<string, string>
+			| Array<Record<string, unknown>>
+			| undefined;
 		const html = await dreamMarkdownToHtml(md, highlight, wordStyles);
 		const mood = typeof data.mood === 'string' && data.mood.trim() ? data.mood.trim() : undefined;
 
