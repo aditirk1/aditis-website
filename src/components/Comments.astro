@@ -1,32 +1,25 @@
 ---
+import OAuthSignInButtons from './OAuthSignInButtons.astro';
+
 interface Props {
 	/** e.g. blog/my-post or thoughts/abc */
 	scope: string;
 }
 
 const { scope } = Astro.props;
+const returnPath = `/${scope}`;
 ---
 
 <section class="comments-section" data-comments-root data-comments-scope={scope}>
 	<h2 class="comments-section__title">Comments</h2>
-	<p class="comments-section__lede">Sign in with Google or GitHub to leave a note.</p>
 	<p data-comments-status class="comments-section__status"></p>
 
-	<div data-comments-auth class="comments-auth">
-		<a
-			data-comments-google
-			href={`/api/dream-auth?provider=google&return_to=${encodeURIComponent(`/${scope}`)}`}
-			class="comments-auth__btn comments-auth__btn--google"
-		>
-			Continue with Google
-		</a>
-		<a
-			data-comments-github
-			href={`/api/dream-auth?provider=github&return_to=${encodeURIComponent(`/${scope}`)}`}
-			class="comments-auth__btn comments-auth__btn--github"
-		>
-			Continue with GitHub
-		</a>
+	<div data-comments-auth class="comments-auth" hidden>
+		<p class="comments-auth__title m-0" style="font-family: var(--font-display)">Sign in</p>
+		<OAuthSignInButtons
+			googleHref={`/api/dream-auth?provider=google&return_to=${encodeURIComponent(returnPath)}`}
+			githubHref={`/api/dream-auth?provider=github&return_to=${encodeURIComponent(returnPath)}`}
+		/>
 	</div>
 
 	<div data-comments-form-wrap class="comments-form-wrap" hidden>
@@ -75,17 +68,11 @@ const { scope } = Astro.props;
 	}
 
 	.comments-section__title {
-		margin: 0 0 0.35rem;
+		margin: 0 0 1rem;
 		font-family: var(--font-display);
 		font-size: calc(1.35rem * var(--reader-scale, var(--reader-text-scale, 1.1)));
 		font-weight: 600;
 		letter-spacing: -0.02em;
-	}
-
-	.comments-section__lede {
-		margin: 0 0 1.25rem;
-		color: var(--page-muted);
-		font-size: calc(0.95rem * var(--reader-scale, var(--reader-text-scale, 1.1)));
 	}
 
 	.comments-section__status {
@@ -97,44 +84,19 @@ const { scope } = Astro.props;
 
 	.comments-auth {
 		display: flex;
-		flex-wrap: wrap;
-		gap: 0.65rem;
-		margin-bottom: 1.5rem;
-	}
-
-	.comments-auth__btn {
-		display: inline-flex;
+		flex-direction: column;
 		align-items: center;
-		justify-content: center;
-		border-radius: 999px;
-		padding: 0.55rem 1.1rem;
-		font-size: calc(0.85rem * var(--reader-scale, var(--reader-text-scale, 1.1)));
+		gap: 1.25rem;
+		margin-bottom: 1.75rem;
+		text-align: center;
+	}
+
+	.comments-auth__title {
+		font-size: clamp(1.75rem, 5vw, 2.35rem);
 		font-weight: 600;
-		text-decoration: none;
-		transition:
-			background-color 0.2s ease,
-			border-color 0.2s ease,
-			color 0.2s ease;
-	}
-
-	.comments-auth__btn--google {
-		border: 1px solid var(--color-amber);
-		background: color-mix(in srgb, var(--color-amber) 12%, transparent);
+		letter-spacing: -0.03em;
+		line-height: 1.1;
 		color: var(--page-fg);
-	}
-
-	.comments-auth__btn--google:hover {
-		background: color-mix(in srgb, var(--color-amber) 22%, transparent);
-	}
-
-	.comments-auth__btn--github {
-		border: 1px solid color-mix(in srgb, var(--page-fg) 25%, transparent);
-		color: var(--page-fg);
-	}
-
-	.comments-auth__btn--github:hover {
-		border-color: var(--color-amber);
-		color: var(--color-amber);
 	}
 
 	.comments-who {
