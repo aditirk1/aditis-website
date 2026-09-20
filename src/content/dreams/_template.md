@@ -15,14 +15,18 @@ draft: true
 # Optional. Shown under the date.
 mood: weightless, curious
 
-# Optional comic-style emphasis. `highlight-words` get the default amber treatment;
-# `word-styles` overrides individual words with amber | violet | burst.
+# Optional comic-style emphasis (also editable in /admin → Dream journal):
+# - Pop-out words (amber): list of words for the default comic style
+# - Pop-out styles: per-word amber | violet | burst
+# Words must also appear in the body text below.
 highlight-words:
   - drifted
   - ceiling
 word-styles:
-  door: burst
-  light: violet
+  - word: door
+    style: burst
+  - word: light
+    style: violet
 ---
 
 The room *tilted* without moving. I drifted toward a door that was only a seam in the ceiling, and behind it a thin light hummed like a held note.

@@ -174,4 +174,27 @@ collections:
       - { label: Date, name: date, widget: datetime, date_format: YYYY-MM-DD, time_format: false }
       - { label: Mood, name: mood, widget: string, required: false }
       - { label: Draft, name: draft, widget: boolean, default: false }
+      - label: Pop-out words (amber)
+        name: highlight-words
+        widget: list
+        required: false
+        summary: '{{fields.word}}'
+        hint: Words that should pop in the default amber comic style. They must appear in the body text.
+        field: { label: Word, name: word, widget: string }
+      - label: Pop-out styles
+        name: word-styles
+        widget: list
+        required: false
+        summary: '{{fields.word}} → {{fields.style}}'
+        hint: Per-word comic styles. Overrides the amber list when the same word appears in both.
+        fields:
+          - { label: Word, name: word, widget: string }
+          - label: Style
+            name: style
+            widget: select
+            default: amber
+            options:
+              - { label: Amber (default comic), value: amber }
+              - { label: Violet, value: violet }
+              - { label: Burst (extra pop), value: burst }
       - { label: Body, name: body, widget: markdown }

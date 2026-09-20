@@ -50,9 +50,21 @@ const dreams = defineCollection({
 	schema: z.object({
 		date: z.coerce.date(),
 		mood: z.string().optional(),
-		'highlight-words': z.array(z.string()).optional(),
-		/** Per-word comic style: amber (default), violet, or burst */
-		'word-styles': z.record(z.string(), z.enum(['amber', 'violet', 'burst'])).optional(),
+		'highlight-words': z
+			.array(z.union([z.string(), z.object({ word: z.string() })]))
+			.optional(),
+		/** Map form or CMS list of { word, style } */
+		'word-styles': z
+			.union([
+				z.record(z.string(), z.enum(['amber', 'violet', 'burst'])),
+				z.array(
+					z.object({
+						word: z.string(),
+						style: z.enum(['amber', 'violet', 'burst']),
+					}),
+				),
+			])
+			.optional(),
 		draft: z.boolean().optional(),
 	}),
 });
