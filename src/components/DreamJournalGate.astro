@@ -3,6 +3,7 @@
  * Dream journal gate: quiz → Google/GitHub OAuth → content from /api/dreams.
  * Slot content is a client-filled shell — no dream HTML in the static build.
  */
+import OAuthSignInButtons from './OAuthSignInButtons.astro';
 ---
 
 <div class="dream-gate-root" data-dream-gate-root data-dream-locked="1">
@@ -12,17 +13,16 @@
 		data-dream-gate-panel
 	>
 		<div data-dream-gate-form-wrap>
-			<p class="dream-entry-meta mb-3">Private corner</p>
-			<h2 class="mb-2 text-2xl font-light md:text-3xl" style="font-family: var(--font-display)">
-				One question first
+			<h2
+				class="mb-6 text-center text-3xl font-light md:text-4xl"
+				style="font-family: var(--font-display)"
+			>
+				One question
 			</h2>
-			<p class="mb-6 text-sm leading-relaxed text-[var(--page-muted)]">
-				before what appears next 👁️
-			</p>
 
 			<form class="flex flex-col gap-4" data-dream-gate-form autocomplete="off">
 				<label class="flex flex-col gap-2 text-sm text-[var(--page-muted)]">
-					<span data-dream-gate-question class="text-base text-[var(--page-fg)]"></span>
+					<span data-dream-gate-question class="text-center text-base text-[var(--page-fg)]"></span>
 					<input
 						type="text"
 						name="answer"
@@ -36,7 +36,7 @@
 					/>
 				</label>
 				<p data-dream-gate-error class="text-sm text-[color-mix(in_srgb,#ff8a8a_90%,white)]" hidden></p>
-				<div class="flex flex-wrap items-center gap-3">
+				<div class="flex flex-wrap items-center justify-center gap-3">
 					<button
 						type="submit"
 						class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_12%,transparent)] px-5 py-2.5 text-sm font-semibold text-[var(--page-fg)] transition hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)]"
@@ -54,28 +54,12 @@
 			</form>
 		</div>
 
-		<div data-dream-gate-auth hidden>
-			<p class="dream-entry-meta mb-3">Private corner</p>
-			<h2 class="mb-2 text-2xl font-light md:text-3xl" style="font-family: var(--font-display)">
-				Sign in to continue
-			</h2>
-			<p class="mb-6 text-sm leading-relaxed text-[var(--page-muted)]">
-				Google or GitHub — so the dreams stay behind a real login, not just the quiz.
-			</p>
-			<div class="flex flex-col gap-3">
-				<a
-					href="/api/dream-auth?provider=google&return_to=%2Fdream-journal"
-					class="inline-flex items-center justify-center rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_12%,transparent)] px-5 py-2.5 text-center text-sm font-semibold text-[var(--page-fg)] transition hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)]"
-				>
-					Continue with Google
-				</a>
-				<a
-					href="/api/dream-auth?provider=github&return_to=%2Fdream-journal"
-					class="inline-flex items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--page-fg)_25%,transparent)] px-5 py-2.5 text-center text-sm font-semibold text-[var(--page-fg)] transition hover:border-[var(--color-amber)] hover:text-[var(--color-amber)]"
-				>
-					Continue with GitHub
-				</a>
-			</div>
+		<div data-dream-gate-auth class="dream-gate-auth" hidden>
+			<h2 class="dream-gate-auth__title m-0" style="font-family: var(--font-display)">Sign in</h2>
+			<OAuthSignInButtons
+				googleHref="/api/dream-auth?provider=google&return_to=%2Fdream-journal"
+				githubHref="/api/dream-auth?provider=github&return_to=%2Fdream-journal"
+			/>
 		</div>
 
 		<div class="dream-gate-lockout" data-dream-gate-lockout hidden>
@@ -137,6 +121,23 @@
 
 	.dream-gate-panel {
 		margin-top: clamp(2rem, 8vh, 4rem);
+	}
+
+	.dream-gate-auth {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1.5rem;
+		text-align: center;
+		padding: 0.5rem 0;
+	}
+
+	.dream-gate-auth__title {
+		font-size: clamp(2rem, 6vw, 2.75rem);
+		font-weight: 600;
+		letter-spacing: -0.03em;
+		line-height: 1.1;
+		color: var(--page-fg);
 	}
 
 	.dream-gate-lockout {
