@@ -1,6 +1,6 @@
 /**
- * Splash: logo fades in → hold → title fades in (pair stays screen-centered) →
- * hold → scatter → reveal. First visit per session only (sessionStorage).
+ * Splash: logo fades in → hold → logo rises + title → hold → scatter → reveal.
+ * First visit per session only (sessionStorage).
  *
  * Logo shimmer uses the original img + overlay structure from before the redesign.
  */
@@ -57,10 +57,11 @@ export function initSplashIntro(): void {
 
 	setSplashLogoSrc(logo);
 
+	const logoLift = window.matchMedia('(min-width: 768px)').matches ? -88 : -64;
+
 	gsap.set(logoWrap, { y: 0 });
 	gsap.set(logo, { opacity: 0 });
-	/* Title stays in layout (space reserved) but invisible until phase 2 — keeps the pair centered. */
-	gsap.set(title, { opacity: 0, visibility: 'hidden' });
+	gsap.set(title, { autoAlpha: 0 });
 	gsap.set(chars, { opacity: 1, x: 0, y: 0, rotation: 0, scale: 1 });
 
 	const tl = gsap.timeline();
@@ -74,13 +75,22 @@ export function initSplashIntro(): void {
 
 	tl.to({}, { duration: LOGO_HOLD_S });
 
-	/* Phase 2 — title fades in under the logo; no vertical lift (avoids off-center drift) */
-	tl.to(title, {
-		opacity: 1,
-		visibility: 'visible',
-		duration: TITLE_FADE_S,
-		ease: 'power2.out',
+	/* Phase 2 — logo rises; title fades in */
+	tl.to(logoWrap, {
+		y: logoLift,
+		duration: 0.85,
+		ease: 'power2.inOut',
 	});
+
+	tl.to(
+		title,
+		{
+			autoAlpha: 1,
+			duration: TITLE_FADE_S,
+			ease: 'power2.out',
+		},
+		'<0.1',
+	);
 
 	tl.to({}, { duration: TITLE_HOLD_S });
 
