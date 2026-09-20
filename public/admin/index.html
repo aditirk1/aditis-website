@@ -4,7 +4,7 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="robots" content="noindex, nofollow" />
-		<title>Edit site content · Decap CMS</title>
+		<title>Edit site content · Sveltia CMS</title>
 		<link href="/admin/config.yml" type="text/yaml" rel="cms-config-url" />
 		<style>
 			html,
@@ -40,7 +40,7 @@
 			<p id="cms-detail" style="color: #555"></p>
 		</div>
 		<!-- Prefer same-origin bundle; CDN is fallback if the build omitted the file -->
-		<script src="/admin/decap-cms.js"></script>
+		<script src="/admin/sveltia-cms.js"></script>
 		<script>
 			(function () {
 				var status = document.getElementById('cms-status');
@@ -52,7 +52,7 @@
 					if (detail) detail.textContent = msg;
 				}
 				function cmsReady() {
-					return Boolean(window.CMS || window.DecapCms);
+					return Boolean(window.CMS);
 				}
 
 				if (cmsReady()) {
@@ -60,16 +60,16 @@
 					return;
 				}
 
-				// Local script missing or failed — load from jsDelivr
+				// Local script missing or failed — load from UNPKG
 				var cdn = document.createElement('script');
-				cdn.src = 'https://cdn.jsdelivr.net/npm/decap-cms@3.15.1/dist/decap-cms.js';
+				cdn.src = 'https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js';
 				cdn.onload = function () {
 					if (cmsReady()) markOk();
-					else markFail('Decap script loaded but did not initialize. Check the browser console.');
+					else markFail('Sveltia script loaded but did not initialize. Check the browser console.');
 				};
 				cdn.onerror = function () {
 					markFail(
-						'Could not load Decap from this site or jsDelivr. Check Cloudflare deploy logs and that /admin/decap-cms.js returns 200.',
+						'Could not load Sveltia from this site or UNPKG. Check Cloudflare deploy logs and that /admin/sveltia-cms.js returns 200.',
 					);
 				};
 				document.body.appendChild(cdn);
@@ -78,7 +78,7 @@
 					if (cmsReady()) markOk();
 					else if (status && status.getAttribute('data-ok') !== '1') {
 						markFail(
-							'Still blank after 10s — open Web Inspector → Console/Network and look for failed /admin/decap-cms.js or config.yml.',
+							'Still blank after 10s — open Web Inspector → Console/Network and look for failed /admin/sveltia-cms.js or config.yml.',
 						);
 					}
 				}, 10000);

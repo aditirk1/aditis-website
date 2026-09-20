@@ -5,20 +5,20 @@
   "engines": {
     "node": ">=22.12.0"
   },
-	"scripts": {
-		"dev": "astro dev",
-		"prebuild": "node scripts/copy-decap.mjs && node --experimental-strip-types scripts/bundle-dreams.ts",
-		"build": "node scripts/copy-decap.mjs && node --experimental-strip-types scripts/bundle-dreams.ts && astro build",
+  "scripts": {
+    "dev": "astro dev",
+		"prebuild": "node scripts/copy-sveltia.mjs && node --experimental-strip-types scripts/bundle-dreams.ts",
+		"build": "node scripts/copy-sveltia.mjs && node --experimental-strip-types scripts/bundle-dreams.ts && astro build",
 		"dreams:bundle": "node --experimental-strip-types scripts/bundle-dreams.ts",
 		"preview": "astro preview",
 		"check": "astro check",
 		"astro": "astro",
-		"cms:local": "npx decap-server"
-	},
+		"cms:copy": "node scripts/copy-sveltia.mjs"
+  },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
-    "decap-cms": "^3.15.1",
+    "@sveltia/cms": "^0.217.0",
     "globe.gl": "^2.45.3",
     "gsap": "^3.14.2",
     "lenis": "^1.3.21",

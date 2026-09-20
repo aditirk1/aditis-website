@@ -1,5 +1,5 @@
 /**
- * GitHub OAuth, step 1 of 2, for Decap CMS at /admin/.
+ * GitHub OAuth, step 1 of 2, for Sveltia CMS at /admin/.
  *
  * GitHub requires the authorization code to be exchanged for a token using a
  * client secret, which cannot live in the browser. This function starts the

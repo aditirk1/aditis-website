@@ -1,10 +1,10 @@
 /**
- * GitHub OAuth, step 2 of 2, for Decap CMS at /admin/.
+ * GitHub OAuth, step 2 of 2, for Sveltia CMS at /admin/.
  *
  * Exchanges the authorization code for an access token, then hands it to the
- * Decap window that opened this popup using the handshake Decap expects:
- * the popup announces `authorizing:github`, and replies to the opener's
- * acknowledgement with the token.
+ * CMS window that opened this popup using the handshake Sveltia expects
+ * (same as Decap): the popup announces `authorizing:github`, and replies to
+ * the opener's acknowledgement with the token.
  *
  * Set the GitHub OAuth app's callback URL to https://<your-domain>/api/callback
  */
@@ -112,7 +112,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 		headers: {
 			'Content-Type': 'application/json',
 			Accept: 'application/json',
-			'User-Agent': 'aditirk.me-decap-auth',
+			'User-Agent': 'aditirk.me-cms-auth',
 		},
 		body: JSON.stringify({
 			client_id: env.GITHUB_CLIENT_ID,
