@@ -1,5 +1,5 @@
 /**
- * Dream session status + logout.
+ * Dream/site session status + logout.
  */
 import { corsOptions, forbidCrossOrigin, json } from '../_shared/cors';
 import {
@@ -10,6 +10,15 @@ import {
 
 interface Env {
 	DREAM_SESSION_SECRET?: string;
+	COMMENT_ADMIN_SUBS?: string;
+}
+
+function isAdminSub(sub: string, env: Env): boolean {
+	const allow = (env.COMMENT_ADMIN_SUBS ?? '')
+		.split(',')
+		.map((s) => s.trim())
+		.filter(Boolean);
+	return allow.includes(sub);
 }
 
 export const onRequestOptions: PagesFunction = async ({ request }) => corsOptions(request);
@@ -20,7 +29,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
 	const session = await sessionFromRequest(request, env.DREAM_SESSION_SECRET);
 	if (!session) {
-		return json({ ok: true, authenticated: false }, 200, request);
+		return json({ ok: true, authenticated: false, isAdmin: false }, 200, request);
 	}
 	return json(
 		{
@@ -28,6 +37,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 			authenticated: true,
 			provider: session.provider,
 			name: session.name ?? null,
+			sub: session.sub,
+			isAdmin: isAdminSub(session.sub, env),
 		},
 		200,
 		request,

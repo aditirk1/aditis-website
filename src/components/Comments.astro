@@ -1,0 +1,248 @@
+---
+interface Props {
+	/** e.g. blog/my-post or thoughts/abc */
+	scope: string;
+}
+
+const { scope } = Astro.props;
+---
+
+<section class="comments-section" data-comments-root data-comments-scope={scope}>
+	<h2 class="comments-section__title">Comments</h2>
+	<p class="comments-section__lede">Sign in with Google or GitHub to leave a note.</p>
+	<p data-comments-status class="comments-section__status"></p>
+
+	<div data-comments-auth class="comments-auth">
+		<a
+			data-comments-google
+			href={`/api/dream-auth?provider=google&return_to=${encodeURIComponent(`/${scope}`)}`}
+			class="comments-auth__btn comments-auth__btn--google"
+		>
+			Continue with Google
+		</a>
+		<a
+			data-comments-github
+			href={`/api/dream-auth?provider=github&return_to=${encodeURIComponent(`/${scope}`)}`}
+			class="comments-auth__btn comments-auth__btn--github"
+		>
+			Continue with GitHub
+		</a>
+	</div>
+
+	<div data-comments-form-wrap class="comments-form-wrap" hidden>
+		<p data-comments-who class="comments-who"></p>
+		<form data-comments-form class="comments-form" autocomplete="off">
+			<label class="comments-form__label">
+				<span class="sr-only">Your comment</span>
+				<textarea
+					data-comments-input
+					name="body"
+					rows="3"
+					maxlength="2000"
+					required
+					placeholder="Write a comment…"
+					class="comments-form__input"
+				></textarea>
+			</label>
+			<div class="comments-form__actions">
+				<button type="submit" class="comments-form__submit">Post</button>
+				<button type="button" data-comments-sign-out class="comments-form__signout">Sign out</button>
+			</div>
+		</form>
+	</div>
+
+	<div data-comments-list class="comments-list"></div>
+</section>
+
+<script>
+	import { initComments } from '../scripts/comments.ts';
+
+	const roots = document.querySelectorAll('[data-comments-root]');
+	const stops: Array<() => void> = [];
+	roots.forEach((root) => {
+		if (root instanceof HTMLElement) stops.push(initComments(root));
+	});
+	if (import.meta.hot) {
+		import.meta.hot.dispose(() => stops.forEach((s) => s()));
+	}
+</script>
+
+<style>
+	.comments-section {
+		margin-top: clamp(2.5rem, 6vw, 4rem);
+		padding-top: clamp(1.5rem, 3vw, 2rem);
+		border-top: 1px solid color-mix(in srgb, var(--page-fg) 12%, transparent);
+	}
+
+	.comments-section__title {
+		margin: 0 0 0.35rem;
+		font-family: var(--font-display);
+		font-size: calc(1.35rem * var(--reader-scale, var(--reader-text-scale, 1.1)));
+		font-weight: 600;
+		letter-spacing: -0.02em;
+	}
+
+	.comments-section__lede {
+		margin: 0 0 1.25rem;
+		color: var(--page-muted);
+		font-size: calc(0.95rem * var(--reader-scale, var(--reader-text-scale, 1.1)));
+	}
+
+	.comments-section__status {
+		min-height: 1.25rem;
+		margin: 0 0 1rem;
+		font-size: calc(0.85rem * var(--reader-scale, var(--reader-text-scale, 1.1)));
+		color: var(--page-muted);
+	}
+
+	.comments-auth {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.65rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.comments-auth__btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 999px;
+		padding: 0.55rem 1.1rem;
+		font-size: calc(0.85rem * var(--reader-scale, var(--reader-text-scale, 1.1)));
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			background-color 0.2s ease,
+			border-color 0.2s ease,
+			color 0.2s ease;
+	}
+
+	.comments-auth__btn--google {
+		border: 1px solid var(--color-amber);
+		background: color-mix(in srgb, var(--color-amber) 12%, transparent);
+		color: var(--page-fg);
+	}
+
+	.comments-auth__btn--google:hover {
+		background: color-mix(in srgb, var(--color-amber) 22%, transparent);
+	}
+
+	.comments-auth__btn--github {
+		border: 1px solid color-mix(in srgb, var(--page-fg) 25%, transparent);
+		color: var(--page-fg);
+	}
+
+	.comments-auth__btn--github:hover {
+		border-color: var(--color-amber);
+		color: var(--color-amber);
+	}
+
+	.comments-who {
+		margin: 0 0 0.65rem;
+		font-size: calc(0.85rem * var(--reader-scale, var(--reader-text-scale, 1.1)));
+		color: var(--page-muted);
+	}
+
+	.comments-form__input {
+		width: 100%;
+		resize: vertical;
+		min-height: 5rem;
+		border-radius: 0.75rem;
+		border: 1px solid color-mix(in srgb, var(--color-amber) 28%, transparent);
+		background: color-mix(in srgb, #000 18%, transparent);
+		padding: 0.75rem 0.9rem;
+		color: var(--page-fg);
+		font: inherit;
+		font-size: calc(1rem * var(--reader-scale, var(--reader-text-scale, 1.1)));
+		line-height: 1.5;
+		outline: none;
+	}
+
+	.comments-form__input:focus {
+		border-color: var(--color-amber);
+	}
+
+	.comments-form__actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem;
+		margin-top: 0.75rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.comments-form__submit {
+		border-radius: 999px;
+		border: 1px solid var(--color-amber);
+		background: color-mix(in srgb, var(--color-amber) 12%, transparent);
+		padding: 0.45rem 1.1rem;
+		font-size: calc(0.85rem * var(--reader-scale, var(--reader-text-scale, 1.1)));
+		font-weight: 600;
+		color: var(--page-fg);
+		cursor: pointer;
+	}
+
+	.comments-form__signout {
+		border: 0;
+		background: transparent;
+		padding: 0;
+		font-size: calc(0.85rem * var(--reader-scale, var(--reader-text-scale, 1.1)));
+		color: var(--page-muted);
+		text-decoration: underline;
+		text-underline-offset: 0.12em;
+		cursor: pointer;
+	}
+
+	.comments-empty {
+		margin: 0;
+		color: var(--page-muted);
+		font-size: calc(0.95rem * var(--reader-scale, var(--reader-text-scale, 1.1)));
+	}
+
+	.comments-item {
+		padding: 1rem 0;
+		border-top: 1px solid color-mix(in srgb, var(--page-fg) 10%, transparent);
+	}
+
+	.comments-item__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.45rem 0.75rem;
+		margin-bottom: 0.4rem;
+		font-size: calc(0.8rem * var(--reader-scale, var(--reader-text-scale, 1.1)));
+		color: var(--page-muted);
+	}
+
+	.comments-item__name {
+		font-weight: 600;
+		color: var(--page-fg);
+	}
+
+	.comments-item__via {
+		opacity: 0.75;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		font-size: 0.72em;
+	}
+
+	.comments-item__delete {
+		margin-left: auto;
+		border: 0;
+		background: transparent;
+		padding: 0;
+		font-size: inherit;
+		color: color-mix(in srgb, #ff8a8a 90%, white);
+		cursor: pointer;
+		text-decoration: underline;
+		text-underline-offset: 0.12em;
+	}
+
+	.comments-item__body {
+		margin: 0;
+		font-size: calc(1.05rem * var(--reader-scale, var(--reader-text-scale, 1.1)));
+		line-height: 1.55;
+		color: var(--page-fg);
+		white-space: pre-wrap;
+	}
+</style>
