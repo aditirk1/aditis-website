@@ -5,6 +5,7 @@
 export const DREAM_SESSION_COOKIE = 'dream_session';
 export const DREAM_OAUTH_STATE_COOKIE = 'dream_oauth_state';
 export const DREAM_OAUTH_PROVIDER_COOKIE = 'dream_oauth_provider';
+export const DREAM_OAUTH_RETURN_COOKIE = 'dream_oauth_return';
 
 /** 30 days */
 export const DREAM_SESSION_MAX_AGE_S = 60 * 60 * 24 * 30;

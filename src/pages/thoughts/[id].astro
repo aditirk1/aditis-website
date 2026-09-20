@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import ContentLightbox from '../../components/ContentLightbox.astro';
+import Comments from '../../components/Comments.astro';
 
 export async function getStaticPaths() {
 	const items = await getCollection('thoughts', ({ data }) => data.draft !== true);
@@ -37,6 +38,10 @@ const { Content } = await render(entry);
 			data-reveal-child
 		>
 			<Content />
+		</div>
+
+		<div data-reveal-child>
+			<Comments scope={`thoughts/${entry.id}`} />
 		</div>
 	</article>
 

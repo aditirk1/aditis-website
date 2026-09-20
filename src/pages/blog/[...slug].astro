@@ -22,6 +22,7 @@ const { Content } = await render(post.entry);
 		backLabel="All posts"
 		title={post.entry.data.title}
 		variant="blog"
+		commentsScope={`blog/${post.slug}`}
 	>
 		<div slot="meta" class="full-page-article__meta-inner">
 			<time datetime={post.entry.data.date.toISOString()}>

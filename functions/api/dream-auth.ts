@@ -1,13 +1,15 @@
 /**
- * Start Google or GitHub OAuth for the dream journal (after the quiz).
+ * Start Google or GitHub OAuth (dream journal + comments).
  * Callback: /api/dream-callback
  *
- * Env:
- *   DREAM_SESSION_SECRET
- *   DREAM_GITHUB_CLIENT_ID + DREAM_GITHUB_CLIENT_SECRET
- *   GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET
+ * Optional: ?return_to=/blog/my-post (same-origin path only)
  */
-import { DREAM_OAUTH_PROVIDER_COOKIE, DREAM_OAUTH_STATE_COOKIE } from '../_shared/dream-session';
+import {
+	DREAM_OAUTH_PROVIDER_COOKIE,
+	DREAM_OAUTH_RETURN_COOKIE,
+	DREAM_OAUTH_STATE_COOKIE,
+} from '../_shared/dream-session';
+import { sanitizeReturnPath } from '../_shared/oauth-return';
 
 interface Env {
 	DREAM_SESSION_SECRET?: string;
@@ -38,7 +40,6 @@ function envStr(value: unknown): string {
 	return typeof value === 'string' ? value.trim() : '';
 }
 
-/** Real OAuth client IDs never contain spaces (placeholder notes often do). */
 function looksLikeClientId(value: string): boolean {
 	return value.length >= 8 && !/\s/.test(value);
 }
@@ -53,13 +54,19 @@ function missingList(flags: Record<string, boolean>): string {
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 	const sessionSecret = envStr(env.DREAM_SESSION_SECRET);
 	if (!sessionSecret) {
-		return plain('Dream sign-in is not configured (missing DREAM_SESSION_SECRET).');
+		return plain('Sign-in is not configured (missing DREAM_SESSION_SECRET).');
 	}
 
 	const url = new URL(request.url);
 	const provider = url.searchParams.get('provider');
 	const origin = url.origin;
 	const state = crypto.randomUUID().replace(/-/g, '');
+	const returnTo = sanitizeReturnPath(url.searchParams.get('return_to'));
+
+	const baseCookies = [
+		cookie(DREAM_OAUTH_STATE_COOKIE, state, 600),
+		cookie(DREAM_OAUTH_RETURN_COOKIE, returnTo, 600),
+	];
 
 	if (provider === 'github') {
 		const clientId = envStr(env.DREAM_GITHUB_CLIENT_ID);
@@ -70,12 +77,12 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 		});
 		if (missing) {
 			return plain(
-				`GitHub sign-in missing env: ${missing}. Use the Client ID from GitHub → Settings → Developer settings → OAuth Apps (callback must be ${origin}/api/dream-callback).`,
+				`GitHub sign-in missing env: ${missing}. OAuth App callback must be ${origin}/api/dream-callback.`,
 			);
 		}
 		if (!looksLikeClientId(clientId)) {
 			return plain(
-				`DREAM_GITHUB_CLIENT_ID looks like a note, not a Client ID (got "${clientId.slice(0, 64)}"). Paste the real Client ID string from the GitHub OAuth App page.`,
+				`DREAM_GITHUB_CLIENT_ID looks like a note, not a Client ID (got "${clientId.slice(0, 64)}").`,
 			);
 		}
 
@@ -86,7 +93,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 		authorize.searchParams.set('state', state);
 
 		return redirectWithCookies(authorize.toString(), [
-			cookie(DREAM_OAUTH_STATE_COOKIE, state, 600),
+			...baseCookies,
 			cookie(DREAM_OAUTH_PROVIDER_COOKIE, 'github', 600),
 		]);
 	}
@@ -101,19 +108,17 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 		const missing = missingList(present);
 		if (missing) {
 			return plain(
-				`Google sign-in missing env: ${missing}. ` +
-					`Present: ${
-						Object.entries(present)
-							.filter(([, ok]) => ok)
-							.map(([n]) => n)
-							.join(', ') || '(none)'
-					}. ` +
-					`Fix the name/value in Cloudflare → Variables and secrets, then Redeploy.`,
+				`Google sign-in missing env: ${missing}. Present: ${
+					Object.entries(present)
+						.filter(([, ok]) => ok)
+						.map(([n]) => n)
+						.join(', ') || '(none)'
+				}. Fix Cloudflare vars, then Redeploy.`,
 			);
 		}
 		if (!looksLikeClientId(clientId) || !clientId.includes('.apps.googleusercontent.com')) {
 			return plain(
-				`GOOGLE_CLIENT_ID does not look like a Google OAuth client ID (should end with .apps.googleusercontent.com). Check the value in Cloudflare.`,
+				`GOOGLE_CLIENT_ID should look like *.apps.googleusercontent.com — check Cloudflare.`,
 			);
 		}
 
@@ -126,7 +131,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 		authorize.searchParams.set('prompt', 'select_account');
 
 		return redirectWithCookies(authorize.toString(), [
-			cookie(DREAM_OAUTH_STATE_COOKIE, state, 600),
+			...baseCookies,
 			cookie(DREAM_OAUTH_PROVIDER_COOKIE, 'google', 600),
 		]);
 	}

@@ -1,11 +1,14 @@
 ---
 import ContentLightbox from './ContentLightbox.astro';
+import Comments from './Comments.astro';
 
 interface Props {
 	backHref: string;
 	backLabel?: string;
 	title: string;
 	variant?: 'project' | 'blog';
+	/** When set, render comments under the article (blog posts). */
+	commentsScope?: string;
 }
 
 const {
@@ -13,6 +16,7 @@ const {
 	backLabel = 'Back',
 	title,
 	variant = 'project',
+	commentsScope,
 } = Astro.props;
 ---
 
@@ -59,6 +63,8 @@ const {
 		<div class="full-page-article__body blog-prose prose-article text-[var(--page-fg)]" data-reveal-child>
 			<slot />
 		</div>
+
+		{commentsScope && <Comments scope={commentsScope} />}
 	</div>
 </article>
 
