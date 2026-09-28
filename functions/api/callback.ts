@@ -50,7 +50,12 @@ function handshakePage(payload: string, origin: string): Response {
 				var payload = ${safeJson(payload)};
 				var origin = ${safeJson(origin)};
 				if (!window.opener) {
-					document.body.textContent = 'Open the CMS at /admin/ and sign in from there.';
+					document.body.style.cssText = 'font:16px/1.5 system-ui,sans-serif;max-width:32rem;margin:3rem auto;padding:0 1.25rem';
+					document.body.innerHTML =
+						'<p>This sign-in window lost track of the editor (common on phones, where the popup opens as a new tab).</p>' +
+						'<p>Go back to <a href="/admin/">/admin/</a> and choose <strong>Sign In with Token</strong> instead — ' +
+						'paste a GitHub personal access token once and it stays signed in on this device.</p>' +
+						'<p>For a quick thought, <a href="/quick">/quick</a> works on any phone.</p>';
 					return;
 				}
 				window.addEventListener('message', function (e) {

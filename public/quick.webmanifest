@@ -1,0 +1,13 @@
+{
+	"name": "aditi's universe · quick thought",
+	"short_name": "Thought",
+	"start_url": "/quick",
+	"scope": "/quick",
+	"display": "standalone",
+	"background_color": "#05030c",
+	"theme_color": "#05030c",
+	"icons": [
+		{ "src": "/brand/logo-universe-180.png", "sizes": "180x180", "type": "image/png" },
+		{ "src": "/brand/logo-universe-512.png", "sizes": "512x512", "type": "image/png" }
+	]
+}

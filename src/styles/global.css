@@ -28,7 +28,8 @@
 
 @theme {
 	--color-amber: #ffaa00;
-	--color-beach-accent: #2d7ec8;
+	/* ≥4.5:1 on --color-beach-bg (WCAG AA for small text) */
+	--color-beach-accent: #1f6aad;
 
 	--color-universe-bg: #05030c;
 	--color-universe-fg: #f7f4ec;
@@ -36,7 +37,7 @@
 
 	--color-beach-bg: #eaf6ff;
 	--color-beach-fg: #142a42;
-	--color-beach-muted: color-mix(in srgb, #142a42 55%, transparent);
+	--color-beach-muted: color-mix(in srgb, #142a42 70%, transparent);
 }
 
 :root {
@@ -678,21 +679,22 @@ nav[aria-label='Primary'] .nav-tab[data-active='true'] {
 		min-width: 0;
 	}
 
+	/* ~44px tap targets on phones */
 	nav[aria-label='Primary'] .nav-tab {
 		flex: 0 0 auto;
 		white-space: nowrap;
-		padding: 0.32rem 0.58rem;
-		font-size: 0.68rem;
-		min-height: 1.95rem;
+		padding: 0.4rem 0.75rem;
+		font-size: 0.72rem;
+		min-height: 2.75rem;
 		letter-spacing: 0.02em;
 	}
 
 	.theme-toggle-btn,
 	[data-theme-toggle] {
-		padding: 0.28rem 0.55rem;
-		font-size: 0.65rem;
+		padding: 0.4rem 0.75rem;
+		font-size: 0.7rem;
 		font-weight: 500;
-		min-height: 1.95rem;
+		min-height: 2.75rem;
 		line-height: 1;
 	}
 }

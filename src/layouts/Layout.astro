@@ -17,6 +17,8 @@ interface Props {
 	noindex?: boolean;
 	/** Edge-to-edge main column (full-page articles) */
 	immersive?: boolean;
+	/** Web app manifest for pages meant to be added to the home screen */
+	manifest?: string;
 }
 
 const {
@@ -25,6 +27,7 @@ const {
 	layoutVariant = 'default',
 	noindex = false,
 	immersive = false,
+	manifest,
 } = Astro.props;
 
 const dreamRealm = layoutVariant === 'dream';
@@ -34,13 +37,14 @@ const umamiId = import.meta.env.PUBLIC_UMAMI_WEBSITE_ID;
 const umamiSrc = import.meta.env.PUBLIC_UMAMI_SCRIPT_URL;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
-const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.url);
+const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 ---
 
 <!doctype html>
 <html lang="en" data-layout={layoutVariant} data-dream-realm={dreamRealm ? '1' : undefined}>
 	<head>
 		<meta charset="utf-8" />
+		<meta name="theme-color" content="#05030c" data-theme-color />
 		<script is:inline>
 			(function () {
 				try {
@@ -51,6 +55,8 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 						localStorage.setItem(KEY, t);
 					}
 					document.documentElement.setAttribute('data-theme', t);
+					var tc = document.querySelector('meta[data-theme-color]');
+					if (tc) tc.setAttribute('content', t === 'beach' ? '#eaf6ff' : '#05030c');
 					var pref = t === 'beach' ? '/brand/logo-beach' : '/brand/logo-universe';
 					var f16 = document.querySelector('link[data-favicon-16]');
 					var f32 = document.querySelector('link[data-favicon-32]');
@@ -107,7 +113,10 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 		<meta property="og:description" content={description} />
 		<meta property="og:url" content={canonicalURL.href} />
 		<meta property="og:image" content={ogImageURL.href} />
-		<meta name="twitter:card" content="summary" />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta property="og:image:alt" content="aditi's universe" />
+		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:title" content={title} />
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={ogImageURL.href} />
@@ -124,6 +133,7 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 		/>
 		<meta name="generator" content={Astro.generator} />
 		{noindex && <meta name="robots" content="noindex, nofollow" />}
+		{manifest && <link rel="manifest" href={manifest} />}
 		<title>{title}</title>
 
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -281,6 +291,10 @@ const ogImageURL = new URL('/brand/logo-universe-512.png', Astro.site ?? Astro.u
 
 				const logo = document.querySelector('[data-site-logo]') as HTMLImageElement | null;
 				if (logo) logo.src = `${pref}-32.png`;
+
+				document
+					.querySelector('meta[data-theme-color]')
+					?.setAttribute('content', theme === 'beach' ? '#eaf6ff' : '#05030c');
 			}
 
 			function getStoredTheme(): 'universe' | 'beach' {
