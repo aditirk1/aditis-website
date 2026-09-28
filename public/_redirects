@@ -1,2 +1,2 @@
-# Decap looks for config.yml relative to the URL; /admin (no slash) breaks it.
+# The CMS looks for config.yml relative to the URL; /admin (no slash) breaks it.
 /admin  /admin/  301

@@ -11,6 +11,7 @@
  */
 import { corsOptions, forbidCrossOrigin, json } from '../_shared/cors';
 import { sessionFromRequest, type DreamSessionPayload } from '../_shared/dream-session';
+import { rateLimit, timingSafeEqual } from '../_shared/security';
 
 interface Env {
 	VISITOR_KV: KVNamespace;
@@ -44,16 +45,22 @@ function normalizeScope(raw: string | null): string | null {
 	return s;
 }
 
-function escapeBody(raw: string): string {
+/**
+ * Bodies are stored as raw text — NOT HTML-escaped. Every render path
+ * (src/scripts/comments.ts today; any future RSS/admin view) must escape
+ * body and name before inserting them into HTML.
+ */
+function normalizeBody(raw: string): string {
 	return raw
 		.replace(/\r\n/g, '\n')
 		.trim()
 		.slice(0, MAX_BODY);
 }
 
-function isAdmin(session: DreamSessionPayload | null, request: Request, env: Env): boolean {
+async function isAdmin(session: DreamSessionPayload | null, request: Request, env: Env): Promise<boolean> {
 	const secret = env.ADMIN_STATS_SECRET?.trim();
-	if (secret && request.headers.get('X-Admin-Secret') === secret) return true;
+	const provided = request.headers.get('X-Admin-Secret');
+	if (secret && provided && (await timingSafeEqual(provided, secret))) return true;
 	if (!session) return false;
 	const allow = (env.COMMENT_ADMIN_SUBS ?? '')
 		.split(',')
@@ -96,7 +103,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 			scope,
 			comments,
 			authenticated: !!session,
-			isAdmin: isAdmin(session, request, env),
+			isAdmin: await isAdmin(session, request, env),
 			viewer: session
 				? { name: session.name ?? null, provider: session.provider, sub: session.sub }
 				: null,
@@ -114,6 +121,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	const session = await sessionFromRequest(request, env.DREAM_SESSION_SECRET);
 	if (!session) return json({ ok: false, error: 'unauthorized' }, 401, request);
 
+	const limited = await rateLimit(env.VISITOR_KV, request, { bucket: 'comments-post', limit: 5, windowS: 60 });
+	if (limited) return limited;
+
 	let payload: { scope?: string; body?: string };
 	try {
 		payload = (await request.json()) as { scope?: string; body?: string };
@@ -124,7 +134,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	const scope = normalizeScope(payload.scope ?? null);
 	if (!scope) return json({ ok: false, error: 'invalid scope' }, 400, request);
 
-	const body = escapeBody(typeof payload.body === 'string' ? payload.body : '');
+	const body = normalizeBody(typeof payload.body === 'string' ? payload.body : '');
 	if (body.length < 1) return json({ ok: false, error: 'empty' }, 400, request);
 
 	const list = await readComments(env.VISITOR_KV, scope);
@@ -147,8 +157,11 @@ export const onRequestDelete: PagesFunction<Env> = async ({ request, env }) => {
 	if (blocked) return blocked;
 	if (!env.VISITOR_KV) return json({ ok: false, error: 'KV not configured' }, 503, request);
 
+	const limited = await rateLimit(env.VISITOR_KV, request, { bucket: 'admin', limit: 10, windowS: 300 });
+	if (limited) return limited;
+
 	const session = await sessionFromRequest(request, env.DREAM_SESSION_SECRET);
-	if (!isAdmin(session, request, env)) {
+	if (!(await isAdmin(session, request, env))) {
 		return json({ ok: false, error: 'forbidden' }, 403, request);
 	}
 

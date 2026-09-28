@@ -1,4 +1,6 @@
 ---
+import Button from './Button.astro';
+
 /**
  * Contact modal — Web3Forms (https://web3forms.com) posts to their API; no backend on your side.
  *
@@ -23,10 +25,11 @@ const { accessKey = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY ?? '' } = Astro.
 		</h2>
 		<button
 			type="button"
-			class="rounded-full border border-[color-mix(in_srgb,var(--page-fg)_25%,transparent)] px-2 py-0.5 text-sm hover:border-[var(--color-amber)]"
+			class="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--page-fg)_25%,transparent)] text-sm hover:border-[var(--color-amber)]"
+			aria-label="Close"
 			data-contact-close
 		>
-			✕
+			<span aria-hidden="true">✕</span>
 		</button>
 	</div>
 	<p class="mt-2 text-sm text-[var(--page-muted)]">Tell me what you’re building. I’ll reply by email.</p>
@@ -72,13 +75,8 @@ const { accessKey = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY ?? '' } = Astro.
 				class="rounded-lg border border-[color-mix(in_srgb,var(--page-fg)_22%,transparent)] bg-transparent px-3 py-2"
 			></textarea>
 		</label>
-		<button
-			type="submit"
-			class="mt-2 rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_15%,transparent)] py-2.5 text-sm font-bold text-[var(--color-amber)]"
-		>
-			Send
-		</button>
-		<p class="text-xs text-[var(--page-muted)]" data-contact-status hidden></p>
+		<Button type="submit" class="mt-2 w-full">Send</Button>
+		<p class="text-xs text-[var(--page-muted)]" data-contact-status role="status" aria-live="polite" hidden></p>
 	</form>
 	</div>
 </dialog>

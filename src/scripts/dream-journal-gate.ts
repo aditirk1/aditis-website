@@ -2,6 +2,7 @@
  * Dream journal client: quiz → OAuth → fetch entries from /api/dreams (cookie).
  * Dream HTML is never embedded in the static page build.
  */
+import DOMPurify from 'dompurify';
 import {
 	DREAM_JOURNAL_ATTEMPTS_KEY,
 	DREAM_JOURNAL_GATE_QUESTIONS,
@@ -326,7 +327,7 @@ export function initDreamJournalGate(root: HTMLElement): () => void {
 				<article class="dream-realm-panel relative px-6 py-8 md:px-8 md:py-10">
 					<div class="dream-realm-article">
 						<p class="dream-entry-meta mb-5">${formatDate(entry.date)}${entry.mood ? ` · ${escapeHtml(entry.mood)}` : ''}</p>
-						<div class="dream-md space-y-4 text-lg leading-relaxed text-[var(--page-fg)] [&_p]:mb-4">${entry.html}</div>
+						<div class="dream-md space-y-4 text-lg leading-relaxed text-[var(--page-fg)] [&_p]:mb-4">${DOMPurify.sanitize(entry.html)}</div>
 					</div>
 				</article>`;
 			bindDreamHits(detailEl);

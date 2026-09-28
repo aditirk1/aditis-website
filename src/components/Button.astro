@@ -1,0 +1,41 @@
+---
+/**
+ * Pill button used for calls to action. Renders an <a> when `href` is set,
+ * otherwise a <button>. Extra attributes (data-*, target, rel, disabled…) pass through.
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = (HTMLAttributes<'a'> & HTMLAttributes<'button'>) & {
+	variant?: 'primary' | 'secondary';
+	size?: 'md' | 'lg';
+	href?: string;
+};
+
+const { variant = 'primary', size = 'md', href, class: className, type, ...rest } = Astro.props;
+
+const base =
+	'inline-flex min-h-11 items-center justify-center rounded-full border text-center font-bold text-[var(--page-fg)] backdrop-blur-sm transition disabled:pointer-events-none disabled:opacity-60';
+const variants = {
+	primary:
+		'border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] fine-hover:scale-[1.03] fine-hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)] fine-hover:shadow-[0_0_28px_color-mix(in_srgb,var(--color-amber)_30%,transparent)]',
+	secondary:
+		'border-[color-mix(in_srgb,var(--page-fg)_25%,transparent)] fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)]',
+};
+const sizes = {
+	md: 'px-6 py-3 text-sm',
+	lg: 'px-7 py-3.5 text-base',
+};
+const classes = [base, variants[variant], sizes[size], className];
+---
+
+{
+	href ? (
+		<a href={href} class:list={classes} {...rest}>
+			<slot />
+		</a>
+	) : (
+		<button type={type ?? 'button'} class:list={classes} {...rest}>
+			<slot />
+		</button>
+	)
+}

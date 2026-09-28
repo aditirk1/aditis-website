@@ -1,14 +1,16 @@
 /**
  * Fullscreen lightbox for `[data-content-lightbox]`.
  */
+export type LightboxItem = { src: string; caption?: string; alt?: string };
+
 export type MediaLightboxController = {
-	openGallery: (sources: string[], startIndex?: number, caption?: string) => void;
+	openGallery: (items: Array<LightboxItem | string>, startIndex?: number) => void;
 	openSingle: (src: string, caption?: string) => void;
 	close: () => void;
 };
 
 export function createMediaLightbox(): MediaLightboxController | null {
-	const overlayEl = document.querySelector<HTMLElement>('[data-content-lightbox]');
+	const overlayEl = document.querySelector<HTMLDialogElement>('[data-content-lightbox]');
 	const imgEl = document.querySelector<HTMLImageElement>('[data-content-lightbox-img]');
 	const captionEl = document.querySelector<HTMLElement>('[data-content-lightbox-caption]');
 	const btnPrev = document.querySelector<HTMLButtonElement>('[data-content-lightbox-prev]');
@@ -22,21 +24,23 @@ export function createMediaLightbox(): MediaLightboxController | null {
 	const img = imgEl;
 
 	const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-	let sources: string[] = [];
+	let items: LightboxItem[] = [];
 	let current = 0;
+	let returnFocus: HTMLElement | null = null;
 
 	function setNav() {
-		const multi = sources.length > 1;
+		const multi = items.length > 1;
 		if (btnPrev) btnPrev.hidden = !multi;
 		if (btnNext) btnNext.hidden = !multi;
 	}
 
-	function showAt(i: number, cap?: string) {
-		if (sources.length === 0) return;
-		current = ((i % sources.length) + sources.length) % sources.length;
-		img.src = sources[current]!;
-		const text = cap ?? '';
-		img.alt = text;
+	function showAt(i: number) {
+		if (items.length === 0) return;
+		current = ((i % items.length) + items.length) % items.length;
+		const item = items[current]!;
+		img.src = item.src;
+		const text = item.caption ?? '';
+		img.alt = item.alt ?? text;
 		if (captionEl) {
 			if (text) {
 				captionEl.textContent = text;
@@ -45,7 +49,11 @@ export function createMediaLightbox(): MediaLightboxController | null {
 				captionEl.hidden = true;
 			}
 		}
-		overlay.hidden = false;
+		if (!overlay.open) {
+			returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+			overlay.showModal();
+			btnClose?.focus();
+		}
 		document.body.style.overflow = 'hidden';
 		setNav();
 		if (!reduce) {
@@ -60,15 +68,20 @@ export function createMediaLightbox(): MediaLightboxController | null {
 	}
 
 	function close() {
-		overlay.hidden = true;
-		document.body.style.overflow = '';
-		img.style.transition = '';
+		if (overlay.open) overlay.close();
 	}
 
+	/* Fires for close(), the Escape key, and form-method=dialog alike. */
+	overlay.addEventListener('close', () => {
+		document.body.style.overflow = '';
+		img.style.transition = '';
+		returnFocus?.focus();
+		returnFocus = null;
+	});
+
 	function onKey(e: KeyboardEvent) {
-		if (overlay.hidden) return;
-		if (e.key === 'Escape') close();
-		if (sources.length <= 1) return;
+		if (!overlay.open) return;
+		if (items.length <= 1) return;
 		if (e.key === 'ArrowLeft') showAt(current - 1);
 		if (e.key === 'ArrowRight') showAt(current + 1);
 	}
@@ -82,36 +95,37 @@ export function createMediaLightbox(): MediaLightboxController | null {
 	window.addEventListener('keydown', onKey);
 
 	return {
-		openGallery(nextSources: string[], startIndex = 0, caption?: string) {
-			sources = nextSources.filter(Boolean);
-			showAt(startIndex, caption);
+		openGallery(next: Array<LightboxItem | string>, startIndex = 0) {
+			items = next
+				.map((it) => (typeof it === 'string' ? { src: it } : it))
+				.filter((it) => Boolean(it.src));
+			showAt(startIndex);
 		},
 		openSingle(src: string, caption?: string) {
-			sources = [src];
-			showAt(0, caption);
+			items = [{ src, caption }];
+			showAt(0);
 		},
 		close,
 	};
 }
 
-/** Gallery buttons: parent `[data-lightbox-gallery]` JSON array + `[data-lightbox-open]` index */
+/** Gallery buttons: parent `[data-lightbox-gallery]` JSON array (src strings or LightboxItem) + `[data-lightbox-open]` index */
 export function initGalleryLightboxButtons(lightbox: MediaLightboxController): () => void {
 	const handlers: Array<{ el: Element; fn: () => void }> = [];
 
 	document.querySelectorAll<HTMLElement>('[data-lightbox-gallery]').forEach((root) => {
 		const raw = root.getAttribute('data-lightbox-gallery');
 		if (!raw) return;
-		let gallerySources: string[] = [];
+		let galleryItems: Array<LightboxItem | string> = [];
 		try {
-			gallerySources = JSON.parse(raw) as string[];
+			galleryItems = JSON.parse(raw) as Array<LightboxItem | string>;
 		} catch {
 			return;
 		}
 		root.querySelectorAll<HTMLElement>('[data-lightbox-open]').forEach((btn) => {
 			const fn = () => {
 				const idx = Number(btn.getAttribute('data-lightbox-open') ?? '0');
-				const cap = btn.getAttribute('data-lightbox-caption') ?? undefined;
-				lightbox.openGallery(gallerySources, idx, cap);
+				lightbox.openGallery(galleryItems, idx);
 			};
 			btn.addEventListener('click', fn);
 			handlers.push({ el: btn, fn });
@@ -132,20 +146,21 @@ export function bindArticleProseLightbox(
 			'.prose-article img:not([data-no-lightbox])',
 		),
 	);
-	const sources = images.map((el) => el.currentSrc || el.src).filter(Boolean);
+	const items: LightboxItem[] = images.map((el) => ({
+		src: el.currentSrc || el.src,
+		caption:
+			el.closest('figure')?.querySelector('figcaption')?.textContent?.trim() ||
+			el.getAttribute('alt') ||
+			undefined,
+		alt: el.getAttribute('alt') ?? undefined,
+	}));
 	const handlers: Array<{ el: HTMLImageElement; click: () => void; key: (e: KeyboardEvent) => void }> =
 		[];
 
 	images.forEach((figureImg, index) => {
 		figureImg.classList.add('prose-lightbox-img');
 		figureImg.tabIndex = 0;
-		const click = () => {
-			const cap =
-				figureImg.closest('figure')?.querySelector('figcaption')?.textContent?.trim() ||
-				figureImg.getAttribute('alt') ||
-				undefined;
-			lightbox.openGallery(sources, index, cap);
-		};
+		const click = () => lightbox.openGallery(items, index);
 		const key = (e: KeyboardEvent) => {
 			if (e.key === 'Enter' || e.key === ' ') {
 				e.preventDefault();

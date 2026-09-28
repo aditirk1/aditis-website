@@ -1,0 +1,65 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Page not found · aditi's universe" noindex>
+	<div class="page-list-shell not-found">
+		<p class="not-found__code">404</p>
+		<h1 class="text-3xl font-semibold tracking-tight md:text-4xl" style="font-family: var(--font-display)">
+			Page not found
+		</h1>
+		<div class="mt-2 h-0.5 w-12 rounded-full bg-[var(--color-amber)]"></div>
+		<p class="not-found__text">This page doesn’t exist, or it has moved.</p>
+		<nav class="not-found__links" aria-label="Suggested pages">
+			<a href="/">Home</a>
+			<a href="/blog">Blog</a>
+			<a href="/thoughts">Thoughts</a>
+			<a href="/projects">Projects</a>
+		</nav>
+	</div>
+</Layout>
+
+<style>
+	.not-found {
+		pointer-events: auto;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.75rem;
+		padding-top: 2rem;
+	}
+
+	.not-found__code {
+		margin: 0;
+		font-size: 0.8rem;
+		font-weight: 600;
+		letter-spacing: 0.2em;
+		color: var(--color-amber);
+	}
+
+	.not-found__text {
+		margin: 0.5rem 0 0;
+		font-size: 1.05rem;
+		color: var(--page-muted);
+	}
+
+	.not-found__links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 1.25rem;
+		margin-top: 0.75rem;
+	}
+
+	.not-found__links a {
+		display: inline-flex;
+		align-items: center;
+		min-height: 2.75rem;
+		font-weight: 600;
+		color: var(--color-amber);
+		text-underline-offset: 3px;
+	}
+
+	.not-found__links a:hover {
+		text-decoration: underline;
+	}
+</style>

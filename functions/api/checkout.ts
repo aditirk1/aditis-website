@@ -1,7 +1,9 @@
 import { corsOptions, forbidCrossOrigin, json } from '../_shared/cors';
+import { rateLimit } from '../_shared/security';
 import { createStripeCheckoutSession } from '../_shared/stripe-checkout';
 
 interface Env {
+	VISITOR_KV?: KVNamespace;
 	STRIPE_SECRET_KEY?: string;
 	/** Default Price ID from Stripe Dashboard (Products → Prices), e.g. price_xxx */
 	STRIPE_PRICE_ID?: string;
@@ -12,6 +14,9 @@ export const onRequestOptions: PagesFunction<Env> = async ({ request }) => corsO
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	const blocked = forbidCrossOrigin(request);
 	if (blocked) return blocked;
+
+	const limited = await rateLimit(env.VISITOR_KV, request, { bucket: 'checkout', limit: 5, windowS: 300 });
+	if (limited) return limited;
 
 	const secret = env.STRIPE_SECRET_KEY?.trim();
 	const defaultPrice = env.STRIPE_PRICE_ID?.trim();
