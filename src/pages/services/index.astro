@@ -42,24 +42,68 @@ const ctaBody = stripeCheckoutEnabled
 			}
 		</div>
 
-		<div class="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-6 lg:gap-10" data-reveal-stagger>
+		{/* Collapse the boxes before first paint, so they don't flash open while the
+		    module loads. Cleared again if the module never arrives. */}
+		<script is:inline>
+			(function () {
+				document.documentElement.setAttribute('data-services-js', '1');
+				window.addEventListener('load', function () {
+					setTimeout(function () {
+						if (!document.querySelector('[data-services-explorer][data-enhanced]')) {
+							document.documentElement.removeAttribute('data-services-js');
+						}
+					}, 2500);
+				});
+			})();
+		</script>
+
+		<section class="services-explorer" data-services-explorer data-reveal-stagger>
+			<p class="services-explorer__hint" data-reveal-child>
+				<span class="services-explorer__hint-wide">Hover a heading for details</span>
+				<span class="services-explorer__hint-narrow">Tap a heading for details</span>
+			</p>
 			{
-				services.map((s) => (
-					<article class="flex flex-col" data-reveal-child>
-						<h2 class="text-2xl font-semibold tracking-tight md:text-[1.65rem]" style="font-family: var(--font-display)">
-							{s.title}
+				services.map((service, i) => (
+					<>
+						<h2 class="service-head" style={`--row: ${i + 2}`} data-reveal-child>
+							<button
+								type="button"
+								class="service-head__btn"
+								id={`service-head-${i}`}
+								aria-controls={`service-panel-${i}`}
+								aria-expanded="false"
+								data-service-trigger={i}
+							>
+								<span class="service-head__index" aria-hidden="true">
+									{String(i + 1).padStart(2, '0')}
+								</span>
+								<span class="service-head__title">{service.title}</span>
+							</button>
 						</h2>
-						<p class="mt-3 text-lg leading-relaxed text-[var(--page-muted)]">{s.teaser}</p>
-						<p class="mt-4 text-base leading-relaxed text-[var(--page-fg)]">{s.detail}</p>
-						<ul class="mt-4 list-inside list-disc space-y-2 text-base leading-relaxed text-[var(--page-muted)]">
-							{s.includes.map((item) => (
-								<li>{item}</li>
-							))}
-						</ul>
-					</article>
+						<div
+							class="service-panel"
+							id={`service-panel-${i}`}
+							role="region"
+							aria-labelledby={`service-head-${i}`}
+							data-service-panel={i}
+						>
+							<div class="service-panel__clip">
+								<div class="service-panel__box">
+									<p class="service-panel__teaser">{service.teaser}</p>
+									<p class="service-panel__detail">{service.detail}</p>
+									<ul class="service-panel__list">
+										{service.includes.map((item) => (
+											<li>{item}</li>
+										))}
+									</ul>
+								</div>
+							</div>
+						</div>
+					</>
 				))
 			}
-		</div>
+			<span class="service-connector" aria-hidden="true"></span>
+		</section>
 
 		<section class="mt-16" data-reveal-stagger>
 			<h2
@@ -73,10 +117,7 @@ const ctaBody = stripeCheckoutEnabled
 				{
 					process.map(({ step, title, body }) => (
 						<li class="flex flex-col gap-3" data-reveal-child>
-							<span
-								class="font-mono text-sm tracking-widest text-[var(--color-amber)]"
-								aria-hidden="true"
-							>
+							<span class="font-mono text-sm tracking-widest text-[var(--color-amber)]" aria-hidden="true">
 								{step}
 							</span>
 							<div>
@@ -93,11 +134,7 @@ const ctaBody = stripeCheckoutEnabled
 			class="mt-16 rounded-2xl border border-[color-mix(in_srgb,var(--color-amber)_28%,transparent)] bg-[color-mix(in_srgb,var(--color-amber)_6%,transparent)] p-6 md:p-10"
 			data-reveal-stagger
 		>
-			<h2
-				class="text-2xl font-semibold tracking-tight"
-				style="font-family: var(--font-display)"
-				data-reveal-child
-			>
+			<h2 class="text-2xl font-semibold tracking-tight" style="font-family: var(--font-display)" data-reveal-child>
 				{page.cta_heading}
 			</h2>
 			<p class="mt-3 max-w-3xl text-base leading-relaxed text-[var(--page-muted)]" data-reveal-child>
@@ -191,3 +228,294 @@ const ctaBody = stripeCheckoutEnabled
 		)
 	}
 </Layout>
+
+<script>
+	import { initServicesExplorer } from '../../scripts/services-explorer.ts';
+
+	const stop = initServicesExplorer();
+
+	if (import.meta.hot) {
+		import.meta.hot.dispose(() => stop());
+	}
+</script>
+
+<style>
+	/*
+	 * Narrow screens are the base case: a stacked list where each box opens as an
+	 * accordion under its heading. The two-column layout is layered on at 60rem,
+	 * and only once JS has set data-enhanced — without it the boxes stay in flow
+	 * and readable rather than collapsed with no way to open them.
+	 */
+	.services-explorer {
+		position: relative;
+		display: grid;
+		grid-template-columns: 1fr;
+		align-content: start;
+		margin-top: clamp(1rem, 4vw, 2.5rem);
+	}
+
+	.services-explorer__hint {
+		margin: 0 0 0.5rem;
+		font-family: var(--font-mono);
+		font-size: 0.68rem;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: color-mix(in srgb, var(--page-muted) 70%, transparent);
+	}
+
+	.services-explorer__hint-wide {
+		display: none;
+	}
+
+	.service-head {
+		margin: 0;
+		border-top: 1px solid color-mix(in srgb, var(--page-fg) 10%, transparent);
+	}
+
+	.service-head__btn {
+		display: flex;
+		align-items: baseline;
+		gap: clamp(0.75rem, 2vw, 1.25rem);
+		width: 100%;
+		padding: clamp(0.9rem, 2.5vw, 1.4rem) 0;
+		border: 0;
+		background: none;
+		text-align: left;
+		cursor: pointer;
+		transition: opacity 0.4s ease;
+	}
+
+	.service-head__index {
+		flex: none;
+		font-family: var(--font-mono);
+		font-size: 0.7rem;
+		letter-spacing: 0.18em;
+		color: color-mix(in srgb, var(--color-amber) 60%, transparent);
+		transition: color 0.4s ease;
+	}
+
+	.service-head__title {
+		font-family: var(--font-display);
+		/* Capped so each title holds one line in the left column on wide screens. */
+		font-size: clamp(1.55rem, 5vw, 2.25rem);
+		font-weight: 600;
+		line-height: 1.12;
+		letter-spacing: -0.015em;
+		color: color-mix(in srgb, var(--page-fg) 62%, transparent);
+		transition: color 0.4s ease;
+	}
+
+	.service-head[data-active] .service-head__title {
+		color: var(--page-fg);
+	}
+
+	.service-head[data-active] .service-head__index {
+		color: var(--color-amber);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.service-head__btn:hover .service-head__title {
+			color: var(--page-fg);
+		}
+	}
+
+	.service-head__btn:focus-visible {
+		outline: 2px solid var(--color-amber);
+		outline-offset: 4px;
+		border-radius: 0.4rem;
+	}
+
+	/* Accordion: animating grid rows gives a height transition without measuring. */
+	.service-panel {
+		display: grid;
+		grid-template-rows: 1fr;
+	}
+
+	html[data-services-js] .service-panel {
+		grid-template-rows: 0fr;
+		opacity: 0;
+		transition:
+			grid-template-rows 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+			opacity 0.35s ease;
+	}
+
+	html[data-services-js] .service-panel[data-open] {
+		grid-template-rows: 1fr;
+		opacity: 1;
+	}
+
+	.service-panel__clip {
+		min-height: 0;
+		overflow: hidden;
+	}
+
+	.service-panel__box {
+		margin-bottom: clamp(1rem, 3vw, 1.5rem);
+		border: 1px solid color-mix(in srgb, var(--color-amber) 24%, transparent);
+		border-left-width: 2px;
+		border-left-color: color-mix(in srgb, var(--color-amber) 55%, transparent);
+		border-radius: 0.9rem;
+		background: color-mix(in srgb, var(--page-bg) 70%, transparent);
+		padding: clamp(1.1rem, 3vw, 1.75rem);
+		backdrop-filter: blur(6px);
+	}
+
+	.service-panel__teaser {
+		margin: 0;
+		font-size: clamp(1.02rem, 2.2vw, 1.15rem);
+		font-weight: 600;
+		line-height: 1.45;
+		color: var(--page-fg);
+	}
+
+	.service-panel__detail {
+		margin: 0.7rem 0 0;
+		font-size: 0.98rem;
+		line-height: 1.65;
+		color: var(--page-muted);
+	}
+
+	.service-panel__list {
+		display: grid;
+		gap: 0.55rem;
+		margin: 1.1rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.service-panel__list li {
+		position: relative;
+		padding-left: 1.15rem;
+		font-size: 0.92rem;
+		line-height: 1.55;
+		color: var(--page-muted);
+	}
+
+	/* Same hairline as the connector, so the box reads as part of one diagram. */
+	.service-panel__list li::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0.68em;
+		width: 0.45rem;
+		height: 1px;
+		background: var(--color-amber);
+	}
+
+	.service-connector {
+		display: none;
+	}
+
+	@media (min-width: 60rem) {
+		.services-explorer[data-enhanced] {
+			grid-template-columns: minmax(0, 25rem) minmax(0, 1fr);
+			column-gap: clamp(3rem, 7vw, 7rem);
+			/* The ask: headings held off the left edge rather than flush to it. */
+			padding-inline-start: clamp(1rem, 5vw, 4.5rem);
+			min-height: var(--stage-min, auto);
+		}
+
+		.services-explorer[data-enhanced] .services-explorer__hint {
+			grid-column: 1;
+			grid-row: 1;
+		}
+
+		.services-explorer__hint-wide {
+			display: inline;
+		}
+
+		.services-explorer__hint-narrow {
+			display: none;
+		}
+
+		.services-explorer[data-enhanced] .service-head {
+			grid-column: 1;
+			grid-row: var(--row);
+		}
+
+		/*
+		 * Out of flow so the boxes can overlap in one area and float to their
+		 * heading; the grid area still supplies the column position and width.
+		 */
+		.services-explorer[data-enhanced] .service-panel {
+			position: absolute;
+			grid-column: 2;
+			top: 0;
+			left: 0;
+			right: 0;
+			grid-template-rows: 1fr;
+			visibility: hidden;
+			transform: translateY(var(--panel-y, 0)) translateX(0.75rem);
+			transition:
+				opacity 0.45s ease,
+				transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+				visibility 0s linear 0.45s;
+		}
+
+		.services-explorer[data-enhanced] .service-panel[data-open] {
+			visibility: visible;
+			transform: translateY(var(--panel-y, 0)) translateX(0);
+			transition-delay: 0s;
+		}
+
+		.services-explorer[data-enhanced] .service-panel__box {
+			margin-bottom: 0;
+			border-left-width: 1px;
+			border-left-color: color-mix(in srgb, var(--color-amber) 24%, transparent);
+			border-radius: 1rem;
+			box-shadow: 0 24px 60px -34px color-mix(in srgb, var(--color-amber) 50%, transparent);
+		}
+
+		.services-explorer[data-enhanced] .service-head {
+			border-top-color: color-mix(in srgb, var(--page-fg) 8%, transparent);
+		}
+
+		.service-connector {
+			display: block;
+			position: absolute;
+			left: var(--connector-x, 0);
+			top: var(--connector-y, 0);
+			width: var(--connector-w, 0);
+			height: 1px;
+			transform: scaleX(0);
+			transform-origin: left center;
+			opacity: 0;
+			background: linear-gradient(
+				to right,
+				color-mix(in srgb, var(--color-amber) 70%, transparent),
+				color-mix(in srgb, var(--color-amber) 22%, transparent)
+			);
+			transition:
+				top 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+				transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1),
+				opacity 0.35s ease;
+		}
+
+		.service-connector::before {
+			content: '';
+			position: absolute;
+			left: 0;
+			top: 50%;
+			width: 4px;
+			height: 4px;
+			margin-top: -2px;
+			border-radius: 50%;
+			background: var(--color-amber);
+		}
+
+		.services-explorer[data-connected] .service-connector {
+			transform: scaleX(1);
+			opacity: 1;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		html[data-services-js] .service-panel,
+		.service-connector,
+		.service-head__btn,
+		.service-head__title,
+		.service-head__index {
+			transition: none;
+		}
+	}
+</style>
