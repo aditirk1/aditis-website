@@ -1,35 +1,38 @@
 {
   "page_title": "Services",
-  "intro": "Research, writing, and design for biotech and health — from RNA-seq pipelines and survival models on Medicare claims to BCI signal processing, molecular dynamics, and prototype hardware. Most work starts with a conversation.",
+  "intro": "Three things I take on for clients: building the website, finding out whether anyone actually wants the product, and doing the science. Most work starts with a conversation.",
   "services": [
     {
-      "title": "Research consulting",
-      "teaser": "Literature synthesis, experiment design, signal & systems thinking.",
-      "detail": "Scoped engagements from a single deep-dive memo to multi-week support. Pricing depends on scope — we align after a short intro call.",
+      "title": "Web development",
+      "teaser": "Sites and small web apps, designed and built end to end.",
+      "detail": "From a one-page launch site to a full content-driven site you can update yourself. I handle the design, the build, the deployment, and the unglamorous parts — speed, accessibility, and making sure it still works on a four-year-old phone.",
       "includes": [
-        "Problem framing and literature review",
-        "Experimental or analysis design",
-        "Written memos or slide summaries"
+        "Design and build, from blank page to live site",
+        "A built-in editor so you can change content without touching code",
+        "Fast, accessible, and search-friendly by default",
+        "Domain, deployment, and analytics set up for you"
       ]
     },
     {
-      "title": "Technical writing",
-      "teaser": "Grants, reports, and explainers that stay precise without going cold.",
-      "detail": "Per document or monthly retainer. Clear milestones and revision rounds baked in.",
+      "title": "Customer discovery",
+      "teaser": "Structured interviews for early-stage startups, before you commit engineering time.",
+      "detail": "I design the interview plan, run the conversations, and turn them into findings you can act on. The point is to hear what people actually do rather than what they say they would do — including the answers that are inconvenient for the roadmap.",
       "includes": [
-        "Grant sections, reports, and white papers",
-        "Editing for clarity and structure",
-        "Figure/diagram support where helpful"
+        "Interview guide, screening criteria, and recruiting",
+        "Conversations run by someone who isn't selling to them",
+        "Synthesis into themes, verbatim quotes, and jobs to be done",
+        "A clear read on what to build next, and what to drop"
       ]
     },
     {
-      "title": "Design + prototyping",
-      "teaser": "Interfaces, diagrams, and small interactive proofs-of-concept.",
-      "detail": "Figma plus light front-end when it helps the story land. Milestone-based delivery.",
+      "title": "Scientific research",
+      "teaser": "Literature synthesis, study design, and analysis across biotech and health.",
+      "detail": "Research support at whatever depth you need: framing the question, designing the study, running the analysis, and writing it up for the people who have to approve it. Past work spans RNA-seq pipelines, survival models on Medicare claims, BCI signal processing, and molecular dynamics.",
       "includes": [
-        "UI flows and visual systems",
-        "Technical diagrams and schematics",
-        "Light prototypes (Figma, web) for demos"
+        "Literature review and problem framing",
+        "Experimental and statistical design",
+        "Bioinformatics, signal processing, and modelling",
+        "Grant sections, reports, and publication-ready figures"
       ]
     }
   ],

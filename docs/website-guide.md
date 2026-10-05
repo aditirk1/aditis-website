@@ -244,7 +244,7 @@ After deploy, verify **`POST /api/visit`** and **`GET /api/stats`** from the liv
 | ----------- | ------- |
 | **Umami** | Privacy-friendly analytics; script injected from `Layout.astro` when `PUBLIC_UMAMI_*` is set |
 | **Web3Forms** | Serverless form handling when access key is present |
-| **Stripe links** | Checkout links on services when `PUBLIC_STRIPE_LINK_*` are set |
+| **Stripe** | Hosted Checkout button on `/services` when `PUBLIC_STRIPE_CHECKOUT=true` and `STRIPE_SECRET_KEY` + `STRIPE_PRICE_ID` are set |
 
 Umami and the **custom visitor KV counters** are independent; you may run both, but be mindful of **double-counting** conceptually if you treat both as “visits.”
 

@@ -25,6 +25,8 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+# wrangler's local secrets for `wrangler pages dev`
+.dev.vars
 
 # local screenshots from scripts/shot-planets.mjs
 .screenshots/
