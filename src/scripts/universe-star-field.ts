@@ -1356,10 +1356,6 @@ export function initUniverseStarField(): () => void {
 		showUniverseCanvas();
 	}
 
-	function onBeachGlReleased() {
-		if (getTheme() === 'universe') showUniverseCanvas();
-	}
-
 	function resetInteractionState() {
 		window.clearTimeout(navigationReleaseTimer);
 		navigating = false;
@@ -1383,7 +1379,6 @@ export function initUniverseStarField(): () => void {
 		if (getTheme() === 'universe') applyVisibility();
 	};
 	window.addEventListener('aditi:theme-layout', onThemeLayout);
-	window.addEventListener('aditi:beach-gl-released', onBeachGlReleased);
 
 	const onResize = () => {
 		syncCoarsePointerAttribute();
@@ -1442,7 +1437,6 @@ export function initUniverseStarField(): () => void {
 		mo.disconnect();
 		titleObserver?.disconnect();
 		window.removeEventListener('aditi:theme-layout', onThemeLayout);
-		window.removeEventListener('aditi:beach-gl-released', onBeachGlReleased);
 		cancelSurfaceGeneration?.();
 		window.clearTimeout(navigationReleaseTimer);
 		window.removeEventListener('pagehide', onPageHide);

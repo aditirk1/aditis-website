@@ -88,7 +88,8 @@ aditis-website/
 | Site-wide colors, light/dark beach theme, prose panels, dream panel overrides | **`src/styles/global.css`** |
 | Fonts loaded from Google | **`src/layouts/Layout.astro`** (the `<link>` in `<head>`) |
 | Header / footer shell, theme toggle behavior | **`src/layouts/Layout.astro`** |
-| Beach scene (waves, palm, starfish, shells) | **`src/components/BeachBackground.astro`** |
+| Beach scene (shoreline video loop) | **`src/components/BeachBackground.astro`**, **`src/scripts/beach-shore.ts`**, footage in **`public/beach/`** |
+| Title splashing when foam reaches it (Beach home) | **`src/scripts/beach-shore-splash.ts`** |
 | Universe starfield + Earth “portal” look | **`src/scripts/universe-star-field.ts`** (and canvas host **`src/components/StarFieldUniverse.astro`**) |
 | Visitor globe panel on the homepage | **`src/components/LiveVisitorMap.astro`**, **`src/scripts/visitor-globe.ts`** |
 | One specific page’s layout | **`src/pages/<route>/...`** |
@@ -101,7 +102,6 @@ aditis-website/
 | Homepage title / tagline motion | **`src/scripts/home-hero.ts`**, **`src/pages/index.astro`** |
 | First-visit splash / shooting star | **`src/components/SplashIntro.astro`**, **`src/scripts/splash-intro.ts`** |
 | Nav underline | **`src/components/SiteNav.astro`** (script block) |
-| Beach parallax / palm sway | **`src/components/BeachBackground.astro`** (script + GSAP) |
 | Smooth scrolling (Lenis) | **`src/layouts/Layout.astro`** |
 | Project dialogs opening | **`src/pages/projects/index.astro`** (inline script) |
 | Photo lightbox | **`src/scripts/photo-lightbox.ts`**, **`src/pages/photo-dump/index.astro`** |
@@ -112,7 +112,7 @@ aditis-website/
 |------|------------|
 | Top nav links (Projects, Blog, …) | **`src/components/SiteNav.astro`** |
 | Site title in header | **`src/layouts/Layout.astro`** |
-| Dream Journal is **not** in the nav; it’s reached via Earth (universe) or starfish (beach) | **`src/scripts/universe-star-field.ts`**, **`src/components/BeachBackground.astro`** |
+| Dream Journal is **not** in the nav; it’s reached via Earth (universe) or the pineapple next to Home (beach) | **`src/scripts/universe-star-field.ts`**, **`src/layouts/Layout.astro`** |
 
 ### Content (words, blog posts, projects)
 
@@ -201,7 +201,7 @@ These are **illustrative**—copy the idea, adjust values slowly.
 | Edit blog / projects / dreams content | **`src/content/.../*.md`** |
 | Change scroll animations | **`src/scripts/page-reveal.ts`** |
 | Change universe stars / Earth button | **`src/scripts/universe-star-field.ts`** |
-| Change beach look (waves, palm, starfish) | **`src/components/BeachBackground.astro`** |
+| Change beach footage | run **`scripts/beach-video.sh`** on a new clip (see **`public/beach/README.txt`**) |
 | Change splash / first visit effect | **`src/components/SplashIntro.astro`**, **`src/scripts/splash-intro.ts`** |
 | Change reader text-size control | **`src/components/TextSizeControl.astro`**, **`src/scripts/text-size-control.ts`** |
 | Change project cards / dialogs | **`src/pages/projects/index.astro`** |
