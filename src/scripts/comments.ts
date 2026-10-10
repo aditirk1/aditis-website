@@ -30,8 +30,9 @@ function formatWhen(iso: string): string {
 }
 
 export function initComments(root: HTMLElement): () => void {
-	const scope = root.dataset.commentsScope?.trim();
-	if (!scope) return () => {};
+	const scopeAttr = root.dataset.commentsScope?.trim();
+	if (!scopeAttr) return () => {};
+	const scope: string = scopeAttr;
 
 	const listEl = root.querySelector<HTMLElement>('[data-comments-list]');
 	const formWrap = root.querySelector<HTMLElement>('[data-comments-form-wrap]');

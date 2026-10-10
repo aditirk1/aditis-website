@@ -1,0 +1,217 @@
+---
+/**
+ * Phone-friendly quick capture for Thoughts. Add to Home Screen from Safari
+ * (Share → Add to Home Screen) and it opens standalone via /quick.webmanifest.
+ * Posting is gated server-side by /api/quick-thought.
+ */
+import Layout from '../../layouts/Layout.astro';
+import OAuthSignInButtons from '../../components/OAuthSignInButtons.astro';
+---
+
+<Layout title="Quick thought · aditi's universe" noindex manifest="/quick.webmanifest">
+	<div class="page-list-shell page-list-shell--thoughts quick-shell">
+		<h1 class="text-3xl font-semibold tracking-tight md:text-4xl" style="font-family: var(--font-display)">
+			Quick thought
+		</h1>
+
+		<p class="quick-status" data-quick-status role="status" aria-live="polite">Checking sign-in…</p>
+
+		<div data-quick-auth hidden>
+			<OAuthSignInButtons
+				googleHref="/api/dream-auth?provider=google&return_to=%2Fquick"
+				githubHref="/api/dream-auth?provider=github&return_to=%2Fquick"
+			/>
+		</div>
+
+		<form class="quick-form" data-quick-form hidden>
+			<label class="sr-only" for="quick-body">Thought</label>
+			<textarea
+				id="quick-body"
+				name="body"
+				rows="8"
+				maxlength="5000"
+				required
+				placeholder="What's on your mind?"
+				data-quick-body></textarea>
+			<label class="quick-draft">
+				<input type="checkbox" name="draft" data-quick-draft />
+				Save as draft
+			</label>
+			<button type="submit" class="quick-submit" data-quick-submit>Post</button>
+		</form>
+	</div>
+</Layout>
+
+<style>
+	.quick-shell {
+		pointer-events: auto;
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		padding-top: 1rem;
+	}
+
+	.quick-status {
+		margin: 0;
+		font-size: 0.95rem;
+		color: var(--page-muted);
+	}
+
+	.quick-status[data-tone='error'] {
+		color: color-mix(in srgb, #ff8a8a 90%, var(--page-fg));
+	}
+
+	.quick-status[data-tone='ok'] {
+		color: var(--color-amber);
+	}
+
+	.quick-form {
+		display: flex;
+		flex-direction: column;
+		gap: 0.9rem;
+	}
+
+	.quick-form textarea {
+		width: 100%;
+		min-height: 12rem;
+		resize: vertical;
+		border-radius: 0.9rem;
+		border: 1px solid color-mix(in srgb, var(--color-amber) 32%, transparent);
+		background: color-mix(in srgb, var(--page-bg) 82%, transparent);
+		padding: 0.9rem 1rem;
+		font: inherit;
+		font-size: 1.05rem;
+		line-height: 1.55;
+		color: var(--page-fg);
+	}
+
+	.quick-form textarea:focus {
+		outline: none;
+		border-color: var(--color-amber);
+	}
+
+	.quick-draft {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-height: 2.75rem;
+		font-size: 0.9rem;
+		color: var(--page-muted);
+	}
+
+	.quick-submit {
+		min-height: 2.75rem;
+		border-radius: 999px;
+		border: 1px solid var(--color-amber);
+		background: color-mix(in srgb, var(--color-amber) 14%, transparent);
+		font-weight: 600;
+		color: var(--page-fg);
+	}
+
+	.quick-submit:disabled {
+		opacity: 0.5;
+	}
+</style>
+
+<script>
+	const statusEl = document.querySelector<HTMLElement>('[data-quick-status]');
+	const authEl = document.querySelector<HTMLElement>('[data-quick-auth]');
+	const form = document.querySelector<HTMLFormElement>('[data-quick-form]');
+	const bodyEl = document.querySelector<HTMLTextAreaElement>('[data-quick-body]');
+	const draftEl = document.querySelector<HTMLInputElement>('[data-quick-draft]');
+	const submitEl = document.querySelector<HTMLButtonElement>('[data-quick-submit]');
+	const DRAFT_KEY = 'aditi-quick-thought-draft';
+
+	function setStatus(text: string, tone: 'info' | 'error' | 'ok' = 'info') {
+		if (!statusEl) return;
+		statusEl.textContent = text;
+		statusEl.dataset.tone = tone;
+	}
+
+	function localDate(): string {
+		const d = new Date();
+		const pad = (n: number) => String(n).padStart(2, '0');
+		return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+	}
+
+	/* Keep unsent text if the tab is reclaimed mid-thought. */
+	if (bodyEl) {
+		try {
+			bodyEl.value = localStorage.getItem(DRAFT_KEY) ?? '';
+		} catch {
+			/* ignore */
+		}
+		bodyEl.addEventListener('input', () => {
+			try {
+				localStorage.setItem(DRAFT_KEY, bodyEl.value);
+			} catch {
+				/* ignore */
+			}
+		});
+	}
+
+	async function init() {
+		try {
+			const res = await fetch('/api/quick-thought', { credentials: 'same-origin' });
+			const data = (await res.json()) as { authenticated: boolean; canPost: boolean; configured: boolean };
+			if (!data.authenticated) {
+				setStatus('Sign in to post.');
+				if (authEl) authEl.hidden = false;
+				return;
+			}
+			if (!data.canPost) {
+				setStatus('This account isn’t allowed to post here.', 'error');
+				return;
+			}
+			if (!data.configured) {
+				setStatus('Posting isn’t configured yet (GITHUB_CONTENT_TOKEN).', 'error');
+				return;
+			}
+			setStatus('');
+			if (form) form.hidden = false;
+			bodyEl?.focus();
+		} catch {
+			setStatus('Couldn’t reach the site. Check your connection.', 'error');
+		}
+	}
+
+	form?.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		if (!bodyEl || !submitEl) return;
+		const body = bodyEl.value.trim();
+		if (!body) return;
+		submitEl.disabled = true;
+		setStatus('Posting…');
+		try {
+			const res = await fetch('/api/quick-thought', {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ body, localDate: localDate(), draft: !!draftEl?.checked }),
+			});
+			const data = (await res.json()) as { ok: boolean; error?: string; url?: string; draft?: boolean };
+			if (!res.ok || !data.ok) {
+				setStatus(data.error ?? 'Posting failed.', 'error');
+				return;
+			}
+			bodyEl.value = '';
+			try {
+				localStorage.removeItem(DRAFT_KEY);
+			} catch {
+				/* ignore */
+			}
+			setStatus(
+				data.draft
+					? 'Saved as a draft. Publish it from /admin when ready.'
+					: 'Posted — it’ll be live in a minute or two, once the site rebuilds.',
+				'ok',
+			);
+		} catch {
+			setStatus('Couldn’t reach the site. Your text is saved here — try again.', 'error');
+		} finally {
+			submitEl.disabled = false;
+		}
+	});
+
+	init();
+</script>

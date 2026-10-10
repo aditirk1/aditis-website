@@ -15,7 +15,11 @@ export default defineConfig({
 	site: 'https://aditirk.me',
 	integrations: [
 		sitemap({
-			filter: (page) => !page.includes('/admin') && !page.includes('/dream-journal'),
+			filter: (page) =>
+				!page.includes('/admin') &&
+				!page.includes('/dream-journal') &&
+				!page.includes('/quick') &&
+				!page.includes('/404'),
 		}),
 	],
 	vite: {

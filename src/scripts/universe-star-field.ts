@@ -642,6 +642,7 @@ export function initUniverseStarField(): () => void {
 		aSeed[i] = Math.random();
 	}
 
+	positions.set(base);
 	geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 	geometry.setAttribute('aSize', new THREE.BufferAttribute(aSize, 1));
 	geometry.setAttribute('aDepth', new THREE.BufferAttribute(aDepth, 1));
@@ -684,7 +685,7 @@ export function initUniverseStarField(): () => void {
 		if (!isHomePage) return;
 		const host = planetPivots[SECRET_HOST_PLANET_INDEX];
 		if (!host) return;
-		const angle = tNow * SECRET_ORBIT_SPEED;
+		const angle = (reducedMotion ? 0 : tNow) * SECRET_ORBIT_SPEED;
 		secretStar.position.set(
 			host.position.x + Math.cos(angle) * SECRET_ORBIT_RADIUS,
 			host.position.y + Math.sin(angle) * SECRET_ORBIT_RADIUS,
@@ -1138,12 +1139,15 @@ export function initUniverseStarField(): () => void {
 	const tick = () => {
 		if (!running) return;
 		const delta = Math.min(clock.getDelta(), 0.1);
-		const t = clock.elapsedTime;
+		/* Reduced motion: every time-driven pose is pinned to t = 0 (a still frame);
+		 * hover feedback below still responds because the user initiates it. */
+		const t = reducedMotion ? 0 : clock.elapsedTime;
 
 		/* Drift, not spin — 20% slower than the prior base rates. */
-		const baseSpin = reducedMotion ? 0.0224 : isDreamRealmPage() ? 0.0512 : 0.056;
-		spinY += delta * baseSpin;
-		starGroup.rotation.y = spinY + lastScroll * (reducedMotion ? 0.000026 : 0.00004);
+		if (!reducedMotion) {
+			spinY += delta * (isDreamRealmPage() ? 0.0512 : 0.056);
+		}
+		starGroup.rotation.y = spinY + (reducedMotion ? 0 : lastScroll * 0.00004);
 		starGroup.rotation.x =
 			Math.sin(t * 0.058) * 0.22 + Math.cos(t * 0.03) * 0.11 + Math.sin(t * 0.013) * 0.06;
 		starGroup.rotation.z = Math.sin(t * 0.042) * 0.09;
@@ -1171,10 +1175,9 @@ export function initUniverseStarField(): () => void {
 
 		const posAttr = geometry.getAttribute('position') as THREE.BufferAttribute;
 
-		const rm = reducedMotion ? 0.58 : 1;
 		const pushScale = coarsePointer ? 0.55 : 1;
 
-		for (let i = 0; i < STAR_COUNT; i++) {
+		for (let i = 0; !reducedMotion && i < STAR_COUNT; i++) {
 			const ix = i * 3;
 			const bx = base[ix];
 			const by = base[ix + 1];
@@ -1186,7 +1189,7 @@ export function initUniverseStarField(): () => void {
 			let ox = 0;
 			let oy = 0;
 			if (dist > 1e-6 && dist < MOUSE_FALLOFF) {
-				const tPush = (1 - dist / MOUSE_FALLOFF) * MOUSE_PUSH * rm * pushScale;
+				const tPush = (1 - dist / MOUSE_FALLOFF) * MOUSE_PUSH * pushScale;
 				ox = (dx / dist) * tPush;
 				oy = (dy / dist) * tPush;
 			}
@@ -1195,7 +1198,7 @@ export function initUniverseStarField(): () => void {
 			posAttr.array[ix + 1] = by + oy;
 			posAttr.array[ix + 2] = bz;
 		}
-		posAttr.needsUpdate = true;
+		if (!reducedMotion) posAttr.needsUpdate = true;
 
 		secretMat.uniforms.uTime.value = t;
 		hoverLerp += ((secretHover ? 1 : 0) - hoverLerp) * 0.14;
@@ -1217,8 +1220,8 @@ export function initUniverseStarField(): () => void {
 			}
 			applySolarFade(solarFadeLerp);
 
-			const tNow = performance.now();
-			const spinStep = delta * PLANET_SPIN_SPEED * (reducedMotion ? 0.45 : 1);
+			const tNow = reducedMotion ? 0 : performance.now();
+			const spinStep = reducedMotion ? 0 : delta * PLANET_SPIN_SPEED;
 			for (let i = 0; i < planetMeshes.length; i++) {
 				const mesh = planetMeshes[i]!;
 				const pivot = planetPivots[i]!;

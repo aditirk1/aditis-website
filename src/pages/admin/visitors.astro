@@ -124,7 +124,8 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 			const countTd = document.createElement('td');
 			countTd.className = 'px-3 py-2 text-right tabular-nums';
 			countTd.textContent = String(row.count ?? 0);
-			tr.append(codeTd, countTd);
+			tr.appendChild(codeTd);
+			tr.appendChild(countTd);
 			tbody.appendChild(tr);
 		}
 	}
@@ -154,7 +155,9 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 			const countTd = document.createElement('td');
 			countTd.className = 'px-3 py-2 text-right tabular-nums';
 			countTd.textContent = String(row.count ?? 0);
-			tr.append(cityTd, countryTd, countTd);
+			tr.appendChild(cityTd);
+			tr.appendChild(countryTd);
+			tr.appendChild(countTd);
 			tbody.appendChild(tr);
 		}
 	}
