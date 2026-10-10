@@ -5,6 +5,7 @@
 import { gsap } from 'gsap';
 import { SPLASH_DONE_EVENT, SPLASH_KEY } from './splash-intro.ts';
 import { subscribeScroll } from './scroll-orchestrator.ts';
+import { initHeroTitleHover } from './hero-title-hover.ts';
 
 function markHeroReady(): void {
 	document.documentElement.setAttribute('data-hero-ready', '1');
@@ -92,10 +93,13 @@ function runHeroExtras(): () => void {
 		taglineEl.textContent = items[0]!;
 	}
 
+	const stopTitleHover = initHeroTitleHover();
+
 	return () => {
 		if (interval) clearInterval(interval);
 		unsubscribeChevron();
 		bounceTween?.kill();
+		stopTitleHover();
 	};
 }
 

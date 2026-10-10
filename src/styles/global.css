@@ -1014,7 +1014,7 @@ html[data-theme='beach'] .home-hero-title-col {
 	justify-content: flex-end;
 	align-items: flex-start;
 	gap: clamp(1rem, 2.5vh, 1.75rem);
-	padding: 0 0 clamp(2.5rem, 10vh, 7rem);
+	padding: 0 0 clamp(2.5rem, 10vh, 7rem) clamp(1rem, 6vw, 6.5rem);
 	container-type: normal;
 }
 
@@ -1022,21 +1022,16 @@ html[data-theme='beach'] #sun-wrapper {
 	width: auto;
 }
 
+/* "aditi's" / "universe." on two lines at every size. */
 html[data-theme='beach'] #sun-text {
 	width: auto;
-	flex-direction: row;
-	gap: 0.24em;
-	font-size: clamp(3.25rem, 9.5vw, 9.5rem);
-	line-height: 0.88;
+	font-size: clamp(3.5rem, 10vw, 10rem);
+	line-height: 0.92;
 }
 
-/* Must match pickSource() in beach-shore.ts, so phones stack the title over portrait footage. */
 @media (max-aspect-ratio: 1/1) {
 	html[data-theme='beach'] #sun-text {
-		flex-direction: column;
-		gap: 0;
-		font-size: 17vw;
-		line-height: 0.95;
+		font-size: 15.5vw;
 	}
 }
 
@@ -1047,10 +1042,10 @@ html[data-theme='beach'] .home-hero-copy {
 }
 
 html[data-theme='beach'] [data-hero-tagline] {
+	font-family: var(--font-body);
 	font-size: calc(clamp(1.4rem, 2.8vw, 2.25rem) * var(--reader-scale, 1.1));
-	font-weight: 800;
-	letter-spacing: -0.01em;
-	line-height: 1.1;
+	font-weight: 400;
+	line-height: 1.15;
 }
 
 /* Touch-friendly controls + scroll over full-screen canvases */
@@ -1062,7 +1057,7 @@ html[data-theme='beach'] [data-hero-tagline] {
 /* Beach background: poster paints first, footage layers fade in over it (beach-shore.ts). */
 .beach-background {
 	display: none;
-	background: var(--color-beach-bg) url('/beach/shore-poster.webp') center / cover no-repeat;
+	background: var(--color-beach-bg) url('/beach/tropic-poster.webp') center / cover no-repeat;
 }
 
 html[data-theme='beach'] .beach-background {
@@ -1072,7 +1067,7 @@ html[data-theme='beach'] .beach-background {
 /* Must match pickSource() in beach-shore.ts. */
 @media (max-aspect-ratio: 1/1) {
 	.beach-background {
-		background-image: url('/beach/shore-poster-portrait.webp');
+		background-image: url('/beach/tropic-poster-portrait.webp');
 	}
 }
 
@@ -1130,29 +1125,13 @@ html[data-theme='beach'] .beach-background {
 	opacity: calc(0.12 + 0.88 * var(--hero-scrolled, 0));
 }
 
-#sun-wrapper {
-	position: relative;
+html[data-theme='beach'] #sun-text {
+	text-shadow: 0 0.03em 0.2em rgb(6 26 44 / 0.45);
 }
 
-/* --wet is driven per letter by beach-shore-splash.ts when foam reaches it. */
+/* The hero is pointer-events: none for the Universe starfield; Beach needs hover on the title (hero-title-hover.ts). */
 html[data-theme='beach'] #sun-text .hero-char {
-	text-shadow:
-		0 0 calc(var(--wet, 0) * 0.2em) rgb(170 235 255 / calc(var(--wet, 0) * 0.95)),
-		0 0.03em 0.2em rgb(6 26 44 / 0.45);
-}
-
-.shore-spray {
-	position: absolute;
-	inset: 0;
-	pointer-events: none;
-}
-
-.shore-drop {
-	position: absolute;
-	border-radius: 50%;
-	background: radial-gradient(circle at 35% 35%, #ffffff, rgb(220 240 255 / 0.85) 60%, rgb(180 220 245 / 0.6));
-	box-shadow: 0 1px 2px rgb(20 42 66 / 0.25);
-	will-change: transform, opacity;
+	pointer-events: auto;
 }
 
 html[data-coarse-pointer] [data-reader-tools] {
