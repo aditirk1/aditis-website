@@ -928,31 +928,13 @@ html[data-theme='universe'] #sun-text {
 	z-index: 5;
 }
 
-.home-intro {
-	position: relative;
-	margin-inline: auto;
-	max-width: 64rem;
-	padding: 4rem 2rem;
-}
-
 .home-hero-desc {
 	max-width: 40rem;
 }
 
-.home-hero-side-col [data-hero-copy] {
-	width: 100%;
-	max-width: 28rem;
-	pointer-events: auto;
-}
-
-.home-intro[data-empty],
-.home-intro[hidden] {
-	display: none !important;
-}
-
 /* Universe homepage: no tagline carousel / hero blurb — title + planets only. */
-html[data-theme='universe'] .home-intro {
-	display: none !important;
+html[data-theme='universe'] .home-hero-copy {
+	display: none;
 }
 
 html[data-theme='beach'] #planet-label {
@@ -971,19 +953,6 @@ html[data-theme='beach'] #planet-label {
 
 	#sun-text {
 		font-size: clamp(2.5rem, 14vw, 3.75rem);
-	}
-
-	html[data-theme='beach'] .home-hero-grid {
-		grid-template-rows: auto auto;
-		align-content: center;
-	}
-
-	html[data-theme='beach'] .home-hero-side-col {
-		min-height: 0;
-	}
-
-	html[data-theme='beach'] .home-hero-title-col {
-		padding-block: 1.25rem;
 	}
 }
 
@@ -1007,14 +976,6 @@ html[data-theme='beach'] #planet-label {
 	#sun-text {
 		font-size: clamp(4.75rem, 22cqi, 10.5rem);
 	}
-
-	.home-intro {
-		padding: 6rem 4rem;
-	}
-
-	html[data-theme='beach'] .home-hero-side-col [data-hero-copy] {
-		max-width: 26rem;
-	}
 }
 
 @media (min-width: 1024px) {
@@ -1025,16 +986,152 @@ html[data-theme='beach'] #planet-label {
 	#sun-text {
 		font-size: clamp(5.25rem, 23cqi, 11.5rem);
 	}
+}
 
-	.home-intro {
-		padding: 7rem 4rem;
+/*
+ * Beach homepage: footage fills the hero, and the lower left holds the white
+ * title, then the rotating tagline, description and buttons.
+ */
+html[data-theme='beach'] .home-hero-grid {
+	display: flex;
+}
+
+html[data-theme='beach'] .home-hero-side-col,
+html[data-theme='beach'] .hero-scroll-cue {
+	display: none;
+}
+
+/* Light text over the footage: retint the shared tokens so the copy and buttons follow. */
+html[data-theme='beach'] [data-hero-root] {
+	--page-fg: #ffffff;
+	--page-muted: rgb(255 255 255 / 0.9);
+	--color-amber: #8ee6ff;
+}
+
+html[data-theme='beach'] .home-hero-title-col {
+	width: 100%;
+	flex-direction: column;
+	justify-content: flex-end;
+	align-items: flex-start;
+	gap: clamp(1rem, 2.5vh, 1.75rem);
+	padding: 0 0 clamp(2.5rem, 10vh, 7rem) clamp(1rem, 6vw, 6.5rem);
+	container-type: normal;
+}
+
+html[data-theme='beach'] #sun-wrapper {
+	width: auto;
+}
+
+/* "aditi's" / "universe." on two lines at every size. */
+html[data-theme='beach'] #sun-text {
+	width: auto;
+	font-size: clamp(3.5rem, 10vw, 10rem);
+	line-height: 0.92;
+}
+
+@media (max-aspect-ratio: 1/1) {
+	html[data-theme='beach'] #sun-text {
+		font-size: 15.5vw;
 	}
+}
+
+html[data-theme='beach'] .home-hero-copy {
+	max-width: 38rem;
+	pointer-events: auto;
+	text-shadow: 0 1px 14px rgb(6 26 44 / 0.6);
+}
+
+html[data-theme='beach'] [data-hero-tagline] {
+	font-family: var(--font-body);
+	font-size: calc(clamp(1.4rem, 2.8vw, 2.25rem) * var(--reader-scale, 1.1));
+	font-weight: 400;
+	line-height: 1.15;
 }
 
 /* Touch-friendly controls + scroll over full-screen canvases */
 [data-universe-canvas],
-[data-beach-canvas] {
+[data-beach-background] {
 	touch-action: pan-y;
+}
+
+/* Beach background: poster paints first, footage layers fade in over it (beach-shore.ts). */
+.beach-background {
+	display: none;
+	background: var(--color-beach-bg) url('/beach/tropic-poster.webp') center / cover no-repeat;
+}
+
+html[data-theme='beach'] .beach-background {
+	display: block;
+}
+
+/* Must match pickSource() in beach-shore.ts. */
+@media (max-aspect-ratio: 1/1) {
+	.beach-background {
+		background-image: url('/beach/tropic-poster-portrait.webp');
+	}
+}
+
+.beach-shore-video {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	opacity: 0;
+}
+
+.beach-shore-video[data-front] {
+	z-index: 1;
+	transition-property: opacity;
+	transition-timing-function: ease-in-out;
+}
+
+.beach-shore-video[data-visible] {
+	opacity: 1;
+}
+
+/* Keeps text readable over footage: a light touch on home, a stronger wash behind reading pages. */
+.beach-shore-scrim {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	background: color-mix(in srgb, var(--color-beach-bg) 72%, transparent);
+}
+
+/* Home: the header sits straight on the footage, so give the nav a light wash to read against. */
+.beach-background[data-home]::after {
+	content: '';
+	position: absolute;
+	inset: 0 0 auto;
+	z-index: 3;
+	height: 9rem;
+	background: linear-gradient(to bottom, color-mix(in srgb, var(--color-beach-bg) 72%, transparent), transparent);
+}
+
+/* Home: shade the lower left so the white title and copy read over bright footage. */
+.beach-background[data-home]::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	background:
+		linear-gradient(to top, rgb(6 26 44 / 0.6), rgb(6 26 44 / 0) 62%),
+		linear-gradient(to right, rgb(6 26 44 / 0.45), rgb(6 26 44 / 0) 70%);
+	opacity: calc(1 - var(--hero-scrolled, 0));
+}
+
+/* --hero-scrolled (0 at top, 1 once the hero is gone) is set from BeachBackground.astro. */
+.beach-background[data-home] .beach-shore-scrim {
+	opacity: calc(0.12 + 0.88 * var(--hero-scrolled, 0));
+}
+
+html[data-theme='beach'] #sun-text {
+	text-shadow: 0 0.03em 0.2em rgb(6 26 44 / 0.45);
+}
+
+/* The hero is pointer-events: none for the Universe starfield; Beach needs hover on the title (hero-title-hover.ts). */
+html[data-theme='beach'] #sun-text .hero-char {
+	pointer-events: auto;
 }
 
 html[data-coarse-pointer] [data-reader-tools] {

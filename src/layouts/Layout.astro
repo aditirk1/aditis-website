@@ -178,8 +178,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 
 		<div class="dream-realm-tint" aria-hidden="true"></div>
 
-		<!-- Beach before universe so its theme observer can release WebGL first. -->
-		<BeachBackground />
+		<BeachBackground home={isHome} />
 		<StarFieldUniverse />
 
 		<div id="site-shell" class="relative z-10 flex min-h-dvh flex-col pointer-events-none">

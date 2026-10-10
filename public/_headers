@@ -16,3 +16,8 @@
 
 /admin/*
   Cache-Control: no-store
+
+# Beach footage: every new clip gets a new file name (scripts/beach-video.sh), so it
+# can be cached for good and page-to-page navigation never re-downloads it.
+/beach/*
+  Cache-Control: public, max-age=31536000, immutable
