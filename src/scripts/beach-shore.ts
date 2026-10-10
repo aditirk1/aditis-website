@@ -21,6 +21,7 @@ const MAX_SEGMENT_S = 18;
 const END_MARGIN_S = FADE_S + 0.6;
 const RESUME_KEY = 'aditi-beach-playhead';
 const RESUME_MAX_AGE_MS = 30 * 60 * 1000;
+const READY_TIMEOUT_MS = 10_000;
 
 function getTheme(): 'universe' | 'beach' {
 	return document.documentElement.getAttribute('data-theme') === 'beach' ? 'beach' : 'universe';
@@ -51,18 +52,20 @@ function once(v: HTMLVideoElement, event: string): Promise<void> {
 	return new Promise((resolve) => v.addEventListener(event, () => resolve(), { once: true }));
 }
 
-/* Metadata loaded, or the browser couldn't decode this file. */
+/* Metadata loaded, or the browser couldn't decode this file (or never started loading it). */
 function whenReady(v: HTMLVideoElement): Promise<void> {
 	if (v.readyState >= HTMLMediaElement.HAVE_METADATA) return Promise.resolve();
 	return new Promise((resolve, reject) => {
-		const done = (ok: boolean) => () => {
+		const timer = window.setTimeout(() => finish(new Error('timed out waiting for metadata')), READY_TIMEOUT_MS);
+		const finish = (err?: unknown) => {
+			window.clearTimeout(timer);
 			v.removeEventListener('loadedmetadata', onReady);
 			v.removeEventListener('error', onError);
-			if (ok) resolve();
-			else reject(v.error ?? new Error('media error'));
+			if (err) reject(err);
+			else resolve();
 		};
-		const onReady = done(true);
-		const onError = done(false);
+		const onReady = () => finish();
+		const onError = () => finish(v.error ?? new Error('media error'));
 		v.addEventListener('loadedmetadata', onReady);
 		v.addEventListener('error', onError);
 	});
@@ -137,10 +140,23 @@ export function initBeachShore(): () => void {
 		document.addEventListener('pointerdown', sync, { once: true });
 	}
 
+	/*
+	 * The markup says preload="none" so nothing downloads before this runs, and
+	 * Safari honours that even for a blob URL: no metadata ever arrives unless
+	 * preload is raised. iOS may still wait for playback to begin, so start it.
+	 */
+	function setClip(url: string) {
+		for (const v of layers) {
+			v.preload = 'auto';
+			v.src = url;
+		}
+		void layers[0].play().catch(() => {});
+	}
+
 	/* Load the first format this browser actually decodes into both layers. */
 	async function attachClip(gen: number): Promise<boolean> {
 		if (clipUrl) {
-			for (const v of layers) v.src = clipUrl;
+			setClip(clipUrl);
 			await whenReady(layers[0]);
 			return true;
 		}
@@ -156,7 +172,7 @@ export function initBeachShore(): () => void {
 				URL.revokeObjectURL(url);
 				return false;
 			}
-			for (const v of layers) v.src = url;
+			setClip(url);
 			try {
 				await whenReady(layers[0]);
 				clipUrl = url;
@@ -181,8 +197,10 @@ export function initBeachShore(): () => void {
 		}
 		if (gen !== generation) return;
 		if (!attached) {
-			loaded = false;
+			release();
 			console.warn('[beach-shore] No playable footage, keeping poster.');
+			/* Autoplay blocked before anything loaded (e.g. iOS Low Power Mode): a tap tries again. */
+			retryOnGesture();
 			return;
 		}
 
