@@ -928,25 +928,13 @@ html[data-theme='universe'] #sun-text {
 	z-index: 5;
 }
 
-.home-intro {
-	position: relative;
-	margin-inline: auto;
-	max-width: 64rem;
-	padding: 4rem 2rem;
-}
-
 .home-hero-desc {
 	max-width: 40rem;
 }
 
-.home-intro[data-empty],
-.home-intro[hidden] {
-	display: none !important;
-}
-
 /* Universe homepage: no tagline carousel / hero blurb — title + planets only. */
-html[data-theme='universe'] .home-intro {
-	display: none !important;
+html[data-theme='universe'] .home-hero-copy {
+	display: none;
 }
 
 html[data-theme='beach'] #planet-label {
@@ -988,10 +976,6 @@ html[data-theme='beach'] #planet-label {
 	#sun-text {
 		font-size: clamp(4.75rem, 22cqi, 10.5rem);
 	}
-
-	.home-intro {
-		padding: 6rem 4rem;
-	}
 }
 
 @media (min-width: 1024px) {
@@ -1002,15 +986,11 @@ html[data-theme='beach'] #planet-label {
 	#sun-text {
 		font-size: clamp(5.25rem, 23cqi, 11.5rem);
 	}
-
-	.home-intro {
-		padding: 7rem 4rem;
-	}
 }
 
 /*
- * Beach homepage: footage fills the hero and the title spans its full width
- * along the bottom (size fitted by hero-layout.ts). The copy card sits below.
+ * Beach homepage: footage fills the hero, and the lower left holds the white
+ * title, then the rotating tagline, description and buttons.
  */
 html[data-theme='beach'] .home-hero-grid {
 	display: flex;
@@ -1021,33 +1001,33 @@ html[data-theme='beach'] .hero-scroll-cue {
 	display: none;
 }
 
-/*
- * --hero-title-top is where the title's top edge sits on screen: the height the
- * waves wash up to in the footage, so they break against the letters.
- * The negative margin cancels <main>'s px-6 / md:px-10 so the title spans edge to edge.
- */
+/* Light text over the footage: retint the shared tokens so the copy and buttons follow. */
+html[data-theme='beach'] [data-hero-root] {
+	--page-fg: #ffffff;
+	--page-muted: rgb(255 255 255 / 0.9);
+	--color-amber: #8ee6ff;
+}
+
 html[data-theme='beach'] .home-hero-title-col {
-	--hero-title-top: 68dvh;
-	width: auto;
-	margin-inline: -1.5rem;
+	width: 100%;
+	flex-direction: column;
+	justify-content: flex-end;
 	align-items: flex-start;
-	padding: calc(var(--hero-title-top) - var(--site-header-h, 0px)) 2.5vw 0;
+	gap: clamp(1rem, 2.5vh, 1.75rem);
+	padding: 0 0 clamp(2.5rem, 10vh, 7rem);
 	container-type: normal;
 }
 
-@media (min-width: 768px) {
-	html[data-theme='beach'] .home-hero-title-col {
-		margin-inline: -2.5rem;
-	}
+html[data-theme='beach'] #sun-wrapper {
+	width: auto;
 }
 
 html[data-theme='beach'] #sun-text {
-	width: max-content;
+	width: auto;
 	flex-direction: row;
 	gap: 0.24em;
-	font-size: var(--hero-fit-size, 12vw);
-	line-height: 0.82;
-	letter-spacing: -0.04em;
+	font-size: clamp(3.25rem, 9.5vw, 9.5rem);
+	line-height: 0.88;
 }
 
 /* Must match pickSource() in beach-shore.ts, so phones stack the title over portrait footage. */
@@ -1055,26 +1035,21 @@ html[data-theme='beach'] #sun-text {
 	html[data-theme='beach'] #sun-text {
 		flex-direction: column;
 		gap: 0;
-		font-size: var(--hero-fit-size, 22vw);
+		font-size: 17vw;
 		line-height: 0.95;
 	}
 }
 
-html[data-theme='beach'] .home-intro-inner {
-	max-width: 46rem;
-	padding: clamp(1.75rem, 4vw, 3rem);
-	border: 1px solid rgb(255 255 255 / 0.75);
-	border-radius: 1.75rem;
-	background: color-mix(in srgb, #ffffff 74%, transparent);
-	box-shadow: 0 30px 80px -20px rgb(20 42 66 / 0.35);
-	-webkit-backdrop-filter: blur(16px) saturate(1.5);
-	backdrop-filter: blur(16px) saturate(1.5);
+html[data-theme='beach'] .home-hero-copy {
+	max-width: 38rem;
+	pointer-events: auto;
+	text-shadow: 0 1px 14px rgb(6 26 44 / 0.6);
 }
 
 html[data-theme='beach'] [data-hero-tagline] {
-	font-size: clamp(1.75rem, 4.5vw, 2.75rem);
+	font-size: calc(clamp(1.4rem, 2.8vw, 2.25rem) * var(--reader-scale, 1.1));
 	font-weight: 800;
-	letter-spacing: -0.02em;
+	letter-spacing: -0.01em;
 	line-height: 1.1;
 }
 
@@ -1138,6 +1113,18 @@ html[data-theme='beach'] .beach-background {
 	background: linear-gradient(to bottom, color-mix(in srgb, var(--color-beach-bg) 72%, transparent), transparent);
 }
 
+/* Home: shade the lower left so the white title and copy read over bright footage. */
+.beach-background[data-home]::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	background:
+		linear-gradient(to top, rgb(6 26 44 / 0.6), rgb(6 26 44 / 0) 62%),
+		linear-gradient(to right, rgb(6 26 44 / 0.45), rgb(6 26 44 / 0) 70%);
+	opacity: calc(1 - var(--hero-scrolled, 0));
+}
+
 /* --hero-scrolled (0 at top, 1 once the hero is gone) is set from BeachBackground.astro. */
 .beach-background[data-home] .beach-shore-scrim {
 	opacity: calc(0.12 + 0.88 * var(--hero-scrolled, 0));
@@ -1149,10 +1136,9 @@ html[data-theme='beach'] .beach-background {
 
 /* --wet is driven per letter by beach-shore-splash.ts when foam reaches it. */
 html[data-theme='beach'] #sun-text .hero-char {
-	color: color-mix(in srgb, #ffffff calc(var(--wet, 0) * 30%), var(--page-fg));
 	text-shadow:
-		0 0 calc(var(--wet, 0) * 0.14em) rgb(255 255 255 / calc(var(--wet, 0) * 0.9)),
-		0 0.04em 0.12em rgb(20 42 66 / 0.3);
+		0 0 calc(var(--wet, 0) * 0.2em) rgb(170 235 255 / calc(var(--wet, 0) * 0.95)),
+		0 0.03em 0.2em rgb(6 26 44 / 0.45);
 }
 
 .shore-spray {

@@ -20,6 +20,3 @@ How the source was prepared before encoding:
      cropped to the water and sand, dropping the trees:
        ffmpeg -i stab.mp4 -vf "transpose=2,transpose=2,crop=1440:810:240:0,scale=1920:1080:flags=lanczos" -an -crf 12 master.mp4
   3. scripts/beach-video.sh master.mp4 0 16.05 0.5
-
-If you swap the clip, also check --hero-title-top in src/styles/global.css: it puts
-the homepage title where the waves wash up to, so they break against the letters.
