@@ -25,6 +25,19 @@ backend:
 media_folder: public/uploads
 public_folder: /uploads
 
+# Uploaded JPEG/PNG photos are re-encoded in the browser before they're
+# committed: resized to fit 2048px and saved as WebP. Re-encoding drops EXIF
+# (GPS location, camera serials) so it never reaches the public repo.
+media_libraries:
+  default:
+    config:
+      transformations:
+        raster_image:
+          format: webp
+          quality: 85
+          width: 2048
+          height: 2048
+
 # Keep frontmatter tidy for Astro content collections.
 output:
   omit_empty_optional_fields: true
@@ -161,6 +174,36 @@ collections:
       - { label: Date, name: date, widget: datetime, date_format: YYYY-MM-DD, time_format: false }
       - { label: Draft, name: draft, widget: boolean, default: false }
       - { label: Body, name: body, widget: markdown }
+
+  # One entry per photo. Photos with the same album name are grouped on /photo-dump.
+  - name: photos
+    label: Photo dump
+    label_singular: photo
+    folder: src/content/photos
+    create: true
+    extension: yml
+    format: yaml
+    slug: 'photo-{{year}}{{month}}{{day}}-{{hour}}{{minute}}{{second}}'
+    summary: '{{album}} — {{caption}}'
+    sortable_fields: [date, album]
+    fields:
+      - label: Photo
+        name: image
+        widget: image
+        media_folder: /public/uploads/photos
+        public_folder: /uploads/photos
+      - label: Album
+        name: album
+        widget: string
+        default: Misc
+        hint: Photos with the same album name appear together. A new name starts a new album.
+      - { label: Caption, name: caption, widget: string, required: false }
+      - label: Alt text
+        name: alt
+        widget: string
+        required: false
+        hint: What's in the photo, for screen readers. Falls back to the caption.
+      - { label: Date, name: date, widget: datetime, date_format: YYYY-MM-DD, time_format: false, required: false }
 
   - name: dreams
     label: Dream journal

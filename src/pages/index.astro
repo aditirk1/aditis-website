@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import SplashIntro from '../components/SplashIntro.astro';
 import LiveVisitorMap from '../components/LiveVisitorMap.astro';
+import Button from '../components/Button.astro';
 import home from '../data/home.json';
 
 const heroTitle = home.hero_title;
@@ -72,18 +73,8 @@ const firstTagline = taglines[0] ?? '';
 				{home.hero_description}
 			</p>
 			<div class="home-hero-extra pointer-events-auto mt-10 flex flex-wrap gap-4" data-reveal-child>
-				<a
-					href={home.cta_primary_href}
-					class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-6 py-3 text-sm font-bold text-[var(--page-fg)] backdrop-blur-sm transition fine-hover:scale-105 fine-hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)] fine-hover:shadow-[0_0_28px_color-mix(in_srgb,var(--color-amber)_30%,transparent)]"
-				>
-					{home.cta_primary_label}
-				</a>
-				<a
-					href={home.cta_secondary_href}
-					class="rounded-full border border-[color-mix(in_srgb,var(--page-fg)_25%,transparent)] px-6 py-3 text-sm font-bold text-[var(--page-fg)] backdrop-blur-sm transition fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)]"
-				>
-					{home.cta_secondary_label}
-				</a>
+				<Button href={home.cta_primary_href}>{home.cta_primary_label}</Button>
+				<Button href={home.cta_secondary_href} variant="secondary">{home.cta_secondary_label}</Button>
 			</div>
 		</div>
 	</section>

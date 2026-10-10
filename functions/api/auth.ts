@@ -12,8 +12,8 @@ interface Env {
 	GITHUB_CLIENT_SECRET?: string;
 }
 
-/** `repo` covers private repositories too; narrow to `public_repo` if yours is public. */
-const SCOPE = 'repo,user';
+/** The content repo is public, so `public_repo` is enough for CMS commits. */
+const SCOPE = 'public_repo,user';
 
 export const STATE_COOKIE = 'decap_oauth_state';
 

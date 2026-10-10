@@ -3,10 +3,12 @@ import path from 'node:path';
 import Layout from '../../layouts/Layout.astro';
 import ContentLightbox from '../../components/ContentLightbox.astro';
 import EmptyState from '../../components/EmptyState.astro';
-import { albumPhotoSources, loadPhotoAlbums } from '../../utils/photo-dump.ts';
+import { getCollection } from 'astro:content';
+import { albumLightboxItems, loadPhotoAlbums } from '../../utils/photo-dump.ts';
 
 const photosRoot = path.join(process.cwd(), 'public', 'photos');
-const albums = loadPhotoAlbums(photosRoot);
+const cmsPhotos = (await getCollection('photos')).map((entry) => entry.data);
+const albums = await loadPhotoAlbums(photosRoot, cmsPhotos);
 const hasPhotos = albums.some((a) => a.photos.length > 0);
 ---
 
@@ -35,9 +37,9 @@ const hasPhotos = albums.some((a) => a.photos.length > 0);
 			) : (
 				<div class="flex flex-col gap-16">
 					{albums.map((album) => {
-						const sources = albumPhotoSources(album);
+						const items = albumLightboxItems(album);
 						return (
-							<section data-reveal-stagger data-lightbox-gallery={JSON.stringify(sources)}>
+							<section data-reveal-stagger data-lightbox-gallery={JSON.stringify(items)}>
 								<h2
 									class="mb-6 text-2xl font-semibold tracking-tight"
 									style="font-family: var(--font-display)"
@@ -52,11 +54,13 @@ const hasPhotos = albums.some((a) => a.photos.length > 0);
 												type="button"
 												class="photo-dump-btn group w-full overflow-hidden rounded-xl border-0 bg-transparent p-0 text-left shadow-md transition-shadow hover:shadow-[0_0_20px_color-mix(in_srgb,var(--color-amber)_20%,transparent)]"
 												data-lightbox-open={i}
-												data-lightbox-caption={photo.name}
+												aria-label={`Open ${photo.alt} larger`}
 											>
 												<img
 													src={photo.src}
-													alt={photo.name}
+													alt={photo.alt}
+													width={photo.width}
+													height={photo.height}
 													class="photo-thumb h-auto w-full object-cover transition group-hover:brightness-110"
 													loading="lazy"
 													decoding="async"

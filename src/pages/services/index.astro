@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import ContactModal from '../../components/ContactModal.astro';
+import Button from '../../components/Button.astro';
 import page from '../../data/services.json';
 
 const stripeCheckoutEnabled = import.meta.env.PUBLIC_STRIPE_CHECKOUT === 'true';
@@ -105,36 +106,25 @@ const ctaBody = stripeCheckoutEnabled
 			<div class="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center" data-reveal-child>
 				{
 					contactEnabled && (
-						<button
-							type="button"
-							class="rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-7 py-3.5 text-base font-bold text-[var(--color-amber)] transition fine-hover:scale-[1.03] fine-hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)]"
-							data-contact-open
-						>
+						<Button size="lg" data-contact-open>
 							Work with me
-						</button>
+						</Button>
 					)
 				}
-				<a
+				<Button
 					href="https://www.linkedin.com/in/aditirk/"
 					target="_blank"
 					rel="noopener noreferrer"
-					class={
-						contactEnabled
-							? 'rounded-full border border-[color-mix(in_srgb,var(--page-fg)_22%,transparent)] px-7 py-3.5 text-center text-base font-bold text-[var(--page-fg)] transition fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)]'
-							: 'rounded-full border border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] px-7 py-3.5 text-center text-base font-bold text-[var(--color-amber)] transition fine-hover:scale-[1.03] fine-hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)]'
-					}
+					size="lg"
+					variant={contactEnabled ? 'secondary' : 'primary'}
 				>
 					Message on LinkedIn
-				</a>
+				</Button>
 				{
 					stripeCheckoutEnabled && (
-						<button
-							type="button"
-							class="rounded-full border border-[color-mix(in_srgb,var(--page-fg)_22%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_60%,transparent)] px-7 py-3.5 text-base font-bold text-[var(--page-fg)] transition fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)]"
-							data-stripe-checkout
-						>
+						<Button size="lg" variant="secondary" data-stripe-checkout>
 							Pay securely (Stripe)
-						</button>
+						</Button>
 					)
 				}
 			</div>
@@ -143,6 +133,17 @@ const ctaBody = stripeCheckoutEnabled
 					<p class="mt-3 text-sm text-[var(--page-muted)]" data-reveal-child>
 						Secure hosted checkout — cards and wallets where Stripe enables them.
 					</p>
+				)
+			}
+			{
+				stripeCheckoutEnabled && (
+					<p
+						class="mt-3 text-sm font-medium text-[var(--page-fg)]"
+						data-stripe-status
+						role="status"
+						aria-live="polite"
+						hidden
+					/>
 				)
 			}
 		</section>
@@ -154,11 +155,18 @@ const ctaBody = stripeCheckoutEnabled
 		stripeCheckoutEnabled && (
 			<script>
 				const btn = document.querySelector('[data-stripe-checkout]') as HTMLButtonElement | null;
+				const statusEl = document.querySelector('[data-stripe-status]') as HTMLElement | null;
+				const showStatus = (msg: string) => {
+					if (!statusEl) return;
+					statusEl.textContent = msg;
+					statusEl.hidden = false;
+				};
 				btn?.addEventListener('click', async () => {
 					if (!btn) return;
 					const prev = btn.textContent;
 					btn.disabled = true;
 					btn.textContent = 'Redirecting…';
+					if (statusEl) statusEl.hidden = true;
 					try {
 						const r = await fetch('/api/checkout', {
 							method: 'POST',
@@ -171,9 +179,9 @@ const ctaBody = stripeCheckoutEnabled
 							window.location.href = d.url;
 							return;
 						}
-						alert(d.error ?? 'Could not start checkout.');
+						showStatus(d.error ?? 'Could not start checkout. Try again, or use the contact form.');
 					} catch {
-						alert('Network error — try again or use the contact form.');
+						showStatus('Network error — try again or use the contact form.');
 					} finally {
 						btn.disabled = false;
 						btn.textContent = prev ?? 'Pay securely (Stripe)';

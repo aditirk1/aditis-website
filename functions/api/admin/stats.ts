@@ -1,5 +1,6 @@
 import { readAgg } from '../../_shared/agg';
 import { corsOptions, forbidCrossOrigin, json } from '../../_shared/cors';
+import { bearerMatches, rateLimit } from '../../_shared/security';
 
 interface Env {
 	VISITOR_KV: KVNamespace;
@@ -13,10 +14,10 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 	const blocked = forbidCrossOrigin(request);
 	if (blocked) return blocked;
 
-	const secret = env.ADMIN_STATS_SECRET ?? '';
-	const auth = request.headers.get('Authorization') ?? '';
-	const token = auth.replace(/^Bearer\s+/i, '').trim();
-	if (!secret || token !== secret) {
+	const limited = await rateLimit(env.VISITOR_KV, request, { bucket: 'admin', limit: 10, windowS: 300 });
+	if (limited) return limited;
+
+	if (!(await bearerMatches(request, env.ADMIN_STATS_SECRET))) {
 		return json({ error: 'Unauthorized' }, 401, request);
 	}
 

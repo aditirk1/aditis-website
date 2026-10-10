@@ -1,0 +1,18 @@
+# Cloudflare Pages static-asset headers. Pages Functions (/api/*) set their own
+# via functions/api/_middleware.ts — this file does not apply to them.
+#
+# CSP runs in Report-Only first: violations show in the browser console without
+# breaking anything. Once a week of browsing /, /admin/, sign-in and checkout is
+# clean, rename the header to Content-Security-Policy to enforce it.
+# If Umami analytics is enabled, add its script host to script-src + connect-src.
+
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https://api.github.com https://*.githubusercontent.com https://api.web3forms.com https://unpkg.com; worker-src 'self' blob:; form-action 'self' https://api.web3forms.com https://github.com; base-uri 'self'; object-src 'none'; frame-ancestors 'none'
+
+/admin/*
+  Cache-Control: no-store

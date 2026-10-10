@@ -30,7 +30,7 @@ const blog = defineCollection({
 		draft: z.boolean().optional(),
 		/**
 		 * Normally implied by the folder (`blog/essays/post.md` → "essays").
-		 * Decap CMS also writes it here; a value is only read when a post
+		 * The CMS also writes it here; a value is only read when a post
 		 * sits at the collection root.
 		 */
 		category: z.string().optional(),
@@ -69,9 +69,22 @@ const dreams = defineCollection({
 	}),
 });
 
+/** Photo-dump entries added from /admin; image files live in public/uploads/photos. */
+const photos = defineCollection({
+	loader: glob({ pattern: '**/[^_]*.{yml,yaml}', base: './src/content/photos' }),
+	schema: z.object({
+		image: z.string(),
+		album: z.string().default('Misc'),
+		caption: z.string().optional(),
+		alt: z.string().optional(),
+		date: z.coerce.date().optional(),
+	}),
+});
+
 export const collections = {
 	projects,
 	blog,
 	thoughts,
 	dreams,
+	photos,
 };
