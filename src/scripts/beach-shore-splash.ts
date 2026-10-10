@@ -48,10 +48,10 @@ export function initShoreSplash(getVideo: () => HTMLVideoElement): () => void {
 		for (let k = 0; k < count && liveDrops < MAX_DROPS; k++) {
 			const drop = document.createElement('span');
 			drop.className = 'shore-drop';
-			const size = r.height * gsap.utils.random(0.025, 0.06);
+			const size = r.height * gsap.utils.random(0.04, 0.085);
 			drop.style.width = drop.style.height = `${size}px`;
 			drop.style.left = `${r.left - wr.left + gsap.utils.random(0.15, 0.85) * r.width}px`;
-			drop.style.top = `${r.bottom - wr.top - r.height * 0.18}px`;
+			drop.style.top = `${r.top - wr.top + r.height * 0.12}px`;
 			spray.append(drop);
 			liveDrops++;
 
@@ -66,7 +66,7 @@ export function initShoreSplash(getVideo: () => HTMLVideoElement): () => void {
 					},
 				})
 				.fromTo(drop, { x: 0, y: 0, opacity: 0.95 }, { x: drift * 0.6, y: -rise, duration: up, ease: 'power2.out' })
-				.to(drop, { x: drift, y: r.height * 0.1, opacity: 0, scale: 0.6, duration: up * 1.3, ease: 'power2.in' });
+				.to(drop, { x: drift, y: r.height * 0.25, opacity: 0, scale: 0.6, duration: up * 1.3, ease: 'power2.in' });
 		}
 	}
 
@@ -106,11 +106,11 @@ export function initShoreSplash(getVideo: () => HTMLVideoElement): () => void {
 			const r = el.getBoundingClientRect();
 			if (r.width === 0 || r.bottom < 0 || r.top > vh) return;
 
-			/* Lower half of the glyph box: where the water would reach it. */
+			/* The sea is above the title, so waves reach the top edge of each glyph first. */
 			const x0 = toX(r.left);
 			const x1 = toX(r.right);
-			const y0 = toY(r.top + r.height * 0.5);
-			const y1 = toY(r.bottom);
+			const y0 = toY(r.top - r.height * 0.3);
+			const y1 = toY(r.top + r.height * 0.3);
 			let sum = 0;
 			let n = 0;
 			for (let y = y0; y <= y1; y++) {
