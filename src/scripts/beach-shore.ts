@@ -1,18 +1,26 @@
 /**
- * Beach theme background: real shoreline footage. Instead of looping the clip
+ * Beach theme background: real beach footage. Instead of looping the clip
  * end-to-start, two <video> layers crossfade between random segments of it, so
  * the repeat point is never the same twice.
+ *
+ * Every page load is a fresh document, so the playhead is saved on pagehide and
+ * the next page picks up where the last one left off, keeping the footage
+ * continuous across the site.
  *
  * Video is released entirely while Universe is active. Reduced motion and
  * Save-Data keep the CSS poster only.
  */
-import { initShoreSplash } from './beach-shore-splash.ts';
 
+/* Files come from scripts/beach-video.sh. Must match the poster URLs in global.css. */
+const CLIP = '/beach/tropic';
 const FADE_S = 2.2;
-const MIN_SEGMENT_S = 7;
-const MAX_SEGMENT_S = 13;
+const RESUME_FADE_S = 0.4;
+const MIN_SEGMENT_S = 10;
+const MAX_SEGMENT_S = 18;
 /* timeupdate fires ~4×/s, so leave slack for the outgoing layer to finish its fade. */
 const END_MARGIN_S = FADE_S + 0.6;
+const RESUME_KEY = 'aditi-beach-playhead';
+const RESUME_MAX_AGE_MS = 30 * 60 * 1000;
 
 function getTheme(): 'universe' | 'beach' {
 	return document.documentElement.getAttribute('data-theme') === 'beach' ? 'beach' : 'universe';
@@ -25,7 +33,7 @@ function posterOnly(): boolean {
 
 /* Must match the portrait poster media query in global.css. */
 function pickSource(probe: HTMLVideoElement): string | null {
-	const base = window.matchMedia('(max-aspect-ratio: 1/1)').matches ? '/beach/shore-portrait' : '/beach/shore';
+	const base = window.matchMedia('(max-aspect-ratio: 1/1)').matches ? `${CLIP}-portrait` : CLIP;
 	if (probe.canPlayType('video/webm; codecs="vp9"')) return `${base}.webm`;
 	if (probe.canPlayType('video/mp4; codecs="avc1.640028"')) return `${base}.mp4`;
 	return null;
@@ -40,6 +48,20 @@ async function seek(v: HTMLVideoElement, t: number): Promise<void> {
 	const done = once(v, 'seeked');
 	v.currentTime = t;
 	await done;
+}
+
+/* Where the previous page's footage would be by now, if it was saved recently. */
+function readResumePoint(): number | null {
+	try {
+		const raw = sessionStorage.getItem(RESUME_KEY);
+		if (!raw) return null;
+		const { t, at } = JSON.parse(raw) as { t: number; at: number };
+		const age = Date.now() - at;
+		if (!Number.isFinite(t) || age < 0 || age > RESUME_MAX_AGE_MS) return null;
+		return t + age / 1000;
+	} catch {
+		return null;
+	}
 }
 
 export function initBeachShore(): () => void {
@@ -62,14 +84,17 @@ export function initBeachShore(): () => void {
 	let fading = false;
 	/* Bumped on release so in-flight loads/seeks from a previous run bail out. */
 	let generation = 0;
-	let stopSplash: (() => void) | null = null;
 
 	const frontVideo = () => layers[front];
 	const backVideo = () => layers[1 - front];
+	const shouldPlay = () => loaded && getTheme() === 'beach' && !document.hidden;
+
+	function lastStart(v: HTMLVideoElement): number {
+		return Math.max(0, v.duration - END_MARGIN_S - MIN_SEGMENT_S);
+	}
 
 	function randomStart(v: HTMLVideoElement): number {
-		const room = v.duration - END_MARGIN_S - MIN_SEGMENT_S;
-		return room > 0 ? Math.random() * room : 0;
+		return Math.random() * lastStart(v);
 	}
 
 	function planSegment(v: HTMLVideoElement) {
@@ -104,7 +129,11 @@ export function initBeachShore(): () => void {
 
 		for (const v of layers) v.src = url;
 		const first = frontVideo();
-		await seek(first, randomStart(first));
+		const resumeAt = readResumePoint();
+		if (first.readyState < HTMLMediaElement.HAVE_METADATA) await once(first, 'loadedmetadata');
+		if (gen !== generation) return;
+		const resuming = resumeAt !== null && resumeAt < first.duration - END_MARGIN_S - 1;
+		await seek(first, resuming ? resumeAt : randomStart(first));
 		if (gen !== generation) return;
 		try {
 			await first.play();
@@ -115,12 +144,18 @@ export function initBeachShore(): () => void {
 			return;
 		}
 		if (gen !== generation) return;
+		/* Carrying on from the previous page: a quick reveal reads as continuous, not a restart. */
+		if (resuming) first.style.transitionDuration = `${RESUME_FADE_S}s`;
 		first.toggleAttribute('data-front', true);
 		first.toggleAttribute('data-visible', true);
+		if (resuming) {
+			window.setTimeout(() => {
+				first.style.transitionDuration = `${FADE_S}s`;
+			}, RESUME_FADE_S * 1000);
+		}
 		if (document.hidden) first.pause();
 		planSegment(first);
 		void seek(backVideo(), randomStart(backVideo()));
-		stopSplash = initShoreSplash(frontVideo);
 	}
 
 	async function crossfade() {
@@ -154,6 +189,28 @@ export function initBeachShore(): () => void {
 		if (frontVideo().currentTime >= segmentEnd) void crossfade();
 	}
 
+	/* Browsers can pause background media on their own (power saving, media
+	 * session changes). If the visible layer stops while it should be playing,
+	 * start it again rather than leaving a frozen frame. */
+	function onPause(e: Event) {
+		if (e.target !== frontVideo() || !shouldPlay() || !frontVideo().hasAttribute('data-visible')) return;
+		void frontVideo().play().catch(retryOnGesture);
+	}
+
+	/* Reaching the end means a crossfade was missed: hand over right away. */
+	function onEnded(e: Event) {
+		if (e.target === frontVideo() && !fading && shouldPlay()) void crossfade();
+	}
+
+	function savePlayhead() {
+		if (!loaded || !frontVideo().hasAttribute('data-visible')) return;
+		try {
+			sessionStorage.setItem(RESUME_KEY, JSON.stringify({ t: frontVideo().currentTime, at: Date.now() }));
+		} catch {
+			/* Private mode or storage full: the next page just starts somewhere new. */
+		}
+	}
+
 	function pause() {
 		window.clearTimeout(fadeTimer);
 		for (const v of layers) v.pause();
@@ -169,8 +226,6 @@ export function initBeachShore(): () => void {
 	function release() {
 		generation++;
 		pause();
-		stopSplash?.();
-		stopSplash = null;
 		loaded = false;
 		segmentEnd = Infinity;
 		for (const v of layers) {
@@ -198,10 +253,15 @@ export function initBeachShore(): () => void {
 		if (v.paused && v.hasAttribute('data-visible')) void v.play().catch(retryOnGesture);
 	}
 
-	for (const v of layers) v.addEventListener('timeupdate', onTimeUpdate);
+	for (const v of layers) {
+		v.addEventListener('timeupdate', onTimeUpdate);
+		v.addEventListener('pause', onPause);
+		v.addEventListener('ended', onEnded);
+	}
 	const mo = new MutationObserver(sync);
 	mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 	document.addEventListener('visibilitychange', sync);
+	window.addEventListener('pagehide', savePlayhead);
 	sync();
 
 	return () => {
@@ -209,7 +269,12 @@ export function initBeachShore(): () => void {
 		mo.disconnect();
 		document.removeEventListener('visibilitychange', sync);
 		document.removeEventListener('pointerdown', sync);
-		for (const v of layers) v.removeEventListener('timeupdate', onTimeUpdate);
+		window.removeEventListener('pagehide', savePlayhead);
+		for (const v of layers) {
+			v.removeEventListener('timeupdate', onTimeUpdate);
+			v.removeEventListener('pause', onPause);
+			v.removeEventListener('ended', onEnded);
+		}
 		void clipUrl?.then((url) => URL.revokeObjectURL(url)).catch(() => {});
 	};
 }

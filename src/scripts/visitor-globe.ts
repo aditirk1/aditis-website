@@ -60,10 +60,12 @@ function clamp(v: number, lo: number, hi: number): number {
 /**
  * Visitor globe (Universe + Beach).
  *
- * Hovering a pin draws a leader line out of the globe — slanted radial segment,
- * short horizontal tick, then the label — instead of a centred tooltip that the
- * round frame would clip. Zoom is available so sparse, single-visit pins are big
- * enough to hit.
+ * Mouse: hovering a pin draws a leader line out of the globe — slanted radial
+ * segment, short horizontal tick, then the label — instead of a centred tooltip
+ * that the round frame would clip.
+ * Touch: there is no hover and no room beside the globe for a leader, so tapping
+ * a pin writes its place into a line under the globe; tapping the globe clears it.
+ * Pinch and the +/− buttons zoom so sparse, single-visit pins are big enough to hit.
  */
 export function initVisitorGlobe(container: HTMLElement): {
 	setMarkers: (markers: GlobeMarker[]) => void;
@@ -74,6 +76,9 @@ export function initVisitorGlobe(container: HTMLElement): {
 	const callout = stage?.querySelector<HTMLElement>('[data-globe-callout]') ?? null;
 	const calloutPlace = stage?.querySelector<HTMLElement>('[data-globe-callout-place]') ?? null;
 	const calloutCount = stage?.querySelector<HTMLElement>('[data-globe-callout-count]') ?? null;
+	const picked = stage?.parentElement?.querySelector<HTMLElement>('[data-globe-picked]') ?? null;
+	const zoomButtons = stage?.querySelectorAll<HTMLButtonElement>('[data-globe-zoom]') ?? [];
+	const touchUi = window.matchMedia('(hover: none), (pointer: coarse)').matches;
 
 	const leaderPath = document.createElementNS(SVG_NS, 'polyline');
 	leaderPath.setAttribute('fill', 'none');
@@ -233,19 +238,41 @@ export function initVisitorGlobe(container: HTMLElement): {
 		followRaf = requestAnimationFrame(followHovered);
 	}
 
-	globe.onPointHover((point: object | null) => {
-		const p = point as PointDatum | null;
+	function showPicked(p: PointDatum | null) {
 		ctrls.autoRotate = !p;
-		container.style.cursor = p ? 'pointer' : '';
-		if (!p) {
-			hideCallout();
-			return;
-		}
-		hovered = p;
-		drawCallout(p);
-		/* Keep the leader glued to the pin through drags and zooms. */
-		if (!followRaf) followRaf = requestAnimationFrame(followHovered);
-	});
+		if (!picked) return;
+		picked.textContent = p ? `${p.placeLine} · ${p.count} ${p.count === 1 ? 'visit' : 'visits'}` : '';
+		picked.hidden = !p;
+	}
+
+	if (touchUi) {
+		globe.onPointClick((point: object) => showPicked(point as PointDatum));
+		globe.onGlobeClick(() => showPicked(null));
+	} else {
+		globe.onPointHover((point: object | null) => {
+			const p = point as PointDatum | null;
+			ctrls.autoRotate = !p;
+			container.style.cursor = p ? 'pointer' : '';
+			if (!p) {
+				hideCallout();
+				return;
+			}
+			hovered = p;
+			drawCallout(p);
+			/* Keep the leader glued to the pin through drags and zooms. */
+			if (!followRaf) followRaf = requestAnimationFrame(followHovered);
+		});
+	}
+
+	/* OrbitControls sets touch-action: none; pan-y lets a vertical swipe still scroll the page. */
+	if (ctrls.domElement) ctrls.domElement.style.touchAction = 'pan-y';
+
+	const onZoomClick = (e: Event) => {
+		const factor = (e.currentTarget as HTMLElement).dataset.globeZoom === 'in' ? 0.7 : 1 / 0.7;
+		const pov = globe.pointOfView();
+		globe.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: clamp(pov.altitude * factor, 0.45, 4) }, 300);
+	};
+	for (const b of zoomButtons) b.addEventListener('click', onZoomClick);
 
 	/*
 	 * Trackpad two-finger scroll, mouse wheel and touch pinch all drive
@@ -299,14 +326,17 @@ export function initVisitorGlobe(container: HTMLElement): {
 	return {
 		setMarkers(markers: GlobeMarker[]) {
 			const color = accentColor();
+			/* Fingers need a bigger target than a cursor. */
+			const touchScale = touchUi ? 1.7 : 1;
 			hideCallout();
+			showPicked(null);
 			globe.pointsData(
 				markers.map(
 					(m): PointDatum => ({
 						lat: m.lat,
 						lng: m.lng,
 						/* Floor the size so a 1-visit pin is still a real hit target. */
-						size: 0.7 + Math.min(1.3, (m.count ?? 1) * 0.09),
+						size: (0.7 + Math.min(1.3, (m.count ?? 1) * 0.09)) * touchScale,
 						color,
 						count: m.count ?? 1,
 						country: m.country,
@@ -324,6 +354,8 @@ export function initVisitorGlobe(container: HTMLElement): {
 			container.removeEventListener('pointerenter', onPointerEnter);
 			container.removeEventListener('pointerdown', onPointerDown);
 			container.removeEventListener('pointerleave', onPointerLeave);
+			for (const b of zoomButtons) b.removeEventListener('click', onZoomClick);
+			showPicked(null);
 			leaderPath.remove();
 			leaderDot.remove();
 			globe._destructor();

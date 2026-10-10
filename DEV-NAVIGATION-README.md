@@ -89,7 +89,7 @@ aditis-website/
 | Fonts loaded from Google | **`src/layouts/Layout.astro`** (the `<link>` in `<head>`) |
 | Header / footer shell, theme toggle behavior | **`src/layouts/Layout.astro`** |
 | Beach scene (shoreline video loop) | **`src/components/BeachBackground.astro`**, **`src/scripts/beach-shore.ts`**, footage in **`public/beach/`** |
-| Title splashing when foam reaches it (Beach home) | **`src/scripts/beach-shore-splash.ts`** |
+| Title letters rippling on hover (Beach home) | **`src/scripts/hero-title-hover.ts`** |
 | Universe starfield + Earth “portal” look | **`src/scripts/universe-star-field.ts`** (and canvas host **`src/components/StarFieldUniverse.astro`**) |
 | Visitor globe panel on the homepage | **`src/components/LiveVisitorMap.astro`**, **`src/scripts/visitor-globe.ts`** |
 | One specific page’s layout | **`src/pages/<route>/...`** |
