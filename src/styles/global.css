@@ -1057,7 +1057,7 @@ html[data-theme='beach'] [data-hero-tagline] {
 /* Beach background: poster paints first, footage layers fade in over it (beach-shore.ts). */
 .beach-background {
 	display: none;
-	background: var(--color-beach-bg) url('/beach/tropic-poster.webp') center / cover no-repeat;
+	background: var(--color-beach-bg) url('/beach/tropic-loop-poster.webp') center / cover no-repeat;
 }
 
 html[data-theme='beach'] .beach-background {
@@ -1067,7 +1067,7 @@ html[data-theme='beach'] .beach-background {
 /* Must match pickSource() in beach-shore.ts. */
 @media (max-aspect-ratio: 1/1) {
 	.beach-background {
-		background-image: url('/beach/tropic-poster-portrait.webp');
+		background-image: url('/beach/tropic-loop-poster-portrait.webp');
 	}
 }
 
@@ -1078,10 +1078,8 @@ html[data-theme='beach'] .beach-background {
 	height: 100%;
 	object-fit: cover;
 	opacity: 0;
-}
-
-.beach-shore-video[data-front] {
 	z-index: 1;
+	/* Duration is set from beach-shore.ts (shorter when resuming from the previous page). */
 	transition-property: opacity;
 	transition-timing-function: ease-in-out;
 }

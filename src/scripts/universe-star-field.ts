@@ -26,7 +26,8 @@ import { getScrollState, subscribeScroll } from './scroll-orchestrator.ts';
 const CANVAS_ID = 'universe-star-field-canvas';
 
 const MAX_DPR = 2;
-const MOBILE_MAX_DPR = 1.25;
+/* Phone screens are 3×; below 2× the planets and orbit lines visibly blur. */
+const MOBILE_MAX_DPR = 2;
 const REDUCED_MOTION_STAR_COUNT = 1400;
 const DEFAULT_STAR_COUNT = 5200;
 const MOBILE_STAR_COUNT = 3000;
