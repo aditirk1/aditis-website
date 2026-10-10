@@ -77,7 +77,7 @@ export function bootLiveVisitorMap(root: HTMLElement): () => void {
 			const r = await fetch(apiUrl(apiBase, '/api/stats'), { credentials: 'same-origin' });
 			if (!r.ok) throw new Error(String(r.status));
 			const d = (await r.json()) as { total: number; markers: GlobeMarker[] };
-			setTotal(d.total, d.total > 0 ? '' : 'Counting from today.');
+			setTotal(d.total, '');
 			applyMarkers(d.markers);
 		} catch {
 			setTotal(null, 'Live count is offline right now.');
