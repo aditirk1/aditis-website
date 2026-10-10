@@ -37,7 +37,7 @@ const firstTagline = taglines[0] ?? '';
 			<!--
 				RIGHT zone. Universe: the orrery renders here (WebGL, behind) and this
 				box is what it centres on; the caption is placed against its bottom edge.
-				Beach: the copy block is moved in by syncHeroLayout().
+				Beach: hidden; the title spans the full width instead.
 			-->
 			<div class="home-hero-side-col" data-hero-side-slot>
 				<div id="planet-label">
@@ -52,7 +52,7 @@ const firstTagline = taglines[0] ?? '';
 	</section>
 
 	<!--
-		Copy block: Beach only (right column via syncHeroLayout).
+		Copy block: Beach only, shown below the hero (syncHeroLayout).
 		Universe hides this entire band — hero is title + planets only.
 	-->
 	<section class="home-intro pointer-events-none relative" data-hero-intro-home hidden>

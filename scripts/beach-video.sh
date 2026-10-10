@@ -11,7 +11,7 @@ in=${1:?usage: scripts/beach-video.sh <input> [start-s] [duration-s] [portrait-c
 ss=${2:-0}
 dur=${3:-24}
 cx=${4:-0.5}
-grade=${GRADE:-eq=saturation=0.88:brightness=0.015:gamma=1.04}
+grade=${GRADE:-eq=saturation=1.06:contrast=1.03}
 out="$(dirname "$0")/../public/beach"
 
 # Keyframe every second so random-offset seeks in beach-shore.ts land instantly.
