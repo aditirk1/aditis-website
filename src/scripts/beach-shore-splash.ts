@@ -9,7 +9,7 @@ const SAMPLE_INTERVAL_MS = 120;
 /* Hysteresis: foam must rise above ON to splash, then fall below OFF to re-arm. */
 const FOAM_ON = 0.45;
 const FOAM_OFF = 0.2;
-const COOLDOWN_MS = 1500;
+const COOLDOWN_MS = 2400;
 const MAX_DROPS = 40;
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
@@ -106,20 +106,17 @@ export function initShoreSplash(getVideo: () => HTMLVideoElement): () => void {
 			const r = el.getBoundingClientRect();
 			if (r.width === 0 || r.bottom < 0 || r.top > vh) return;
 
-			/* The sea is above the title, so waves reach the top edge of each glyph first. */
+			/* Foamiest row inside the glyph box: a wave line only has to cross the letter, not cover it. */
 			const x0 = toX(r.left);
 			const x1 = toX(r.right);
-			const y0 = toY(r.top - r.height * 0.3);
-			const y1 = toY(r.top + r.height * 0.3);
-			let sum = 0;
-			let n = 0;
+			const y0 = toY(r.top);
+			const y1 = toY(r.bottom);
+			let foam = 0;
 			for (let y = y0; y <= y1; y++) {
-				for (let x = x0; x <= x1; x++) {
-					sum += foamAt(data, (y * sw + x) * 4);
-					n++;
-				}
+				let rowSum = 0;
+				for (let x = x0; x <= x1; x++) rowSum += foamAt(data, (y * sw + x) * 4);
+				foam = Math.max(foam, rowSum / (x1 - x0 + 1));
 			}
-			const foam = sum / n;
 
 			const s = state[i];
 			if (!s.wet && foam > FOAM_ON && now - s.last > COOLDOWN_MS) {
