@@ -31,16 +31,47 @@ function posterOnly(): boolean {
 	return window.matchMedia('(prefers-reduced-motion: reduce)').matches || saveData === true;
 }
 
-/* Must match the portrait poster media query in global.css. */
-function pickSource(probe: HTMLVideoElement): string | null {
+/*
+ * Formats to try, best first. H.264 leads wherever the browser is sure of it:
+ * Safari can claim VP9 WebM and still fail to decode it. WebM covers browsers
+ * built without H.264. Must match the portrait poster media query in global.css.
+ */
+function pickSources(probe: HTMLVideoElement): string[] {
 	const base = window.matchMedia('(max-aspect-ratio: 1/1)').matches ? `${CLIP}-portrait` : CLIP;
-	if (probe.canPlayType('video/webm; codecs="vp9"')) return `${base}.webm`;
-	if (probe.canPlayType('video/mp4; codecs="avc1.640028"')) return `${base}.mp4`;
-	return null;
+	const mp4 = probe.canPlayType('video/mp4; codecs="avc1.640028"');
+	const webm = probe.canPlayType('video/webm; codecs="vp9"');
+	const sources: string[] = [];
+	if (mp4 === 'probably') sources.push(`${base}.mp4`);
+	if (webm) sources.push(`${base}.webm`);
+	if (mp4 === 'maybe') sources.push(`${base}.mp4`);
+	return sources;
 }
 
 function once(v: HTMLVideoElement, event: string): Promise<void> {
 	return new Promise((resolve) => v.addEventListener(event, () => resolve(), { once: true }));
+}
+
+/* Metadata loaded, or the browser couldn't decode this file. */
+function whenReady(v: HTMLVideoElement): Promise<void> {
+	if (v.readyState >= HTMLMediaElement.HAVE_METADATA) return Promise.resolve();
+	return new Promise((resolve, reject) => {
+		const done = (ok: boolean) => () => {
+			v.removeEventListener('loadedmetadata', onReady);
+			v.removeEventListener('error', onError);
+			if (ok) resolve();
+			else reject(v.error ?? new Error('media error'));
+		};
+		const onReady = done(true);
+		const onError = done(false);
+		v.addEventListener('loadedmetadata', onReady);
+		v.addEventListener('error', onError);
+	});
+}
+
+async function fetchBlobUrl(src: string): Promise<string> {
+	const r = await fetch(src);
+	if (!r.ok) throw new Error(`${r.status} ${src}`);
+	return URL.createObjectURL(await r.blob());
 }
 
 async function seek(v: HTMLVideoElement, t: number): Promise<void> {
@@ -69,13 +100,13 @@ export function initBeachShore(): () => void {
 	const layers = root ? Array.from(root.querySelectorAll<HTMLVideoElement>('[data-beach-video]')) : [];
 	if (!root || layers.length !== 2 || posterOnly()) return () => {};
 
-	const src = pickSource(layers[0]);
-	if (!src) return () => {};
+	const sources = pickSources(layers[0]);
+	if (!sources.length) return () => {};
 
 	for (const v of layers) v.style.transitionDuration = `${FADE_S}s`;
 
-	/* One download shared by both layers (two plain src attributes can fetch twice). */
-	let clipUrl: Promise<string> | null = null;
+	/* Blob URL of the format that decoded, shared by both layers (two plain src attributes can fetch twice). */
+	let clipUrl: string | null = null;
 	let front = 0;
 	let loaded = false;
 	/* Seeking fires timeupdate too, so nothing may crossfade before the first segment is planned. */
@@ -106,32 +137,57 @@ export function initBeachShore(): () => void {
 		document.addEventListener('pointerdown', sync, { once: true });
 	}
 
+	/* Load the first format this browser actually decodes into both layers. */
+	async function attachClip(gen: number): Promise<boolean> {
+		if (clipUrl) {
+			for (const v of layers) v.src = clipUrl;
+			await whenReady(layers[0]);
+			return true;
+		}
+		for (const src of sources) {
+			let url: string;
+			try {
+				url = await fetchBlobUrl(src);
+			} catch (err) {
+				console.warn('[beach-shore] Could not download footage.', err);
+				continue;
+			}
+			if (gen !== generation) {
+				URL.revokeObjectURL(url);
+				return false;
+			}
+			for (const v of layers) v.src = url;
+			try {
+				await whenReady(layers[0]);
+				clipUrl = url;
+				return true;
+			} catch (err) {
+				console.warn(`[beach-shore] ${src} would not decode, trying the next format.`, err);
+				URL.revokeObjectURL(url);
+			}
+		}
+		return false;
+	}
+
 	async function load() {
 		const gen = ++generation;
 		loaded = true;
-		clipUrl ??= fetch(src!)
-			.then((r) => {
-				if (!r.ok) throw new Error(`${r.status} ${src}`);
-				return r.blob();
-			})
-			.then((b) => URL.createObjectURL(b));
 
-		let url: string;
+		let attached = false;
 		try {
-			url = await clipUrl;
+			attached = await attachClip(gen);
 		} catch (err) {
-			clipUrl = null;
-			loaded = false;
-			console.warn('[beach-shore] Could not load footage, keeping poster.', err);
-			return;
+			console.warn('[beach-shore] Footage failed to load.', err);
 		}
 		if (gen !== generation) return;
+		if (!attached) {
+			loaded = false;
+			console.warn('[beach-shore] No playable footage, keeping poster.');
+			return;
+		}
 
-		for (const v of layers) v.src = url;
 		const first = frontVideo();
 		const resumeAt = readResumePoint();
-		if (first.readyState < HTMLMediaElement.HAVE_METADATA) await once(first, 'loadedmetadata');
-		if (gen !== generation) return;
 		const resuming = resumeAt !== null && resumeAt < first.duration - END_MARGIN_S - 1;
 		await seek(first, resuming ? resumeAt : randomStart(first));
 		if (gen !== generation) return;
@@ -275,6 +331,6 @@ export function initBeachShore(): () => void {
 			v.removeEventListener('pause', onPause);
 			v.removeEventListener('ended', onEnded);
 		}
-		void clipUrl?.then((url) => URL.revokeObjectURL(url)).catch(() => {});
+		if (clipUrl) URL.revokeObjectURL(clipUrl);
 	};
 }
