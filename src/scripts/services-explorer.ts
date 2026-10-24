@@ -14,8 +14,6 @@
  */
 
 const WIDE = '(min-width: 60rem)';
-/* Long enough for the heading stagger to be most of the way in. */
-const FIRST_OPEN_DELAY = 650;
 
 export function initServicesExplorer(): () => void {
 	const rootEl = document.querySelector<HTMLElement>('[data-services-explorer]');
@@ -29,13 +27,11 @@ export function initServicesExplorer(): () => void {
 	const root = rootEl;
 
 	const wide = window.matchMedia(WIDE);
-	const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 	/* Tells the CSS that JS is driving: only now do the panels start out hidden. */
 	root.setAttribute('data-enhanced', '');
 
 	let active = -1;
-	let firstOpen: number | undefined;
 
 	function measure(): void {
 		if (!wide.matches) {
@@ -99,10 +95,6 @@ export function initServicesExplorer(): () => void {
 	}
 
 	function open(i: number): void {
-		if (firstOpen !== undefined) {
-			window.clearTimeout(firstOpen);
-			firstOpen = undefined;
-		}
 		if (i !== active) setActive(i);
 	}
 
@@ -153,13 +145,14 @@ export function initServicesExplorer(): () => void {
 	cleanups.push(() => observer.disconnect());
 
 	if (wide.matches) {
+		/* The first box is part of the page, not an event: show it already settled. */
+		root.setAttribute('data-settling', '');
 		measure();
-		if (reduce.matches) setActive(0);
-		else firstOpen = window.setTimeout(() => setActive(0), FIRST_OPEN_DELAY);
+		setActive(0);
+		requestAnimationFrame(() => requestAnimationFrame(() => root.removeAttribute('data-settling')));
 	}
 
 	return () => {
-		if (firstOpen !== undefined) window.clearTimeout(firstOpen);
 		for (const fn of cleanups) fn();
 		root.removeAttribute('data-enhanced');
 		root.removeAttribute('data-connected');

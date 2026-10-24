@@ -1,6 +1,6 @@
 ---
 /**
- * Global shell: theme, fonts, Lenis + ScrollTrigger, backgrounds, navigation.
+ * Global shell: theme, fonts, native scroll + ScrollTrigger, backgrounds, navigation.
  * Standard full-page loads only — stable and predictable (no client router).
  */
 import '../styles/global.css';
@@ -93,17 +93,6 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 				}
 			})();
 		</script>
-		<script is:inline>
-			(function () {
-				var reduce =
-					typeof window !== 'undefined' &&
-					window.matchMedia &&
-					window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-				if (!reduce) {
-					document.documentElement.setAttribute('data-reveal-bootstrap', '1');
-				}
-			})();
-		</script>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="description" content={description} />
 		<link rel="canonical" href={canonicalURL.href} />
@@ -153,29 +142,9 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 				--font-dream-comic: 'Bangers', 'Inter', cursive;
 				--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 			}
-
-			html[data-reveal-bootstrap='1'] [data-reveal-stagger] [data-reveal-child] {
-				opacity: 0;
-				transform: translate3d(0, 0.75rem, 0);
-				will-change: transform, opacity;
-			}
 		</style>
 	</head>
 	<body class="relative antialiased">
-		<!-- If GSAP fails, force content visible after a short delay -->
-		<script is:inline>
-			(function () {
-				function clearReveal() {
-					try {
-						document.documentElement.removeAttribute('data-reveal-bootstrap');
-					} catch (e) {}
-				}
-				window.addEventListener('load', function () {
-					setTimeout(clearReveal, 2800);
-				});
-			})();
-		</script>
-
 		<div class="dream-realm-tint" aria-hidden="true"></div>
 
 		<!-- Beach before universe so its theme observer can release WebGL first. -->
@@ -257,8 +226,6 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 		</div>
 
 		<script>
-			import Lenis from 'lenis';
-			import 'lenis/dist/lenis.css';
 			import { gsap } from 'gsap';
 			import { ScrollTrigger } from 'gsap/ScrollTrigger';
 			import { initPageRevealAnimations } from '../scripts/page-reveal.ts';
@@ -266,7 +233,6 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 			import { syncHeroLayout } from '../scripts/hero-layout.ts';
 			import {
 				initScrollOrchestrator,
-				publishScroll,
 				refreshScrollMetrics,
 				subscribeScroll,
 			} from '../scripts/scroll-orchestrator.ts';
@@ -318,7 +284,6 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 				requestAnimationFrame(() => {
 					refreshScrollMetrics();
 					ScrollTrigger.refresh();
-					lenis?.resize();
 				});
 			}
 
@@ -341,7 +306,6 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 				requestAnimationFrame(() => {
 					refreshScrollMetrics();
 					ScrollTrigger.refresh();
-					lenis?.resize();
 				});
 			}
 			document.addEventListener('click', onTextSizeChange);
@@ -350,57 +314,19 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 				window.location.href = '/dream-journal';
 			});
 
-			const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-			let lenis: Lenis | null = null;
-			let lenisTick: ((t: number) => void) | null = null;
-
+			/*
+			 * Native browser scrolling. The orchestrator's own scroll listener feeds the
+			 * header, the hero chevron, and the orrery fade; ScrollTrigger reads the
+			 * window directly, so no scroller proxy is needed.
+			 */
 			const stopScrollOrchestrator = initScrollOrchestrator();
 
-			if (!reduceMotion) {
-				lenis = new Lenis({
-					duration: 1.15,
-					/* Long, flat-tailed ease — glides to rest instead of stopping dead. */
-					easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-					smoothWheel: true,
-					touchMultiplier: 1.35,
-				});
-
-				ScrollTrigger.scrollerProxy(document.body, {
-					scrollTop(value) {
-						if (arguments.length && typeof value === 'number' && lenis) {
-							lenis.scrollTo(value, { immediate: true });
-						}
-						return lenis ? lenis.scroll : 0;
-					},
-					getBoundingClientRect() {
-						return {
-							top: 0,
-							left: 0,
-							width: window.innerWidth,
-							height: window.innerHeight,
-						};
-					},
-				});
-
-				/* Lenis is the visual scroll position, so it drives every subscriber. */
-				lenis.on('scroll', (e: { scroll: number }) => {
-					publishScroll(e.scroll);
-					ScrollTrigger.update();
-				});
-
-				lenisTick = (time: number) => {
-					if (lenis) lenis.raf(time * 1000);
-				};
-				gsap.ticker.add(lenisTick);
-				gsap.ticker.lagSmoothing(0);
-			}
-
-			let stopReveal = initPageRevealAnimations();
-
 			const path = window.location.pathname.replace(/\/$/, '') || '/';
+			const onHome = path === '' || path === '/';
+			/* Editorial pages render settled; only the homepage's lower sections reveal. */
+			const stopReveal = onHome ? initPageRevealAnimations() : () => {};
 			let stopHome = () => {};
-			if (path === '' || path === '/') {
+			if (onHome) {
 				stopHome = initHomeHero();
 			}
 
@@ -463,8 +389,6 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 					document.removeEventListener('click', onThemeToggleClick);
 					document.removeEventListener('click', onTextSizeChange);
 					window.removeEventListener('resize', onResizeNav);
-					if (lenisTick) gsap.ticker.remove(lenisTick);
-					if (lenis) lenis.destroy();
 					ScrollTrigger.getAll().forEach((t) => t.kill());
 				});
 			}
