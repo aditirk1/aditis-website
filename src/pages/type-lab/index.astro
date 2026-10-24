@@ -1,0 +1,786 @@
+---
+/**
+ * Typography lab — compare candidate pairings on the site's real content.
+ * Exploration only: nothing here changes production typography. noindex.
+ *
+ * Fonts load only on this page, from their official hosts:
+ *   Google Fonts (SIL Open Font License) and Fontshare (ITF Free Font License,
+ *   free for commercial use) for Satoshi and General Sans.
+ */
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import home from '../../data/home.json';
+
+const GOOGLE_FONTS =
+	'https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Manrope:wght@200..800&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Cormorant:ital,wght@0,300..700;1,300..700&family=Syne:wght@400..800&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Italiana&display=swap';
+const FONTSHARE =
+	'https://api.fontshare.com/v2/css?f[]=satoshi@300,301,400,401,500,501,700,701,900,901&f[]=general-sans@200,201,300,301,400,401,500,501,600,601,700,701&display=swap';
+
+type Face = {
+	family: string;
+	stack: string;
+	weights: [number, number];
+	italic: boolean;
+	source: 'Google Fonts' | 'Fontshare';
+	license: string;
+};
+
+const OFL = 'SIL Open Font License';
+const ITF = 'ITF Free Font License';
+
+const face = (family: string, fallback: string, weights: [number, number], italic: boolean, source: Face['source']): Face => ({
+	family,
+	stack: `'${family}', ${fallback}`,
+	weights,
+	italic,
+	source,
+	license: source === 'Google Fonts' ? OFL : ITF,
+});
+
+const pairings: Array<{ id: string; name: string; display: Face; text: Face; ui: 'display' | 'text' }> = [
+	{
+		id: 'instrument',
+		name: 'Instrument Serif + Instrument Sans',
+		display: face('Instrument Serif', 'serif', [400, 400], true, 'Google Fonts'),
+		text: face('Instrument Sans', 'sans-serif', [400, 700], true, 'Google Fonts'),
+		ui: 'text',
+	},
+	{
+		id: 'fraunces',
+		name: 'Fraunces + Manrope',
+		display: face('Fraunces', 'serif', [100, 900], true, 'Google Fonts'),
+		text: face('Manrope', 'sans-serif', [200, 800], false, 'Google Fonts'),
+		ui: 'text',
+	},
+	{
+		id: 'bodoni',
+		name: 'Bodoni Moda + DM Sans',
+		display: face('Bodoni Moda', 'serif', [400, 900], true, 'Google Fonts'),
+		text: face('DM Sans', 'sans-serif', [100, 1000], true, 'Google Fonts'),
+		ui: 'text',
+	},
+	{
+		id: 'cormorant',
+		name: 'Cormorant + Satoshi',
+		display: face('Cormorant', 'serif', [300, 700], true, 'Google Fonts'),
+		text: face('Satoshi', 'sans-serif', [300, 900], true, 'Fontshare'),
+		ui: 'text',
+	},
+	{
+		id: 'syne',
+		name: 'Syne + Newsreader',
+		display: face('Syne', 'sans-serif', [400, 800], false, 'Google Fonts'),
+		text: face('Newsreader', 'serif', [200, 800], true, 'Google Fonts'),
+		/* Syne is the sans here, so it also carries the interface labels. */
+		ui: 'display',
+	},
+	{
+		id: 'italiana',
+		name: 'Italiana + General Sans',
+		display: face('Italiana', 'serif', [400, 400], false, 'Google Fonts'),
+		text: face('General Sans', 'sans-serif', [200, 700], true, 'Fontshare'),
+		ui: 'text',
+	},
+];
+
+const navLabels = ['Home', 'Projects', 'Blog', 'Photo Dump', 'Thoughts', 'Services'];
+
+const projects = (await getCollection('projects', ({ data }) => data.draft !== true))
+	.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+	.slice(0, 3);
+
+/* A real long-form paragraph: the blog is still empty, so use a project write-up. */
+const articleSource = projects.find((p) => p.id === 'brain-computer-interface-pipelines') ?? projects[0];
+const articleParagraphs = (articleSource?.body ?? '')
+	.split(/\n{2,}/)
+	.map((block) => block.trim())
+	.filter((block) => block && !/^(#|-|\*|\d+\.|```)/.test(block))
+	.map((block) => block.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\s+/g, ' '))
+	.slice(0, 2);
+const articleHeading = articleSource?.data.title ?? 'Article';
+
+const weightNote = (f: Face) =>
+	f.weights[0] === f.weights[1] ? `one weight (${f.weights[0]})` : `weights ${f.weights[0]}–${f.weights[1]}`;
+const italicNote = (f: Face) => (f.italic ? 'italic available' : 'no italic');
+const monthYear = (d: Date) => d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+---
+
+<Layout title="Type lab | aditi's universe" noindex>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+	<link rel="stylesheet" href={GOOGLE_FONTS} />
+	<link rel="stylesheet" href={FONTSHARE} />
+
+	<div class="lab" data-type-lab data-palette="orbit" data-frame="desktop" data-show="all">
+		<header class="lab-intro">
+			<h1 class="lab-intro__title">Type lab</h1>
+			<p class="lab-intro__text">
+				Six pairings on the site's own words. Headings use the first face, body text the second. Controls apply
+				to every card at once, so each pairing is judged on the same settings.
+			</p>
+		</header>
+
+		<details class="lab-panel" data-lab-panel open>
+			<summary class="lab-panel__summary">
+				<span>Controls</span>
+				<span class="lab-panel__state" data-lab-summary></span>
+			</summary>
+		<form class="lab-controls" data-lab-controls aria-label="Typography controls">
+			<fieldset class="lab-group lab-group--view">
+				<legend>View</legend>
+				<div class="lab-seg" role="radiogroup" aria-label="Colours">
+					<label><input type="radio" name="palette" value="orbit" checked /> Orbit</label>
+					<label><input type="radio" name="palette" value="flow" /> Flow</label>
+				</div>
+				<div class="lab-seg" role="radiogroup" aria-label="Frame">
+					<label><input type="radio" name="frame" value="desktop" checked /> Desktop</label>
+					<label><input type="radio" name="frame" value="mobile" /> Mobile (390px)</label>
+				</div>
+				<label class="lab-field">
+					<span>Show</span>
+					<select name="show">
+						<option value="all">All pairings</option>
+						{pairings.map((p, i) => <option value={p.id}>{i + 1}. {p.name}</option>)}
+					</select>
+				</label>
+			</fieldset>
+
+			{
+				[
+					{ key: 'd', legend: 'Headings', size: [60, 160, 1, 100, '%'], weight: [100, 900, 50, 400], track: [-0.06, 0.2, 0.005, 0], lead: [0.8, 1.6, 0.01, 1.05] },
+					{ key: 't', legend: 'Text and interface', size: [13, 24, 0.5, 17, 'px'], weight: [200, 800, 50, 400], track: [-0.03, 0.12, 0.005, 0], lead: [1.1, 2.1, 0.01, 1.6] },
+				].map((g) => (
+					<fieldset class="lab-group" data-group={g.key}>
+						<legend>{g.legend}</legend>
+						<label class="lab-field">
+							<span>Size <output data-out={`${g.key}-size`}>{g.size[3]}{g.size[4]}</output></span>
+							<input type="range" name={`${g.key}-size`} min={g.size[0]} max={g.size[1]} step={g.size[2]} value={g.size[3]} data-unit={g.size[4]} />
+						</label>
+						<label class="lab-field">
+							<span>Weight <output data-out={`${g.key}-weight`}>{g.weight[3]}</output></span>
+							<input type="range" name={`${g.key}-weight`} min={g.weight[0]} max={g.weight[1]} step={g.weight[2]} value={g.weight[3]} />
+						</label>
+						<label class="lab-field">
+							<span>Letter spacing <output data-out={`${g.key}-track`}>{g.track[3]}em</output></span>
+							<input type="range" name={`${g.key}-track`} min={g.track[0]} max={g.track[1]} step={g.track[2]} value={g.track[3]} data-unit="em" />
+						</label>
+						<label class="lab-field">
+							<span>Line height <output data-out={`${g.key}-lead`}>{g.lead[3]}</output></span>
+							<input type="range" name={`${g.key}-lead`} min={g.lead[0]} max={g.lead[1]} step={g.lead[2]} value={g.lead[3]} />
+						</label>
+						<label class="lab-check">
+							<input type="checkbox" name={`${g.key}-italic`} /> Italic
+						</label>
+					</fieldset>
+				))
+			}
+
+			<button type="reset" class="lab-reset">Reset</button>
+		</form>
+		</details>
+
+		<div class="lab-grid">
+			{
+				pairings.map((p, i) => {
+					const ui = p.ui === 'display' ? p.display : p.text;
+					return (
+						<article
+							class="lab-specimen"
+							data-pairing={p.id}
+							data-d-min={p.display.weights[0]}
+							data-d-max={p.display.weights[1]}
+							data-d-italic={String(p.display.italic)}
+							data-t-min={p.text.weights[0]}
+							data-t-max={p.text.weights[1]}
+							data-t-italic={String(p.text.italic)}
+							data-u-min={ui.weights[0]}
+							data-u-max={ui.weights[1]}
+							style={`--f-display: ${p.display.stack}; --f-text: ${p.text.stack}; --f-ui: ${ui.stack};`}
+						>
+							<header class="lab-specimen__label">
+								<h2 class="lab-specimen__name">
+									<span class="lab-specimen__num">{i + 1}</span>
+									{p.name}
+								</h2>
+								<p class="lab-specimen__meta">
+									{p.display.family}: {weightNote(p.display)}, {italicNote(p.display)}.
+									<br />
+									{p.text.family}: {weightNote(p.text)}, {italicNote(p.text)}.
+									<br />
+									{p.display.source === p.text.source
+										? `${p.display.source}, ${p.display.license}.`
+										: `${p.display.family} via ${p.display.source} (${p.display.license}); ${p.text.family} via ${p.text.source} (${p.text.license}).`}
+								</p>
+								<p class="lab-specimen__warn" data-warn aria-live="polite" hidden />
+							</header>
+
+							<div class="lab-frame">
+								<div class="lab-page">
+									<nav class="lab-nav lab-u" aria-label={`Navigation sample, ${p.name}`}>
+										{navLabels.map((label, n) => (
+											<span class:list={['lab-nav__tab', n === 1 && 'is-active']}>{label}</span>
+										))}
+									</nav>
+
+									<section class="lab-hero">
+										<p class="lab-hero__title lab-d">{home.hero_title}</p>
+										<p class="lab-hero__tagline lab-d">{home.taglines[0]}</p>
+										<p class="lab-hero__desc lab-t">{home.hero_description}</p>
+										<div class="lab-buttons lab-u">
+											<span class="lab-btn lab-btn--primary">{home.cta_primary_label}</span>
+											<span class="lab-btn">{home.cta_secondary_label}</span>
+										</div>
+									</section>
+
+									<section class="lab-about">
+										<p class="lab-section-title lab-d">{home.about_heading}</p>
+										{home.about_paragraphs.map((para) => (
+											<p class="lab-t lab-body">{para}</p>
+										))}
+									</section>
+
+									<section class="lab-projects">
+										<p class="lab-section-title lab-d">Projects</p>
+										<ul class="lab-projects__list">
+											{projects.map((proj) => (
+												<li class="lab-project">
+													<span class="lab-project__title lab-d">{proj.data.title}</span>
+													<span class="lab-project__meta lab-u">
+														{monthYear(proj.data.date)}
+														{proj.data.tags.length > 0 && (
+															<>
+																<br />
+																{proj.data.tags.map(capitalise).join(', ')}
+															</>
+														)}
+													</span>
+													<span class="lab-project__summary lab-t">{proj.data.summary}</span>
+												</li>
+											))}
+										</ul>
+									</section>
+
+									<section class="lab-article">
+										<p class="lab-article__title lab-d">{articleHeading}</p>
+										{articleParagraphs.map((para) => (
+											<p class="lab-t lab-body">{para}</p>
+										))}
+									</section>
+								</div>
+							</div>
+						</article>
+					);
+				})
+			}
+		</div>
+	</div>
+</Layout>
+
+<script>
+	const root = document.querySelector<HTMLElement>('[data-type-lab]');
+	const form = document.querySelector<HTMLFormElement>('[data-lab-controls]');
+	const panel = document.querySelector<HTMLDetailsElement>('[data-lab-panel]');
+	const summary = document.querySelector<HTMLElement>('[data-lab-summary]');
+
+	/* On a phone the open panel fills the screen; start it folded there. */
+	if (panel && window.matchMedia('(max-width: 899px)').matches) panel.open = false;
+
+	function sync(): void {
+		if (!root || !form) return;
+		const data = new FormData(form);
+		root.dataset.palette = String(data.get('palette') ?? 'orbit');
+		root.dataset.frame = String(data.get('frame') ?? 'desktop');
+		root.dataset.show = String(data.get('show') ?? 'all');
+
+		for (const g of ['d', 't']) {
+			const size = Number(data.get(`${g}-size`));
+			const weight = Number(data.get(`${g}-weight`));
+			const track = Number(data.get(`${g}-track`));
+			const lead = Number(data.get(`${g}-lead`));
+			const italic = data.get(`${g}-italic`) === 'on';
+			root.style.setProperty(`--lab-${g}-size`, String(size));
+			root.style.setProperty(`--lab-${g}-weight`, String(weight));
+			root.style.setProperty(`--lab-${g}-track`, `${track}em`);
+			root.style.setProperty(`--lab-${g}-lead`, String(lead));
+			root.style.setProperty(`--lab-${g}-style`, italic ? 'italic' : 'normal');
+		}
+
+		if (summary) {
+			const style = (g: string) => (data.get(`${g}-italic`) === 'on' ? ' italic' : '');
+			summary.textContent =
+				`${String(data.get('palette')) === 'flow' ? 'Flow' : 'Orbit'}, ${data.get('frame')}, ` +
+				`headings ${data.get('d-size')}% ${data.get('d-weight')}${style('d')}, ` +
+				`text ${data.get('t-size')}px ${data.get('t-weight')}${style('t')}`;
+		}
+
+		form.querySelectorAll<HTMLInputElement>('input[type="range"]').forEach((input) => {
+			const out = form.querySelector(`[data-out="${input.name}"]`);
+			if (out) out.textContent = `${input.value}${input.dataset.unit ?? ''}`;
+		});
+
+		/* Say when a card can't honour a setting instead of letting the browser fake it. */
+		const dW = Number(data.get('d-weight'));
+		const tW = Number(data.get('t-weight'));
+		const dI = data.get('d-italic') === 'on';
+		const tI = data.get('t-italic') === 'on';
+		root.querySelectorAll<HTMLElement>('[data-pairing]').forEach((card) => {
+			const notes: string[] = [];
+			const range = (k: string) => [Number(card.dataset[`${k}Min`]), Number(card.dataset[`${k}Max`])] as const;
+			const [dMin, dMax] = range('d');
+			const [tMin, tMax] = range('t');
+			if (dW < dMin || dW > dMax) notes.push(`headings show the nearest available weight (${Math.min(Math.max(dW, dMin), dMax)})`);
+			if (tW < tMin || tW > tMax) notes.push(`text shows the nearest available weight (${Math.min(Math.max(tW, tMin), tMax)})`);
+			if (dI && card.dataset.dItalic !== 'true') notes.push('heading face has no italic');
+			if (tI && card.dataset.tItalic !== 'true') notes.push('text face has no italic');
+			const warn = card.querySelector<HTMLElement>('[data-warn]');
+			if (!warn) return;
+			warn.hidden = notes.length === 0;
+			warn.textContent = notes.length ? `Note: ${notes.join('; ')}.` : '';
+		});
+	}
+
+	form?.addEventListener('input', sync);
+	form?.addEventListener('change', sync);
+	/* Reset restores the defaults after the event, so read them on the next frame. */
+	form?.addEventListener('reset', () => requestAnimationFrame(sync));
+	sync();
+</script>
+
+<style>
+	.lab {
+		--lab-d-size: 100;
+		--lab-d-weight: 400;
+		--lab-d-track: 0em;
+		--lab-d-lead: 1.05;
+		--lab-d-style: normal;
+		--lab-t-size: 17;
+		--lab-t-weight: 400;
+		--lab-t-track: 0em;
+		--lab-t-lead: 1.6;
+		--lab-t-style: normal;
+		pointer-events: auto;
+		max-width: 80rem;
+		margin-inline: auto;
+		display: grid;
+		gap: 1.5rem;
+	}
+
+	.lab[data-palette='orbit'] {
+		--lab-bg: var(--color-universe-bg, #05030c);
+		--lab-fg: var(--color-universe-fg, #f7f4ec);
+		--lab-muted: color-mix(in srgb, var(--lab-fg) 62%, transparent);
+		--lab-accent: #ffaa00;
+	}
+
+	.lab[data-palette='flow'] {
+		--lab-bg: var(--color-beach-bg, #eaf6ff);
+		--lab-fg: var(--color-beach-fg, #142a42);
+		--lab-muted: color-mix(in srgb, var(--lab-fg) 70%, transparent);
+		--lab-accent: #1f6aad;
+	}
+
+	/* --- Lab chrome: stays in the site's own type so it doesn't compete --- */
+	.lab-intro__title {
+		margin: 0;
+		font-size: clamp(2rem, 5vw, 2.75rem);
+	}
+
+	.lab-intro__text {
+		margin: 0.5rem 0 0;
+		max-width: 44rem;
+		color: var(--page-muted);
+	}
+
+	.lab-panel {
+		border: 1px solid color-mix(in srgb, var(--color-amber) 28%, transparent);
+		border-radius: 1rem;
+		background: color-mix(in srgb, var(--page-bg) 90%, transparent);
+		backdrop-filter: blur(8px);
+		font-family: var(--font-display);
+		font-size: 0.85rem;
+		color: var(--page-fg);
+	}
+
+	@media (min-width: 900px) {
+		.lab-panel {
+			position: sticky;
+			top: calc(var(--site-header-h, 4rem) + 0.5rem);
+			z-index: 30;
+		}
+	}
+
+	.lab-panel__summary {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.25rem 1rem;
+		min-height: 2.75rem;
+		padding: 0.6rem 1.25rem;
+		cursor: pointer;
+		font-weight: 600;
+	}
+
+	.lab-panel__summary:focus-visible {
+		outline: 2px solid var(--color-amber);
+		outline-offset: -2px;
+		border-radius: 1rem;
+	}
+
+	.lab-panel__state {
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		font-weight: 400;
+		color: var(--page-muted);
+	}
+
+	.lab-controls {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem 1.5rem;
+		align-items: flex-start;
+		padding: 0 1.25rem 1rem;
+	}
+
+	.lab-group {
+		display: grid;
+		gap: 0.45rem 1rem;
+		min-width: min(100%, 15rem);
+		flex: 1 1 15rem;
+		margin: 0;
+		padding: 0;
+		border: 0;
+	}
+
+	@media (min-width: 900px) {
+		.lab-group:not(.lab-group--view) {
+			grid-template-columns: 1fr 1fr;
+			flex-basis: 24rem;
+		}
+
+		.lab-group legend {
+			grid-column: 1 / -1;
+		}
+	}
+
+	.lab-group legend {
+		margin-bottom: 0.35rem;
+		font-family: var(--font-mono);
+		font-size: 0.68rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--page-muted);
+	}
+
+	.lab-field {
+		display: grid;
+		gap: 0.2rem;
+	}
+
+	.lab-field span {
+		display: flex;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+
+	.lab-field output {
+		font-family: var(--font-mono);
+		font-variant-numeric: tabular-nums;
+		color: var(--color-amber);
+	}
+
+	.lab-field input[type='range'] {
+		width: 100%;
+		min-height: 1.75rem;
+		accent-color: var(--color-amber);
+	}
+
+	.lab-field select {
+		min-height: 2.5rem;
+		padding: 0 0.5rem;
+		border-radius: 0.5rem;
+		border: 1px solid color-mix(in srgb, var(--page-fg) 25%, transparent);
+		background: var(--page-bg);
+		color: var(--page-fg);
+		font: inherit;
+	}
+
+	.lab-seg {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+
+	.lab-seg label,
+	.lab-check {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		min-height: 2.25rem;
+		padding: 0 0.75rem;
+		border-radius: 999px;
+		border: 1px solid color-mix(in srgb, var(--page-fg) 22%, transparent);
+		cursor: pointer;
+	}
+
+	.lab-seg label:has(input:checked) {
+		border-color: var(--color-amber);
+		color: var(--color-amber);
+	}
+
+	.lab-seg input,
+	.lab-check input {
+		accent-color: var(--color-amber);
+	}
+
+	.lab-check {
+		justify-self: start;
+	}
+
+	.lab-reset {
+		align-self: center;
+		min-height: 2.5rem;
+		padding: 0 1.1rem;
+		border-radius: 999px;
+		border: 1px solid color-mix(in srgb, var(--page-fg) 28%, transparent);
+		background: none;
+		color: var(--page-fg);
+		font: inherit;
+		cursor: pointer;
+	}
+
+	.lab-reset:focus-visible,
+	.lab-seg label:has(input:focus-visible),
+	.lab-check:has(input:focus-visible) {
+		outline: 2px solid var(--color-amber);
+		outline-offset: 2px;
+	}
+
+	/* --- Specimens --- */
+	.lab-grid {
+		display: grid;
+		gap: 2rem;
+	}
+
+	.lab[data-frame='mobile'] .lab-grid {
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 390px), 1fr));
+		justify-items: center;
+	}
+
+	.lab:not([data-show='all']) .lab-specimen {
+		display: none;
+	}
+
+	.lab[data-show='instrument'] [data-pairing='instrument'],
+	.lab[data-show='fraunces'] [data-pairing='fraunces'],
+	.lab[data-show='bodoni'] [data-pairing='bodoni'],
+	.lab[data-show='cormorant'] [data-pairing='cormorant'],
+	.lab[data-show='syne'] [data-pairing='syne'],
+	.lab[data-show='italiana'] [data-pairing='italiana'] {
+		display: block;
+	}
+
+	.lab-specimen {
+		width: 100%;
+		min-width: 0;
+	}
+
+	.lab[data-frame='mobile'] .lab-specimen {
+		max-width: 390px;
+	}
+
+	.lab-specimen__label {
+		margin-bottom: 0.6rem;
+		font-family: var(--font-display);
+		color: var(--page-fg);
+	}
+
+	.lab-specimen__name {
+		display: flex;
+		align-items: baseline;
+		gap: 0.6rem;
+		margin: 0;
+		font-size: 1rem;
+		font-weight: 600;
+	}
+
+	.lab-specimen__num {
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		color: var(--color-amber);
+	}
+
+	.lab-specimen__meta,
+	.lab-specimen__warn {
+		margin: 0.3rem 0 0;
+		font-size: 0.75rem;
+		line-height: 1.5;
+		color: var(--page-muted);
+	}
+
+	.lab-specimen__warn {
+		color: var(--color-amber);
+	}
+
+	/* The frame is the "page": its width drives every size inside it, so the
+	   390px frame renders the way a phone would. */
+	.lab-frame {
+		container-type: inline-size;
+		border-radius: 1rem;
+		border: 1px solid color-mix(in srgb, var(--lab-accent) 30%, transparent);
+		background: var(--lab-bg);
+		color: var(--lab-fg);
+		overflow: hidden;
+		transition:
+			background-color 0.3s ease,
+			color 0.3s ease;
+	}
+
+	.lab-page {
+		display: grid;
+		gap: clamp(2rem, 7cqi, 4rem);
+		padding: clamp(1.25rem, 5cqi, 3.5rem);
+	}
+
+	.lab-d,
+	.lab-t,
+	.lab-u {
+		font-synthesis: none;
+	}
+
+	.lab-d {
+		font-family: var(--f-display);
+		font-weight: var(--lab-d-weight);
+		font-style: var(--lab-d-style);
+		letter-spacing: var(--lab-d-track);
+		line-height: var(--lab-d-lead);
+	}
+
+	.lab-t {
+		font-family: var(--f-text);
+		font-weight: var(--lab-t-weight);
+		font-style: var(--lab-t-style);
+		letter-spacing: var(--lab-t-track);
+		line-height: var(--lab-t-lead);
+		font-size: calc(var(--lab-t-size) * 1px);
+	}
+
+	.lab-u {
+		font-family: var(--f-ui);
+		font-weight: var(--lab-t-weight);
+		font-style: var(--lab-t-style);
+		letter-spacing: var(--lab-t-track);
+	}
+
+	.lab-nav {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		font-size: calc(var(--lab-t-size) * 0.8px);
+	}
+
+	.lab-nav__tab {
+		padding: 0.3em 0.85em;
+		border-radius: 999px;
+		border: 1px solid color-mix(in srgb, var(--lab-accent) 35%, transparent);
+	}
+
+	.lab-nav__tab.is-active {
+		border-color: var(--lab-accent);
+		color: var(--lab-accent);
+	}
+
+	.lab-hero {
+		display: grid;
+		gap: 0.75rem;
+	}
+
+	.lab-hero__title {
+		margin: 0;
+		font-size: calc(clamp(2.75rem, 13cqi, 8rem) * var(--lab-d-size) / 100);
+	}
+
+	.lab-hero__tagline {
+		margin: 0;
+		font-size: calc(clamp(1.25rem, 3.6cqi, 2rem) * var(--lab-d-size) / 100);
+		color: var(--lab-accent);
+	}
+
+	.lab-hero__desc {
+		margin: 0.25rem 0 0;
+		max-width: 40rem;
+		color: var(--lab-muted);
+	}
+
+	.lab-buttons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin-top: 0.75rem;
+		font-size: calc(var(--lab-t-size) * 0.88px);
+	}
+
+	.lab-btn {
+		display: inline-flex;
+		align-items: center;
+		min-height: 2.75rem;
+		padding: 0 1.4em;
+		border-radius: 999px;
+		border: 1px solid color-mix(in srgb, var(--lab-fg) 28%, transparent);
+	}
+
+	.lab-btn--primary {
+		border-color: var(--lab-accent);
+		background: color-mix(in srgb, var(--lab-accent) 12%, transparent);
+	}
+
+	.lab-section-title,
+	.lab-article__title {
+		margin: 0 0 0.5em;
+		font-size: calc(clamp(1.75rem, 5cqi, 2.75rem) * var(--lab-d-size) / 100);
+	}
+
+	.lab-body {
+		margin: 0 0 1em;
+		max-width: 42rem;
+		color: var(--lab-muted);
+	}
+
+	.lab-projects__list {
+		display: grid;
+		gap: 1.75rem 2rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	@container (min-width: 720px) {
+		.lab-projects__list {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	.lab-project {
+		display: grid;
+		gap: 0.45rem;
+		align-content: start;
+	}
+
+	.lab-project__title {
+		font-size: calc(clamp(1.3rem, 2.6cqi, 1.75rem) * var(--lab-d-size) / 100);
+	}
+
+	.lab-project__meta {
+		font-size: calc(var(--lab-t-size) * 0.75px);
+		line-height: 1.45;
+		text-transform: uppercase;
+		letter-spacing: calc(var(--lab-t-track) + 0.08em);
+		color: var(--lab-accent);
+	}
+
+	.lab-project__summary {
+		font-size: calc(var(--lab-t-size) * 0.9px);
+		color: var(--lab-muted);
+	}
+</style>

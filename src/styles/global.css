@@ -49,6 +49,8 @@
 	--project-shade-0: #ffffff;
 	--project-pre-accent: color-mix(in srgb, var(--color-amber) 52%, #ffffff);
 	--project-post-accent: color-mix(in srgb, var(--color-amber) 84%, #000000);
+	/* Visitor globe pins — they sit on the globe's dark ocean, not on the page. */
+	--globe-pin: #ffaa00;
 }
 
 html[data-theme='beach'] {
@@ -60,7 +62,11 @@ html[data-theme='beach'] {
 	/* Beach: darkest readable → darker than accent → accent → lighter */
 	--project-shade-0: var(--page-fg);
 	--project-pre-accent: color-mix(in srgb, var(--color-amber) 74%, var(--page-fg));
-	--project-post-accent: color-mix(in srgb, var(--color-amber) 64%, #ffffff);
+	/* Lightest step of the ramp — kept ≥3:1 for large text over the Flow water video. */
+	--project-post-accent: color-mix(in srgb, var(--color-amber) 88%, #ffffff);
+	/* The text accent is dark enough for small type on the light page, which also
+	   makes it vanish on the globe's dark-blue ocean. Pins get their own bright aqua. */
+	--globe-pin: #3fe4ff;
 }
 
 /* Dream Journal route: ethereal override (still works with either theme toggle) */
