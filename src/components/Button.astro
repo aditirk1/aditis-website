@@ -14,10 +14,10 @@ type Props = (HTMLAttributes<'a'> & HTMLAttributes<'button'>) & {
 const { variant = 'primary', size = 'md', href, class: className, type, ...rest } = Astro.props;
 
 const base =
-	'inline-flex min-h-11 items-center justify-center rounded-full border text-center font-bold text-[var(--page-fg)] backdrop-blur-sm transition disabled:pointer-events-none disabled:opacity-60';
+	'inline-flex min-h-11 items-center justify-center rounded-full border text-center font-bold text-[var(--page-fg)] backdrop-blur-sm transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-amber)] disabled:pointer-events-none disabled:opacity-60';
 const variants = {
 	primary:
-		'border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] fine-hover:scale-[1.03] fine-hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)] fine-hover:shadow-[0_0_28px_color-mix(in_srgb,var(--color-amber)_30%,transparent)]',
+		'border-[var(--color-amber)] bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] fine-hover:bg-[color-mix(in_srgb,var(--color-amber)_22%,transparent)]',
 	secondary:
 		'border-[color-mix(in_srgb,var(--page-fg)_25%,transparent)] fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)]',
 };

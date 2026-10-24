@@ -509,6 +509,11 @@ const ctaBody = stripeCheckoutEnabled
 		}
 	}
 
+	.services-explorer[data-settling] .service-panel,
+	.services-explorer[data-settling] .service-connector {
+		transition: none !important;
+	}
+
 	@media (prefers-reduced-motion: reduce) {
 		html[data-services-js] .service-panel,
 		.service-connector,

@@ -945,6 +945,10 @@ export function initUniverseStarField(): () => void {
 	const RIGHT_EDGE_GAP_PX = 32;
 	/** Grow past authored size. High enough that the fit box is what limits size. */
 	const MAX_ORRERY_SCALE = 5;
+	/** Same query as the stacked-hero block in global.css: title above, orrery below. */
+	const STACKED_HERO_QUERY = '(max-width: 767px), (max-width: 1023px) and (orientation: portrait)';
+	/** Stacked layouts: equal clearance from both screen edges. */
+	const STACKED_EDGE_GAP_PX = 20;
 
 	function getTitleBounds(): DOMRect | null {
 		if (!isHomePage) return null;
@@ -1023,7 +1027,7 @@ export function initUniverseStarField(): () => void {
 		const zoneRect = heroSideZoneEl?.getBoundingClientRect();
 		const title = getTitleBounds();
 
-		const isStacked = vw < 768;
+		const isStacked = window.matchMedia(STACKED_HERO_QUERY).matches;
 
 		/* On stacked (mobile) layouts the title sits above the orrery zone — fit the
 		 * zone only. Side-by-side desktop still avoids overlapping the title. */
@@ -1042,25 +1046,32 @@ export function initUniverseStarField(): () => void {
 		 * clientWidth so the gap is measured from the edge of the page, not from
 		 * under a classic scrollbar.
 		 */
-		const right = (document.documentElement.clientWidth || vw) - RIGHT_EDGE_GAP_PX;
+		let right = (document.documentElement.clientWidth || vw) - RIGHT_EDGE_GAP_PX;
 		let top = zoneRect && zoneRect.height > 1 ? zoneRect.top + 4 : vh * 0.06;
 		let bottom =
 			(zoneRect && zoneRect.height > 1 ? zoneRect.bottom - 4 : vh - 12) - CAPTION_RESERVE_PX;
 
 		if (isStacked) {
 			/* Prefer the measured side-slot; fall back to the lower half of the hero. */
-			if (!(zoneRect && zoneRect.height > 80)) {
+			if (zoneRect && zoneRect.height > 80) {
+				left = zoneRect.left + STACKED_EDGE_GAP_PX;
+				right = zoneRect.right - STACKED_EDGE_GAP_PX;
+			} else {
 				top = Math.max(top, vh * 0.38);
 				bottom = vh - 48 - CAPTION_RESERVE_PX;
-				left = 12;
+				left = STACKED_EDGE_GAP_PX;
+				right = vw - STACKED_EDGE_GAP_PX;
 			}
 		}
 
 		const targetW = Math.max(isStacked ? 160 : 200, right - left);
 		const targetH = Math.max(isStacked ? 160 : 200, bottom - top);
 		let targetCenterX = (left + right) / 2;
-		/* Screen Y grows downward — subtract to nudge the whole orrery upward. */
-		const targetCenterY = (top + bottom) / 2 - targetH * 0.1;
+		/*
+		 * Screen Y grows downward — subtract to nudge the whole orrery upward. Stacked
+		 * boxes are already sized to the orrery, so it centres in its own box there.
+		 */
+		const targetCenterY = (top + bottom) / 2 - (isStacked ? 0 : targetH * 0.1);
 
 		solarSystemGroup.scale.setScalar(1);
 		solarSystemGroup.position.set(0, 0, 0);

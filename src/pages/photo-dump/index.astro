@@ -52,7 +52,7 @@ const hasPhotos = albums.some((a) => a.photos.length > 0);
 										<li class="mb-4 break-inside-avoid" data-reveal-child>
 											<button
 												type="button"
-												class="photo-dump-btn group w-full overflow-hidden rounded-xl border-0 bg-transparent p-0 text-left shadow-md transition-shadow hover:shadow-[0_0_20px_color-mix(in_srgb,var(--color-amber)_20%,transparent)]"
+												class="photo-dump-btn group w-full overflow-hidden rounded-xl border-0 bg-transparent p-0 text-left shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-amber)]"
 												data-lightbox-open={i}
 												aria-label={`Open ${photo.alt} larger`}
 											>

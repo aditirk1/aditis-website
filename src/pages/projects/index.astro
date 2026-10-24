@@ -24,13 +24,34 @@ const sorted = projects.sort((a, b) => b.data.date.valueOf() - a.data.date.value
 					No projects yet. Add Markdown in <code class="text-[var(--color-amber)]">src/content/projects/</code>.
 				</p>
 			) : (
-				<nav class="project-index" aria-label="Projects" data-reveal-stagger>
+				<nav class="project-index" aria-label="Projects" data-reveal-stagger data-project-hover="underline">
 					<ul class="project-index__list">
 						{sorted.map((post, i) => (
 							<li class="project-index__item" data-reveal-child>
 								<a href={`/projects/${post.id}`} class="project-index-link" data-shade={String(i % 4)}>
 									<span class="project-index-link__label">{post.data.title}</span>
 								</a>
+								{/* Hover-only preview for the "preview" prototype; the link above carries the content. */}
+								<div class="project-index-preview" aria-hidden="true">
+									<div class="project-index-preview__frame">
+										{post.data.thumbnail && (
+											<img
+												class="project-index-preview__img"
+												src={post.data.thumbnail}
+												alt=""
+												loading="lazy"
+												decoding="async"
+											/>
+										)}
+										<div class="project-index-preview__text">
+											<p class="project-index-preview__meta">
+												{post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
+												{post.data.tags.length > 0 && ` · ${post.data.tags.join(', ')}`}
+											</p>
+											<p class="project-index-preview__summary">{post.data.summary}</p>
+										</div>
+									</div>
+								</div>
 							</li>
 						))}
 					</ul>
@@ -39,3 +60,14 @@ const sorted = projects.sort((a, b) => b.data.date.valueOf() - a.data.date.value
 		}
 	</div>
 </Layout>
+
+{/* Prototype switch: /projects?hover=underline | color | preview */}
+<script is:inline>
+	(function () {
+		var pick = new URLSearchParams(location.search).get('hover');
+		var nav = document.querySelector('.project-index');
+		if (nav && (pick === 'underline' || pick === 'color' || pick === 'preview')) {
+			nav.setAttribute('data-project-hover', pick);
+		}
+	})();
+</script>

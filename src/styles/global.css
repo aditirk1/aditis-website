@@ -603,13 +603,10 @@ nav[aria-label='Primary'] .nav-tab {
 	color: var(--page-fg);
 	text-transform: capitalize;
 	text-decoration: none;
-	box-shadow: 0 0 8px color-mix(in srgb, var(--color-amber) 12%, transparent);
 	transition:
-		border-color 300ms ease,
-		color 300ms ease,
-		box-shadow 300ms ease,
-		background-color 300ms ease,
-		transform 300ms ease;
+		border-color 150ms ease,
+		color 150ms ease,
+		background-color 150ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -617,8 +614,6 @@ nav[aria-label='Primary'] .nav-tab {
 		border-color: var(--color-amber);
 		color: var(--color-amber);
 		background: color-mix(in srgb, var(--color-amber) 8%, transparent);
-		box-shadow: 0 0 14px color-mix(in srgb, var(--color-amber) 45%, transparent);
-		transform: translateY(-1px);
 	}
 }
 
@@ -632,7 +627,8 @@ nav[aria-label='Primary'] .nav-tab[data-active='true'] {
 	border-color: var(--color-amber);
 	color: var(--color-amber);
 	background: color-mix(in srgb, var(--color-amber) 10%, transparent);
-	box-shadow: 0 0 16px color-mix(in srgb, var(--color-amber) 50%, transparent);
+	/* The one glow left in the nav: it marks where you are, not where the pointer is. */
+	box-shadow: 0 0 10px color-mix(in srgb, var(--color-amber) 28%, transparent);
 }
 
 /* Mobile / touch: larger tap targets on desktop-width coarse pointers only */
@@ -776,10 +772,6 @@ html[data-coarse-pointer] .home-hero-extra a:active,
 html[data-coarse-pointer] .home-explore-card:active {
 	border-color: var(--color-amber);
 	color: var(--color-amber);
-}
-
-html[data-coarse-pointer] .home-explore-card:active {
-	box-shadow: 0 0 20px color-mix(in srgb, var(--color-amber) 18%, transparent);
 }
 
 html[data-coarse-pointer] .home-explore-card .explore-card-cta {
@@ -1031,6 +1023,40 @@ html[data-theme='beach'] #planet-label {
 	}
 }
 
+/*
+ * Universe, stacked (phones, and tablets held upright): the title sits directly on
+ * top of the orrery and the pair is centred in the hero. The orrery's zone is a
+ * fixed-ratio box rather than "the rest of the screen", so the system is sized by
+ * the width it has and no longer floats in a tall empty band below the title.
+ * universe-star-field.ts fits the orrery to this box — keep STACKED_HERO_QUERY
+ * there in step with this media query.
+ */
+@media (max-width: 767px), (max-width: 1023px) and (orientation: portrait) {
+	html[data-theme='universe'] .home-hero-grid {
+		grid-template-columns: 1fr;
+		grid-template-rows: auto auto;
+		align-content: center;
+	}
+
+	html[data-theme='universe'] .home-hero-title-col {
+		align-items: flex-end;
+		padding: 0 1.5rem 0.25rem 2.75rem;
+	}
+
+	html[data-theme='universe'] .home-hero-side-col {
+		min-height: 0;
+		aspect-ratio: 7 / 5;
+		padding-inline: 0;
+	}
+}
+
+@media (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) {
+	/* Full-width title column now, so the side-by-side cqi size would overflow. */
+	html[data-theme='universe'] #sun-text {
+		font-size: clamp(4.5rem, 14cqi, 7.5rem);
+	}
+}
+
 /* Touch-friendly controls + scroll over full-screen canvases */
 [data-universe-canvas],
 [data-beach-canvas] {
@@ -1081,7 +1107,6 @@ html[data-coarse-pointer] .service-detail-hint {
 	min-height: 100dvh;
 	width: 100%;
 	padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 4vw, 2rem) clamp(4rem, 10vw, 6rem);
-	animation: article-page-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .full-page-article__backdrop {
@@ -1201,46 +1226,28 @@ html[data-theme='beach'] .full-page-article__backdrop {
 	line-height: 1.75;
 }
 
-/* In-article links — planet-like hover zoom */
+/* In-article links — the underline firms up on hover; text never moves mid-sentence. */
 .prose-article a:not(.article-back-link):not([data-no-zoom]) {
-	display: inline-block;
 	color: var(--color-amber);
 	text-decoration: underline;
 	text-decoration-color: color-mix(in srgb, var(--color-amber) 45%, transparent);
 	text-underline-offset: 3px;
 	transition:
-		transform 0.35s cubic-bezier(0.34, 1.2, 0.64, 1),
-		color 0.25s ease,
-		text-shadow 0.35s ease;
-	transform-origin: center center;
+		color 150ms ease,
+		text-decoration-color 150ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
 	.prose-article a:not(.article-back-link):not([data-no-zoom]):hover {
-		transform: scale(1.08);
 		color: color-mix(in srgb, var(--color-amber) 62%, white);
-		text-shadow: 0 0 18px color-mix(in srgb, var(--color-amber) 45%, transparent);
+		text-decoration-color: currentColor;
 	}
 }
 
-html[data-coarse-pointer] .prose-article a:not(.article-back-link):active {
-	transform: scale(1.04);
-}
-
-/* Clickable prose images */
+/* Clickable prose images — the zoom-in cursor is the affordance. */
 .prose-lightbox-img {
 	cursor: zoom-in;
 	border-radius: 0.65rem;
-	transition:
-		transform 0.4s cubic-bezier(0.34, 1.15, 0.64, 1),
-		box-shadow 0.35s ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-	.prose-lightbox-img:hover {
-		transform: scale(1.02);
-		box-shadow: 0 0 28px color-mix(in srgb, var(--color-amber) 18%, transparent);
-	}
 }
 
 /* Positionable figures — use HTML in Markdown */
@@ -1350,7 +1357,12 @@ html[data-coarse-pointer] .prose-article a:not(.article-back-link):active {
 	text-align: center;
 }
 
-/* Project index — title grid with theme hover FX */
+/* Project index — title grid. Resting colours rotate by theme; hover is one of three
+ * quiet prototypes chosen with data-project-hover on .project-index (see projects page). */
+.project-index {
+	position: relative;
+}
+
 .project-index__list {
 	list-style: none;
 	margin: 0;
@@ -1394,10 +1406,10 @@ html[data-coarse-pointer] .prose-article a:not(.article-back-link):active {
 	line-height: 1.28;
 	letter-spacing: 0.01em;
 	color: var(--project-title-color, var(--page-fg));
-	transform-origin: left center;
 	transition:
-		transform 0.45s cubic-bezier(0.34, 1.2, 0.64, 1),
-		color 0.35s ease;
+		color 180ms ease,
+		opacity 180ms ease,
+		background-size 220ms ease-out;
 }
 
 /* Resting title colors — cycles: lightest → pre-accent → accent → post-accent */
@@ -1418,121 +1430,146 @@ html[data-theme='beach'] .project-index-link[data-shade='3'] {
 	--project-title-color: var(--project-post-accent);
 }
 
-/* Hover: light shimmery sweep from each title's own color */
+/* A — underline reveal. Inline so the rule follows every wrapped line; the link
+ * can't stay flex, which would turn the label back into a block. */
+.project-index[data-project-hover='underline'] .project-index-link {
+	display: block;
+}
+
+.project-index[data-project-hover='underline'] .project-index-link__label {
+	display: inline;
+	background-image: linear-gradient(currentColor, currentColor);
+	background-position: 0 100%;
+	background-repeat: no-repeat;
+	background-size: 0% 1px;
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+	padding-bottom: 0.08em;
+}
+
+.project-index[data-project-hover='underline'] .project-index-link:focus-visible .project-index-link__label {
+	background-size: 100% 1px;
+}
+
 @media (hover: hover) and (pointer: fine) {
-	html[data-theme='universe'] .project-index-link:hover .project-index-link__label {
-		transform: scale(1.025);
-		color: transparent;
-		transition: transform 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
-		background-image: linear-gradient(
-			100deg,
-			var(--project-title-color) 0%,
-			var(--project-title-color) 34%,
-			color-mix(in srgb, var(--project-title-color) 55%, #fff8e8) 46%,
-			#fffef5 50%,
-			color-mix(in srgb, var(--project-title-color) 50%, #ffe9a8) 54%,
-			var(--project-title-color) 66%,
-			var(--project-title-color) 100%
-		);
-		background-size: 280% 100%;
-		background-position: 120% center;
-		background-clip: text;
-		-webkit-background-clip: text;
-		animation: project-title-shimmer 3.4s linear infinite;
-		filter: drop-shadow(0 0 20px color-mix(in srgb, var(--project-title-color) 45%, transparent));
-	}
-
-	html[data-theme='beach'] .project-index-link:hover .project-index-link__label {
-		transform: scale(1.02);
-		color: transparent;
-		transition: transform 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
-		background-image: linear-gradient(
-			180deg,
-			var(--project-title-color) 0%,
-			var(--project-title-color) 16%,
-			color-mix(in srgb, var(--project-title-color) 45%, #7eb8d4) 38%,
-			color-mix(in srgb, var(--project-title-color) 25%, #a8d4e8) 50%,
-			color-mix(in srgb, var(--project-title-color) 50%, #5a9ab8) 62%,
-			var(--project-title-color) 84%,
-			var(--project-title-color) 100%
-		);
-		background-size: 100% 320%;
-		background-position: 0% 12%;
-		background-clip: text;
-		-webkit-background-clip: text;
-		animation: project-title-wave 5s linear infinite;
+	.project-index[data-project-hover='underline'] .project-index-link:hover .project-index-link__label {
+		background-size: 100% 1px;
 	}
 }
 
-@keyframes project-title-shimmer {
-	0% {
-		background-position: 120% center;
+/* B — colour emphasis. The title under the pointer goes full strength; the rest step back. */
+@media (hover: hover) and (pointer: fine) {
+	.project-index[data-project-hover='color'] .project-index__list:has(.project-index-link:hover)
+		.project-index-link:not(:hover)
+		.project-index-link__label {
+		opacity: 0.42;
 	}
-	100% {
-		background-position: -40% center;
+
+	.project-index[data-project-hover='color'] .project-index-link:hover .project-index-link__label {
+		color: var(--page-fg);
 	}
 }
 
-@keyframes project-title-wave {
-	0%,
-	100% {
-		background-position: 0% 12%;
+.project-index[data-project-hover='color'] .project-index__list:has(.project-index-link:focus-visible)
+	.project-index-link:not(:focus-visible)
+	.project-index-link__label {
+	opacity: 0.42;
+}
+
+.project-index[data-project-hover='color'] .project-index-link:focus-visible .project-index-link__label {
+	color: var(--page-fg);
+}
+
+/* C — stationary preview. One fixed slot beside the list; it never follows the cursor. */
+.project-index-preview {
+	display: none;
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 900px) {
+	.project-index[data-project-hover='preview'] {
+		display: grid;
+		grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+		column-gap: clamp(2rem, 4vw, 3.5rem);
+		align-items: start;
 	}
-	50% {
-		background-position: 0% 88%;
+
+	.project-index[data-project-hover='preview'] .project-index__list {
+		grid-template-columns: repeat(2, 1fr);
 	}
+
+	.project-index[data-project-hover='preview'] .project-index-preview {
+		display: block;
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: calc((100% - clamp(2rem, 4vw, 3.5rem)) / 3);
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+		transition:
+			opacity 180ms ease,
+			visibility 0s linear 180ms;
+	}
+
+	.project-index[data-project-hover='preview'] .project-index__item:hover .project-index-preview,
+	.project-index[data-project-hover='preview'] .project-index__item:focus-within .project-index-preview {
+		opacity: 1;
+		visibility: visible;
+		transition-delay: 0s;
+	}
+
+	.project-index[data-project-hover='preview'] .project-index-link:hover .project-index-link__label,
+	.project-index[data-project-hover='preview'] .project-index-link:focus-visible .project-index-link__label {
+		color: var(--page-fg);
+	}
+}
+
+.project-index-preview__frame {
+	border: 1px solid color-mix(in srgb, var(--color-amber) 22%, transparent);
+	border-radius: 0.9rem;
+	overflow: hidden;
+	background: color-mix(in srgb, var(--page-bg) 70%, transparent);
+}
+
+.project-index-preview__img {
+	display: block;
+	width: 100%;
+	aspect-ratio: 4 / 3;
+	object-fit: cover;
+}
+
+.project-index-preview__text {
+	padding: 1.1rem 1.25rem 1.25rem;
+}
+
+.project-index-preview__meta {
+	margin: 0 0 0.5rem;
+	font-family: var(--font-mono);
+	font-size: 0.68rem;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--page-muted);
+}
+
+.project-index-preview__summary {
+	margin: 0;
+	font-size: 0.98rem;
+	line-height: 1.6;
+	color: var(--page-fg);
 }
 
 html[data-coarse-pointer] .project-index-link:active .project-index-link__label {
-	transform: scale(1.015);
-	color: var(--project-title-color, var(--page-fg));
+	color: var(--page-fg);
 }
 
-/* Blog list cards — subtle title zoom */
+/* Blog list cards — the title colour change lives in the markup (fine-group-hover). */
 .blog-list-card {
-	transform-origin: center center;
 	transition: color 0.3s ease;
 }
 
-/* Full-page article entrance (project / blog open) */
-@keyframes article-page-in {
-	from {
-		opacity: 0;
-		transform: scale(0.97) translateY(0.75rem);
-	}
-	to {
-		opacity: 1;
-		transform: scale(1) translateY(0);
-	}
-}
-
-@media (hover: hover) and (pointer: fine) {
-	.blog-list-card:hover h2 {
-		transform: scale(1.02);
-		transform-origin: left center;
-		transition: transform 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
-	}
-}
-
 @media (prefers-reduced-motion: reduce) {
-	.full-page-article {
-		animation: none;
-	}
-
-	.project-index-link:hover .project-index-link__label {
-		animation: none !important;
-		background: none !important;
-		-webkit-background-clip: unset !important;
-		background-clip: unset !important;
-		filter: none;
-	}
-
-	.project-index-link:hover .project-index-link__label {
-		color: var(--project-title-color, var(--page-fg)) !important;
-	}
-
-	.prose-article a:hover,
-	.prose-lightbox-img:hover {
-		transform: none;
+	.project-index-link__label,
+	.project-index-preview {
+		transition: none !important;
 	}
 }

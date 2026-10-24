@@ -130,7 +130,7 @@ const firstTagline = taglines[0] ?? '';
 			{exploreCards.map(({ href, title, desc }) => (
 				<a
 					href={href}
-					class="home-explore-card group relative overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--page-fg)_12%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_70%,transparent)] p-6 backdrop-blur-md transition-all duration-300 fine-hover:border-[var(--color-amber)] fine-hover:shadow-[0_0_32px_color-mix(in_srgb,var(--color-amber)_15%,transparent)]"
+					class="home-explore-card group relative overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--page-fg)_12%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_70%,transparent)] p-6 backdrop-blur-md transition-colors duration-150 fine-hover:border-[var(--color-amber)] focus-visible:border-[var(--color-amber)]"
 					data-reveal-child
 				>
 					<h3 class="text-lg font-semibold" style="font-family: var(--font-display)">
@@ -139,7 +139,7 @@ const firstTagline = taglines[0] ?? '';
 					<p class="mt-2 text-sm leading-relaxed text-[var(--page-muted)] transition-colors fine-group-hover:text-[var(--page-fg)]">
 						{desc}
 					</p>
-					<span class="explore-card-cta mt-3 inline-block text-xs font-bold tracking-wide text-[var(--color-amber)] opacity-0 transition-opacity fine-group-hover:opacity-100 group-focus-within:opacity-100">
+					<span class="explore-card-cta mt-3 inline-block text-xs font-bold tracking-wide text-[var(--color-amber)] opacity-70 transition-opacity duration-150 fine-group-hover:opacity-100 group-focus-visible:opacity-100">
 						Explore →
 					</span>
 				</a>
