@@ -6,7 +6,7 @@ const projects = await getCollection('projects', ({ data }) => data.draft !== tr
 const sorted = projects.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 ---
 
-<Layout title="Projects · aditi's universe">
+<Layout title="Projects | aditi's universe">
 	<div class="page-list-shell">
 		<div data-reveal-stagger class="page-list-header">
 			<h1
@@ -46,7 +46,12 @@ const sorted = projects.sort((a, b) => b.data.date.valueOf() - a.data.date.value
 										<div class="project-index-preview__text">
 											<p class="project-index-preview__meta">
 												{post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
-												{post.data.tags.length > 0 && ` · ${post.data.tags.join(', ')}`}
+												{post.data.tags.length > 0 && (
+													<>
+														<br />
+														{post.data.tags.join(', ')}
+													</>
+												)}
 											</p>
 											<p class="project-index-preview__summary">{post.data.summary}</p>
 										</div>

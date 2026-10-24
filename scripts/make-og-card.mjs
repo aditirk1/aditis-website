@@ -50,7 +50,7 @@ async function text(markup, width) {
 const logo = await sharp(join(root, 'public/brand/logo-universe-512.png')).resize(340, 340).png().toBuffer();
 const title = await text('<span foreground="#f7f4ec" size="76pt" weight="light">aditi’s universe</span>', 600);
 const subtitle = await text(
-	'<span foreground="#bdb8ae" size="28pt">Biomedical engineer · researcher · writer</span>',
+	'<span foreground="#bdb8ae" size="28pt">Biomedical engineer, researcher, writer</span>',
 	600,
 );
 const url = await text('<span foreground="#ffaa00" size="24pt" weight="medium">aditirk.me</span>', 600);

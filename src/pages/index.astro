@@ -9,7 +9,7 @@ const heroTitle = home.hero_title;
 /* Grouped by word so per-letter spans can't be broken mid-word by wrapping. */
 const heroWords = heroTitle.split(' ').map((word) => word.split(''));
 /* The displayed title ends in a full stop; the browser tab reads better without it. */
-const documentTitle = `${heroTitle.replace(/\.$/, '')} · aditirk.me`;
+const documentTitle = `${heroTitle.replace(/\.$/, '')} | aditirk.me`;
 const exploreCards = home.explore_cards;
 const taglines = Array.isArray(home.taglines) ? home.taglines.filter(Boolean) : [];
 const firstTagline = taglines[0] ?? '';

@@ -117,7 +117,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 		<link
 			rel="alternate"
 			type="application/rss+xml"
-			title="aditi's universe · blog"
+			title="aditi's universe | blog"
 			href="/rss.xml"
 		/>
 		<meta name="generator" content={Astro.generator} />
@@ -200,9 +200,9 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 						type="button"
 						class="theme-toggle-btn shrink-0 rounded-full border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_75%,transparent)] px-2.5 py-1 text-[0.7rem] font-medium leading-none text-[var(--page-fg)] backdrop-blur-sm transition fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)] md:px-4 md:py-2 md:text-sm md:font-semibold"
 						data-theme-toggle
-						aria-label="Toggle Universe and Beach theme"
+						aria-label="Switch between Orbit and Flow themes"
 					>
-						<span data-theme-toggle-label>Universe</span>
+						<span data-theme-toggle-label>Orbit</span>
 					</button>
 				</div>
 			</header>
@@ -279,7 +279,8 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 					/* ignore */
 				}
 				const label = document.querySelector('[data-theme-toggle-label]');
-				if (label) label.textContent = theme === 'universe' ? 'Universe' : 'Beach';
+				/* Visible names; the stored values stay universe/beach so saved choices carry over. */
+				if (label) label.textContent = theme === 'universe' ? 'Orbit' : 'Flow';
 				/* Second pass after layout/fonts settle. */
 				requestAnimationFrame(() => {
 					refreshScrollMetrics();

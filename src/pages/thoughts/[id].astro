@@ -16,7 +16,7 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 ---
 
-<Layout title={`Thought · ${entry.data.date.toLocaleDateString()}`}>
+<Layout title={`Thought, ${entry.data.date.toLocaleDateString()}`}>
 	<article
 		class="pointer-events-auto mx-auto max-w-2xl px-2 py-8 md:py-10"
 		data-reveal-stagger

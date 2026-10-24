@@ -43,7 +43,7 @@ function errorPage(message: string, status = 400): Response {
 		`<!doctype html><html lang="en"><head><meta charset="utf-8" /><title>Sign-in failed</title></head>` +
 			`<body style="font:16px system-ui;padding:2rem;max-width:36rem;margin:2rem auto;line-height:1.5">` +
 			`<h1>Sign-in failed</h1><p>${safe}</p>` +
-			`<p><a href="/dream-journal">Back to dream journal</a> · <a href="/">Home</a></p>` +
+			`<p><a href="/dream-journal">Back to dream journal</a><br><a href="/">Home</a></p>` +
 			`</body></html>`,
 		{
 			/* 400/503 — not 502 (Cloudflare hides 502 bodies behind its Bad gateway page) */

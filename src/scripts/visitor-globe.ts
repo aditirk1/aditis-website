@@ -33,8 +33,8 @@ const ELBOW_GAP = 16;
 const TICK_LEN = 16;
 const LABEL_GAP = 5;
 
-function accentColor(): string {
-	const v = getComputedStyle(document.documentElement).getPropertyValue('--color-amber').trim();
+function pinColor(): string {
+	const v = getComputedStyle(document.documentElement).getPropertyValue('--globe-pin').trim();
 	return v || '#ffaa00';
 }
 
@@ -58,12 +58,12 @@ function clamp(v: number, lo: number, hi: number): number {
 }
 
 /**
- * Visitor globe (Universe + Beach).
+ * Visitor globe (Orbit + Flow).
  *
  * Hovering a pin draws a leader line out of the globe — slanted radial segment,
  * short horizontal tick, then the label — instead of a centred tooltip that the
- * round frame would clip. Zoom is available so sparse, single-visit pins are big
- * enough to hit.
+ * round frame would clip. Pinch zoom (touch only) makes sparse, single-visit pins
+ * big enough to tap.
  */
 export function initVisitorGlobe(container: HTMLElement): {
 	setMarkers: (markers: GlobeMarker[]) => void;
@@ -84,7 +84,8 @@ export function initVisitorGlobe(container: HTMLElement): {
 
 	const leaderDot = document.createElementNS(SVG_NS, 'circle');
 	leaderDot.setAttribute('r', '2.6');
-	leaderDot.setAttribute('fill', 'currentColor');
+	/* The dot sits on the globe with the pins, so it shares their colour. */
+	leaderDot.style.fill = 'var(--globe-pin, currentColor)';
 
 	leaderSvg?.appendChild(leaderPath);
 	leaderSvg?.appendChild(leaderDot);
@@ -105,15 +106,11 @@ export function initVisitorGlobe(container: HTMLElement): {
 	const ctrls = globe.controls();
 	ctrls.autoRotate = true;
 	ctrls.autoRotateSpeed = 0.35;
-	/*
-	 * Wheel zoom only after a deliberate pause over the globe, so scrolling the
-	 * page past this small widget doesn't get captured.
-	 */
+	/* Off until a touch starts: the wheel and trackpad keep scrolling the page. */
 	ctrls.enableZoom = false;
 
 	let hovered: PointDatum | null = null;
 	let followRaf = 0;
-	let zoomArmTimer = 0;
 
 	function hideCallout() {
 		hovered = null;
@@ -248,26 +245,16 @@ export function initVisitorGlobe(container: HTMLElement): {
 	});
 
 	/*
-	 * Trackpad two-finger scroll, mouse wheel and touch pinch all drive
-	 * OrbitControls zoom. It arms after a short pause so scrolling the page past
-	 * this small widget doesn't get swallowed, and immediately on touch since a
-	 * pinch is already deliberate.
+	 * Pinch only. OrbitControls ties wheel and pinch to one switch, so zoom is
+	 * enabled for the length of a touch and off otherwise — a mouse wheel or a
+	 * trackpad over the globe always scrolls the page.
 	 */
-	const onPointerEnter = () => {
-		window.clearTimeout(zoomArmTimer);
-		zoomArmTimer = window.setTimeout(() => {
-			ctrls.enableZoom = true;
-		}, 260);
-	};
-	const onPointerDown = () => {
-		window.clearTimeout(zoomArmTimer);
-		ctrls.enableZoom = true;
+	const onPointerDown = (e: PointerEvent) => {
+		ctrls.enableZoom = e.pointerType === 'touch';
 	};
 	const onPointerLeave = () => {
-		window.clearTimeout(zoomArmTimer);
 		ctrls.enableZoom = false;
 	};
-	container.addEventListener('pointerenter', onPointerEnter);
 	container.addEventListener('pointerdown', onPointerDown);
 	container.addEventListener('pointerleave', onPointerLeave);
 
@@ -287,10 +274,10 @@ export function initVisitorGlobe(container: HTMLElement): {
 	if (stage) ro.observe(stage);
 
 	const onTheme = () => {
-		/* Refresh pin colour when amber ↔ beach blue swaps. */
+		/* Refresh pin colour when the theme swaps. */
 		const data = globe.pointsData() as PointDatum[];
 		if (!data.length) return;
-		const color = accentColor();
+		const color = pinColor();
 		globe.pointsData(data.map((d) => ({ ...d, color })));
 	};
 	const mo = new MutationObserver(onTheme);
@@ -298,7 +285,7 @@ export function initVisitorGlobe(container: HTMLElement): {
 
 	return {
 		setMarkers(markers: GlobeMarker[]) {
-			const color = accentColor();
+			const color = pinColor();
 			hideCallout();
 			globe.pointsData(
 				markers.map(
@@ -320,8 +307,6 @@ export function initVisitorGlobe(container: HTMLElement): {
 			mo.disconnect();
 			ro.disconnect();
 			hideCallout();
-			window.clearTimeout(zoomArmTimer);
-			container.removeEventListener('pointerenter', onPointerEnter);
 			container.removeEventListener('pointerdown', onPointerDown);
 			container.removeEventListener('pointerleave', onPointerLeave);
 			leaderPath.remove();

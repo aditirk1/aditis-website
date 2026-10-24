@@ -19,6 +19,7 @@ export default defineConfig({
 				!page.includes('/admin') &&
 				!page.includes('/dream-journal') &&
 				!page.includes('/quick') &&
+				!page.includes('/type-lab') &&
 				!page.includes('/404'),
 		}),
 	],
