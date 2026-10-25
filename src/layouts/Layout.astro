@@ -216,7 +216,10 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 						style="font-family: var(--font-display)"
 					>
 						<img
-							src="/brand/logo-universe-32.png"
+							src="/brand/logo-universe-48.png"
+							srcset="/brand/logo-universe-48.png 1x, /brand/logo-universe-96.png 2x, /brand/logo-universe-144.png 3x"
+							width="36"
+							height="36"
 							alt=""
 							class="h-8 w-8 select-none md:h-9 md:w-9"
 							decoding="async"
@@ -291,7 +294,10 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 				if (apple) apple.href = `${pref}-180.png`;
 
 				const logo = document.querySelector('[data-site-logo]') as HTMLImageElement | null;
-				if (logo) logo.src = `${pref}-32.png`;
+				if (logo) {
+					logo.srcset = `${pref}-48.png 1x, ${pref}-96.png 2x, ${pref}-144.png 3x`;
+					logo.src = `${pref}-48.png`;
+				}
 
 				document
 					.querySelector('meta[data-theme-color]')
