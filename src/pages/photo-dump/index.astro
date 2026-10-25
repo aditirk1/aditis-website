@@ -49,7 +49,7 @@ const hasPhotos = albums.some((a) => a.photos.length > 0);
 								</h2>
 								<ul class="columns-2 gap-4 sm:columns-3 md:columns-4">
 									{album.photos.map((photo, i) => (
-										<li class="mb-4 break-inside-avoid" data-reveal-child>
+										<li class="mb-4 break-inside-avoid" data-reveal-child data-spatial>
 											<button
 												type="button"
 												class="photo-dump-btn group w-full overflow-hidden rounded-xl border-0 bg-transparent p-0 text-left shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-amber)]"

@@ -20,7 +20,7 @@ const firstTagline = taglines[0] ?? '';
 
 	<!-- Hero: pointer-events-none so the starfield canvas can receive clicks (secret star). Interactive bits opt in. -->
 	<section class="home-hero pointer-events-none relative" data-hero-root>
-		<div class="home-hero-grid">
+		<div class="home-hero-grid" data-spatial-hero>
 			<div class="home-hero-title-col">
 				<div id="sun-wrapper">
 					<h1 id="sun-text" data-hero-title>
@@ -82,6 +82,7 @@ const firstTagline = taglines[0] ?? '';
 	<section
 		class="pointer-events-auto relative mx-auto max-w-5xl px-8 py-20 md:px-16 md:py-28"
 		data-reveal-stagger
+		data-spatial-section
 	>
 		<h2
 			class="text-3xl font-semibold tracking-tight md:text-4xl"
@@ -117,6 +118,7 @@ const firstTagline = taglines[0] ?? '';
 	<section
 		class="home-explore pointer-events-auto relative mx-auto max-w-5xl px-8 py-12 md:px-16 md:py-20"
 		data-reveal-stagger
+		data-spatial-section
 	>
 		<h2
 			class="text-3xl font-semibold tracking-tight md:text-4xl"
@@ -147,7 +149,7 @@ const firstTagline = taglines[0] ?? '';
 		</div>
 	</section>
 
-	<section class="pointer-events-auto relative mx-auto max-w-3xl px-8 py-12 md:px-16 md:py-20" data-reveal-stagger>
+	<section class="pointer-events-auto relative mx-auto max-w-3xl px-8 py-12 md:px-16 md:py-20" data-reveal-stagger data-spatial-section data-spatial-no-blur>
 		<div data-reveal-child>
 			<LiveVisitorMap />
 		</div>

@@ -29,6 +29,10 @@ const CANVAS_ID = 'universe-star-field-canvas';
 const MAX_DPR = 2;
 const MOBILE_MAX_DPR = 1.25;
 const REDUCED_MOTION_STAR_COUNT = 1400;
+/** Scroll distance, in viewport heights, over which the hero flies past (see global.css). */
+const SPATIAL_HERO_RANGE_VH = 0.7;
+/** How far the orrery travels toward the camera (at z 46) by the end of that range. */
+const SPATIAL_ORRERY_DOLLY = 30;
 const DEFAULT_STAR_COUNT = 5200;
 const MOBILE_STAR_COUNT = 3000;
 const INNER_PAGE_STAR_COUNT = 2400;
@@ -486,17 +490,26 @@ export function initUniverseStarField(): () => void {
 	/* RIGHT zone of the hero — the orrery is centred on this box, not the viewport. */
 	const heroSideZoneEl = document.querySelector<HTMLElement>('[data-hero-side-slot]');
 
-	/* Reads cached geometry from the scroll orchestrator — no layout during the frame. */
+	/**
+	 * Hero progress, 0 at the top to 1 once the hero has flown past. Must match
+	 * the `[data-spatial-hero]` animation-range in global.css (0 to 70vh) so the
+	 * orrery leaves with the title instead of lingering over the next section.
+	 * Reads cached geometry from the scroll orchestrator — no layout during the frame.
+	 */
+	function getHeroScrollProgress(): number {
+		const { y, viewportHeight } = getScrollState();
+		/* Missing metrics after a theme swap: keep the orrery on. */
+		if (viewportHeight < 1) return 0;
+		return Math.max(0, Math.min(1, y / (viewportHeight * SPATIAL_HERO_RANGE_VH)));
+	}
+
 	function getHeroScrollFade(): number {
-		const { y, heroBottom, viewportHeight } = getScrollState();
-		/* Near the top — or with missing metrics after a theme swap — keep the orrery on. */
-		if (y < 80 || viewportHeight < 1) return 1;
-		const vh = viewportHeight;
-		const fadeStart = vh * 0.72;
-		const fadeEnd = vh * 0.2;
-		if (heroBottom >= fadeStart) return 1;
-		if (heroBottom <= fadeEnd) return 0;
-		return (heroBottom - fadeEnd) / (fadeStart - fadeEnd);
+		return 1 - getHeroScrollProgress();
+	}
+
+	/** Orrery dolly toward the camera (world units) as the hero flies past. */
+	function applySolarZoom(progress: number) {
+		solarSystemGroup.position.z = reducedMotion ? 0 : Math.pow(progress, 1.6) * SPATIAL_ORRERY_DOLLY;
 	}
 
 	function applySolarFade(fade: number) {
@@ -1250,6 +1263,7 @@ export function initUniverseStarField(): () => void {
 				solarFadeLerp += (solarFade - solarFadeLerp) * 0.14;
 			}
 			applySolarFade(solarFadeLerp);
+			applySolarZoom(1 - solarFadeLerp);
 
 			const tNow = reducedMotion ? 0 : performance.now();
 			const spinStep = reducedMotion ? 0 : delta * PLANET_SPIN_SPEED;

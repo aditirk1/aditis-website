@@ -25,8 +25,11 @@ export function initPageRevealAnimations(): () => void {
 
 	const triggers: ScrollTrigger[] = [];
 	const vh = window.innerHeight;
+	/* Same condition as the spatial scroll CSS in global.css; that owns these sections. */
+	const spatial = CSS.supports('animation-timeline: view()');
 
 	document.querySelectorAll<HTMLElement>('[data-reveal-stagger]').forEach((root) => {
+		if (spatial && root.hasAttribute('data-spatial-section')) return;
 		const kids = root.querySelectorAll<HTMLElement>('[data-reveal-child]');
 		if (!kids.length || !startsBelowFold(root, vh)) return;
 
