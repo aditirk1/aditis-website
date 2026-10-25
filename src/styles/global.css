@@ -178,6 +178,16 @@ body {
 	font-size: calc(1.05rem * var(--reader-scale));
 }
 
+/* Spatial scroll scales the hero and sections past the viewport edges; never let that widen the page. */
+#main-content {
+	overflow-x: clip;
+}
+
+/* Tracking trails every letter, the last one too; without this the wordmark sits left of the logo. */
+.splash-title .splash-char:last-child {
+	letter-spacing: 0;
+}
+
 #site-shell :is(#main-content, [data-site-footer]) .text-xs {
 	font-size: calc(0.75rem * var(--reader-scale));
 }
@@ -672,6 +682,14 @@ dialog.app-modal-backdrop::backdrop {
 @keyframes nav-flow {
 	to {
 		background-position-x: 24px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.nav-indicator,
+	.nav-indicator::after {
+		animation: none !important;
+		transition: opacity 200ms ease !important;
 	}
 }
 
