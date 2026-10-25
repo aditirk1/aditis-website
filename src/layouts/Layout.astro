@@ -9,6 +9,7 @@ import BeachBackground from '../components/BeachBackground.astro';
 import SiteNav from '../components/SiteNav.astro';
 import TextSizeControl from '../components/TextSizeControl.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import ViewTransitionExperiment from '../components/ViewTransitionExperiment.astro';
 
 interface Props {
 	title?: string;
@@ -79,6 +80,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 				} catch (e) {}
 			})();
 		</script>
+		<ViewTransitionExperiment />
 		<script is:inline>
 			(function () {
 				try {
@@ -232,6 +234,8 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 			import { ScrollTrigger } from 'gsap/ScrollTrigger';
 			import { initPageRevealAnimations } from '../scripts/page-reveal.ts';
 			import { syncSiteNavChrome } from '../scripts/site-nav.ts';
+			import { initNavIndicators } from '../scripts/nav-indicators.ts';
+			import { initTransitionExperiment } from '../scripts/vt-experiment.ts';
 			import { syncHeroLayout } from '../scripts/hero-layout.ts';
 			import {
 				initScrollOrchestrator,
@@ -300,6 +304,8 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 			applyTheme(getStoredTheme());
 			syncCoarsePointerAttribute();
 			syncSiteNavChrome();
+			initTransitionExperiment();
+			initNavIndicators();
 			document.addEventListener('click', onThemeToggleClick);
 			const stopTextSizeControl = initTextSizeControl();
 

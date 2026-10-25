@@ -20,6 +20,7 @@ export default defineConfig({
 				!page.includes('/dream-journal') &&
 				!page.includes('/quick') &&
 				!page.includes('/type-lab') &&
+				!page.includes('/transition-lab') &&
 				!page.includes('/404'),
 		}),
 	],
