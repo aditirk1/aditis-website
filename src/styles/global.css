@@ -546,6 +546,8 @@ dialog.app-modal-backdrop::backdrop {
  */
 .site-header {
 	position: relative;
+	/* Above the page content: the theme menu drops down over articles and their washes. */
+	z-index: 40;
 	isolation: isolate;
 }
 
