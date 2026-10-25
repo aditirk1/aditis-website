@@ -23,9 +23,9 @@ function revealHeroCopy(copy: HTMLElement): void {
 
 /**
  * Beach sits the copy beside the title, both vertically centred in their own
- * grid column. The copy is the taller block, so centring alone leaves the CTAs
- * hanging below the title's last line. Lift it so the buttons finish level with
- * the baseline of "universe."
+ * grid column, so centring alone leaves the CTAs above or below the title's
+ * last line. Shift the copy so the buttons finish level with the baseline of
+ * "universe."
  *
  * Measured rather than hard-coded: the title is fluid (clamp + cqi) and the
  * copy rewraps, so the gap between the two blocks changes with viewport width.
@@ -72,9 +72,8 @@ function alignHeroCopyToTitle(): void {
 	const anchorTop = anchor ? anchor.getBoundingClientRect().top : 0;
 	const copyBottom = anchorTop + copy.offsetTop + copy.offsetHeight;
 
-	/* Only ever lift. If the copy is the shorter block, centred already reads fine. */
 	const drop = copyBottom - titleBaselineY(title);
-	if (drop > 1) copy.style.translate = `0 ${-Math.round(drop)}px`;
+	if (Math.abs(drop) > 1) copy.style.translate = `0 ${-Math.round(drop)}px`;
 }
 
 let alignFrame = 0;

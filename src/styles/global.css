@@ -1157,7 +1157,16 @@ html[data-theme='beach'] #planet-label {
 	}
 
 	html[data-theme='beach'] .home-hero-side-col [data-hero-copy] {
-		max-width: 26rem;
+		max-width: 32rem;
+	}
+
+	html[data-theme='beach'] .home-hero-side-col [data-hero-tagline] {
+		font-size: clamp(1.5rem, 2.1vw, 2rem);
+	}
+
+	html[data-theme='beach'] .home-hero-side-col .home-hero-desc {
+		font-size: clamp(1.2rem, 1.55vw, 1.5rem);
+		line-height: 1.6;
 	}
 }
 
