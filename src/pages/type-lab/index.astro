@@ -4,10 +4,10 @@
  * Exploration only: nothing here changes production typography. noindex.
  *
  * Fonts load only on this page. Google Fonts serves the open-licensed families.
- * Argesta and Geomanist (Atipo Foundry) must be self-hosted from Atipo's
- * webfont download — drop the files into public/fonts/argesta and
- * public/fonts/geomanist (names in the @font-face rules below). Until then
- * their cards say so instead of quietly showing a stand-in.
+ * Argesta Display and Geomanist (Atipo Foundry) are self-hosted from Atipo's
+ * official webfont kits, under their webfont licence (copies in docs/licenses).
+ * Only webfont-kit files may go in public/fonts — Atipo's desktop licence
+ * forbids converting the .otf desktop fonts.
  */
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
@@ -26,6 +26,8 @@ type Face = {
 	italic: boolean;
 	source: string;
 	selfHosted: boolean;
+	/** Set headings in capitals (with a touch of extra tracking). */
+	allCaps?: boolean;
 };
 
 const face = (
@@ -34,6 +36,7 @@ const face = (
 	weights: [number, number],
 	italic: boolean,
 	source: string = OFL,
+	extra: Partial<Face> = {},
 ): Face => ({
 	family,
 	stack: `'${family}', ${fallback}`,
@@ -41,11 +44,15 @@ const face = (
 	italic,
 	source,
 	selfHosted: source === ATIPO,
+	...extra,
 });
 
 const instrumentSerif = face('Instrument Serif', 'serif', [400, 400], true);
-/* The free Argesta style is Display Regular; italics and other optical sizes are in the paid family. */
-const argesta = face('Argesta', 'serif', [400, 400], false, ATIPO);
+/*
+ * Atipo's free Argesta style is Display Regular. Headline and the italics are in
+ * the paid family; swap in Headline here once its webfont kit is in public/fonts.
+ */
+const argesta = face('Argesta Display', 'serif', [400, 400], false, ATIPO, { allCaps: true });
 const libreBaskerville = face('Libre Baskerville', 'serif', [400, 700], true);
 
 const pairings: Array<{ id: string; name: string; display: Face; text: Face; ui: 'display' | 'text' }> = [
@@ -65,29 +72,29 @@ const pairings: Array<{ id: string; name: string; display: Face; text: Face; ui:
 	},
 	{
 		id: 'argesta-geomanist',
-		name: 'Argesta + Geomanist',
+		name: 'Argesta Display (caps) + Geomanist',
 		display: argesta,
-		/* Geomanist's free weight is Regular; the rest of the family is paid. */
-		text: face('Geomanist', 'sans-serif', [400, 400], false, ATIPO),
+		/* Geomanist's free styles are Regular and Italic; other weights are paid. */
+		text: face('Geomanist', 'sans-serif', [400, 400], true, ATIPO),
 		ui: 'text',
 	},
 	{
 		id: 'argesta-baskerville',
-		name: 'Argesta + Libre Baskerville',
+		name: 'Argesta Display (caps) + Libre Baskerville',
 		display: argesta,
 		text: libreBaskerville,
 		ui: 'text',
 	},
 	{
 		id: 'argesta-garamond',
-		name: 'Argesta + EB Garamond',
+		name: 'Argesta Display (caps) + EB Garamond',
 		display: argesta,
 		text: face('EB Garamond', 'serif', [400, 800], true),
 		ui: 'text',
 	},
 	{
 		id: 'argesta-ubuntu',
-		name: 'Argesta + Ubuntu',
+		name: 'Argesta Display (caps) + Ubuntu',
 		display: argesta,
 		text: face('Ubuntu', 'sans-serif', [300, 700], true, 'Google Fonts, Ubuntu Font Licence'),
 		ui: 'text',
@@ -218,7 +225,7 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 								.map((f) => f.family)
 								.filter((f, n, all) => all.indexOf(f) === n)
 								.join(',')}
-							style={`--f-display: ${p.display.stack}; --f-text: ${p.text.stack}; --f-ui: ${ui.stack};`}
+							style={`--f-display: ${p.display.stack}; --f-text: ${p.text.stack}; --f-ui: ${ui.stack};${p.display.allCaps ? ' --d-case: uppercase; --d-track-extra: 0.05em;' : ''}`}
 						>
 							<header class="lab-specimen__label">
 								<h2 class="lab-specimen__name">
@@ -391,11 +398,10 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 <style>
 	/* Atipo webfont kit files — see the note at the top of the frontmatter. */
 	@font-face {
-		font-family: 'Argesta';
+		font-family: 'Argesta Display';
 		src:
 			url('/fonts/argesta/argesta-display-regular.woff2') format('woff2'),
-			url('/fonts/argesta/argesta-display-regular.woff') format('woff'),
-			url('/fonts/argesta/argesta-display-regular.ttf') format('truetype');
+			url('/fonts/argesta/argesta-display-regular.woff') format('woff');
 		font-weight: 400;
 		font-style: normal;
 		font-display: swap;
@@ -405,10 +411,19 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 		font-family: 'Geomanist';
 		src:
 			url('/fonts/geomanist/geomanist-regular.woff2') format('woff2'),
-			url('/fonts/geomanist/geomanist-regular.woff') format('woff'),
-			url('/fonts/geomanist/geomanist-regular.ttf') format('truetype');
+			url('/fonts/geomanist/geomanist-regular.woff') format('woff');
 		font-weight: 400;
 		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'Geomanist';
+		src:
+			url('/fonts/geomanist/geomanist-regular-italic.woff2') format('woff2'),
+			url('/fonts/geomanist/geomanist-regular-italic.woff') format('woff');
+		font-weight: 400;
+		font-style: italic;
 		font-display: swap;
 	}
 
@@ -703,7 +718,8 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 		font-family: var(--f-display);
 		font-weight: var(--lab-d-weight);
 		font-style: var(--lab-d-style);
-		letter-spacing: var(--lab-d-track);
+		text-transform: var(--d-case, none);
+		letter-spacing: calc(var(--lab-d-track) + var(--d-track-extra, 0em));
 		line-height: var(--lab-d-lead);
 	}
 
