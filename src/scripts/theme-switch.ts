@@ -17,7 +17,20 @@ import { recordTransitionOrigin } from './vt-origin.ts';
 /* Pages that exist only in Orbit and Flow; the head script in Layout.astro mirrors this. */
 const PLAYFUL_ONLY = /^\/(photo-dump|thoughts|dream-journal)(\/|$)/;
 
-function reloadInto(theme: SiteTheme, from?: Element | null) {
+const BORED_SEEN = 'aditi-bored-seen';
+
+/* The first "bored?" of a visit lands on the playful homepage, so the intro is seen once. */
+function boredTarget(): string | undefined {
+	try {
+		if (sessionStorage.getItem(BORED_SEEN)) return undefined;
+		sessionStorage.setItem(BORED_SEEN, '1');
+	} catch {
+		return undefined;
+	}
+	return location.pathname === '/' ? undefined : '/';
+}
+
+function reloadInto(theme: SiteTheme, from?: Element | null, to?: string) {
 	storeTheme(theme);
 	try {
 		/* The next page shows its theme's loading screen; a playful homepage replays its intro. */
@@ -34,6 +47,10 @@ function reloadInto(theme: SiteTheme, from?: Element | null) {
 			y: r.top + r.height / 2,
 			r: Math.min(r.width, r.height) / 2,
 		});
+	}
+	if (to) {
+		location.assign(to);
+		return;
 	}
 	location.replace(theme === 'portfolio' && PLAYFUL_ONLY.test(location.pathname) ? '/' : location.href);
 }
@@ -92,7 +109,7 @@ export function initThemeSwitch(applyPlayful: (theme: PlayfulTheme) => void): ()
 		if (open && focusFirst) items()[0]?.focus();
 	}
 
-	const onBored = () => reloadInto(pickPlayfulTheme(), bored);
+	const onBored = () => reloadInto(pickPlayfulTheme(), bored, boredTarget());
 	const onButton = () => setOpen(list?.hidden === true);
 	const onOther = () => {
 		const t = current();
