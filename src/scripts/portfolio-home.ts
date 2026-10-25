@@ -7,8 +7,8 @@
  * sideways page: wheel and trackpad input in either direction, anywhere on
  * the page, moves it sideways, and the status line follows along.
  */
-/* Share of the remaining distance a mouse-wheel glide covers per 60 Hz frame. */
-const GLIDE = 0.14;
+/* Share of the remaining distance the row covers per 60 Hz frame. */
+const GLIDE = 0.12;
 
 export function initPortfolioHome(): () => void {
 	const root = document.documentElement;
@@ -87,17 +87,11 @@ export function initPortfolioHome(): () => void {
 		if (!d) return;
 		e.preventDefault();
 		/*
-		 * Trackpads send many small deltas that already carry the OS's momentum:
-		 * follow them 1:1. Mouse wheels send coarse notches: glide between them,
-		 * adding each notch to wherever the glide is heading.
+		 * Every wheel and trackpad event adds to the same target and the row eases
+		 * toward it. Telling a trackpad from a wheel by delta size misfires on
+		 * fast swipes, and switching between following and gliding mid-gesture
+		 * is what made the row stutter.
 		 */
-		if (sideways || (e.deltaMode === 0 && Math.abs(d) < 50)) {
-			stopGlide();
-			pos = clamp(scroller.scrollLeft + d);
-			target = pos;
-			scroller.scrollLeft = pos;
-			return;
-		}
 		glideTo((raf ? target : scroller.scrollLeft) + d);
 	};
 
