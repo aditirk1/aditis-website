@@ -93,16 +93,6 @@
 	display: none;
 }
 
-/* One section per screen: every swipe settles on a section, never between or past one. */
-.pfh-scroller {
-	scroll-snap-type: x mandatory;
-}
-
-.pfh-panel {
-	scroll-snap-align: start;
-	scroll-snap-stop: always;
-}
-
 .pfh-track {
 	position: relative;
 	display: flex;
