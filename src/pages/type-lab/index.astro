@@ -3,106 +3,42 @@
  * Typography lab — compare candidate pairings on the site's real content.
  * Exploration only: nothing here changes production typography. noindex.
  *
- * Fonts load only on this page, from their official hosts:
- *   Google Fonts (SIL Open Font License) and Fontshare (ITF Free Font License,
- *   free for commercial use) for Satoshi and General Sans. Marlboro (Dieter
- *   Steffmann) is self-hosted from 1001 Fonts under its Free For Commercial Use
- *   licence, which allows web embedding; see docs/licenses.
+ * Fonts load only on this page, from Google Fonts (SIL Open Font License).
  */
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import home from '../../data/home.json';
 
 const GOOGLE_FONTS =
-	'https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Manrope:wght@200..800&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Cormorant:ital,wght@0,300..700;1,300..700&family=Syne:wght@400..800&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Italiana&display=swap';
-const FONTSHARE =
-	'https://api.fontshare.com/v2/css?f[]=satoshi@300,301,400,401,500,501,700,701,900,901&f[]=general-sans@200,201,300,301,400,401,500,501,600,601,700,701&display=swap';
+	'https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=Cormorant:ital,wght@0,300..700;1,300..700&display=swap';
 
 type Face = {
 	family: string;
 	stack: string;
 	weights: [number, number];
 	italic: boolean;
-	source: 'Google Fonts' | 'Fontshare' | '1001 Fonts';
-	license: string;
-	/** Some display faces ship very wide word spaces. */
-	wordSpacing?: string;
 };
 
-const LICENSES: Record<Face['source'], string> = {
-	'Google Fonts': 'SIL Open Font License',
-	Fontshare: 'ITF Free Font License',
-	'1001 Fonts': '1001Fonts Free For Commercial Use licence, self-hosted',
-};
-
-const face = (
-	family: string,
-	fallback: string,
-	weights: [number, number],
-	italic: boolean,
-	source: Face['source'],
-	extra: Partial<Face> = {},
-): Face => ({
+const face = (family: string, fallback: string, weights: [number, number], italic: boolean): Face => ({
 	family,
 	stack: `'${family}', ${fallback}`,
 	weights,
 	italic,
-	source,
-	license: LICENSES[source],
-	...extra,
 });
 
 const pairings: Array<{ id: string; name: string; display: Face; text: Face; ui: 'display' | 'text' }> = [
 	{
 		id: 'instrument',
 		name: 'Instrument Serif + Instrument Sans',
-		display: face('Instrument Serif', 'serif', [400, 400], true, 'Google Fonts'),
-		text: face('Instrument Sans', 'sans-serif', [400, 700], true, 'Google Fonts'),
+		display: face('Instrument Serif', 'serif', [400, 400], true),
+		text: face('Instrument Sans', 'sans-serif', [400, 700], true),
 		ui: 'text',
 	},
 	{
-		id: 'fraunces',
-		name: 'Fraunces + Manrope',
-		display: face('Fraunces', 'serif', [100, 900], true, 'Google Fonts'),
-		text: face('Manrope', 'sans-serif', [200, 800], false, 'Google Fonts'),
-		ui: 'text',
-	},
-	{
-		id: 'bodoni',
-		name: 'Bodoni Moda + DM Sans',
-		display: face('Bodoni Moda', 'serif', [400, 900], true, 'Google Fonts'),
-		text: face('DM Sans', 'sans-serif', [100, 1000], true, 'Google Fonts'),
-		ui: 'text',
-	},
-	{
-		id: 'cormorant',
-		name: 'Cormorant + Satoshi',
-		display: face('Cormorant', 'serif', [300, 700], true, 'Google Fonts'),
-		text: face('Satoshi', 'sans-serif', [300, 900], true, 'Fontshare'),
-		ui: 'text',
-	},
-	{
-		id: 'syne',
-		name: 'Syne + Newsreader',
-		display: face('Syne', 'sans-serif', [400, 800], false, 'Google Fonts'),
-		text: face('Newsreader', 'serif', [200, 800], true, 'Google Fonts'),
-		/* Syne is the sans here, so it also carries the interface labels. */
-		ui: 'display',
-	},
-	{
-		id: 'italiana',
-		name: 'Italiana + General Sans',
-		display: face('Italiana', 'serif', [400, 400], false, 'Google Fonts'),
-		text: face('General Sans', 'sans-serif', [200, 700], true, 'Fontshare'),
-		ui: 'text',
-	},
-	{
-		id: 'marlboro',
-		name: 'Marlboro + DM Sans',
-		/* Condensed and heavy, so it's paired with a quiet, open sans; DM Sans's
-		   optical sizing keeps small labels crisp next to it. */
-		display: face('Marlboro', 'serif', [400, 400], false, '1001 Fonts', { wordSpacing: '-0.22em' }),
-		text: face('DM Sans', 'sans-serif', [100, 1000], true, 'Google Fonts'),
+		id: 'instrument-cormorant',
+		name: 'Instrument Serif + Cormorant',
+		display: face('Instrument Serif', 'serif', [400, 400], true),
+		text: face('Cormorant', 'serif', [300, 700], true),
 		ui: 'text',
 	},
 ];
@@ -133,15 +69,13 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 <Layout title="Type lab | aditi's universe" noindex>
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-	<link rel="preconnect" href="https://api.fontshare.com" crossorigin />
 	<link rel="stylesheet" href={GOOGLE_FONTS} />
-	<link rel="stylesheet" href={FONTSHARE} />
 
 	<div class="lab" data-type-lab data-palette="orbit" data-frame="desktop" data-show="all">
 		<header class="lab-intro">
 			<h1 class="lab-intro__title">Type lab</h1>
 			<p class="lab-intro__text">
-				Seven pairings on the site's own words. Headings use the first face, body text the second. Controls apply
+				Two pairings on the site's own words. Headings use the first face, body text the second. Controls apply
 				to every card at once, so each pairing is judged on the same settings.
 			</p>
 		</header>
@@ -221,7 +155,7 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 							data-t-italic={String(p.text.italic)}
 							data-u-min={ui.weights[0]}
 							data-u-max={ui.weights[1]}
-							style={`--f-display: ${p.display.stack}; --f-text: ${p.text.stack}; --f-ui: ${ui.stack};${p.display.wordSpacing ? ` --d-word: ${p.display.wordSpacing};` : ''}`}
+							style={`--f-display: ${p.display.stack}; --f-text: ${p.text.stack}; --f-ui: ${ui.stack};`}
 						>
 							<header class="lab-specimen__label">
 								<h2 class="lab-specimen__name">
@@ -233,9 +167,7 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 									<br />
 									{p.text.family}: {weightNote(p.text)}, {italicNote(p.text)}.
 									<br />
-									{p.display.source === p.text.source
-										? `${p.display.source}, ${p.display.license}.`
-										: `${p.display.family} via ${p.display.source} (${p.display.license}); ${p.text.family} via ${p.text.source} (${p.text.license}).`}
+									Google Fonts, SIL Open Font License.
 								</p>
 								<p class="lab-specimen__warn" data-warn aria-live="polite" hidden />
 							</header>
@@ -373,14 +305,6 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 </script>
 
 <style>
-	@font-face {
-		font-family: 'Marlboro';
-		src: url('/fonts/marlboro/Marlboro.ttf') format('truetype');
-		font-weight: 400;
-		font-style: normal;
-		font-display: swap;
-	}
-
 	.lab {
 		--lab-d-size: 100;
 		--lab-d-weight: 400;
@@ -605,12 +529,7 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 	}
 
 	.lab[data-show='instrument'] [data-pairing='instrument'],
-	.lab[data-show='fraunces'] [data-pairing='fraunces'],
-	.lab[data-show='bodoni'] [data-pairing='bodoni'],
-	.lab[data-show='cormorant'] [data-pairing='cormorant'],
-	.lab[data-show='syne'] [data-pairing='syne'],
-	.lab[data-show='italiana'] [data-pairing='italiana'],
-	.lab[data-show='marlboro'] [data-pairing='marlboro'] {
+	.lab[data-show='instrument-cormorant'] [data-pairing='instrument-cormorant'] {
 		display: block;
 	}
 
@@ -684,7 +603,6 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 	.lab-d {
 		font-family: var(--f-display);
-		word-spacing: var(--d-word, normal);
 		font-weight: var(--lab-d-weight);
 		font-style: var(--lab-d-style);
 		letter-spacing: var(--lab-d-track);
