@@ -26,7 +26,7 @@ type Face = {
 	italic: boolean;
 	source: string;
 	selfHosted: boolean;
-	/** Set headings in capitals (with a touch of extra tracking). */
+	/** Set the main heading in capitals (with a touch of extra tracking). */
 	allCaps?: boolean;
 };
 
@@ -49,8 +49,9 @@ const face = (
 
 const instrumentSerif = face('Instrument Serif', 'serif', [400, 400], true);
 /*
- * Atipo's free Argesta style is Display Regular. Headline and the italics are in
- * the paid family; swap in Headline here once its webfont kit is in public/fonts.
+ * Atipo's free Argesta style is Display Regular. Hairline, Headline and the
+ * italics are in the paid family; swap one in here once its webfont kit is in
+ * public/fonts.
  */
 const argesta = face('Argesta Display', 'serif', [400, 400], false, ATIPO, { allCaps: true });
 const libreBaskerville = face('Libre Baskerville', 'serif', [400, 700], true);
@@ -72,7 +73,7 @@ const pairings: Array<{ id: string; name: string; display: Face; text: Face; ui:
 	},
 	{
 		id: 'argesta-geomanist',
-		name: 'Argesta Display (caps) + Geomanist',
+		name: 'Argesta Display + Geomanist',
 		display: argesta,
 		/* Geomanist's free styles are Regular and Italic; other weights are paid. */
 		text: face('Geomanist', 'sans-serif', [400, 400], true, ATIPO),
@@ -80,21 +81,21 @@ const pairings: Array<{ id: string; name: string; display: Face; text: Face; ui:
 	},
 	{
 		id: 'argesta-baskerville',
-		name: 'Argesta Display (caps) + Libre Baskerville',
+		name: 'Argesta Display + Libre Baskerville',
 		display: argesta,
 		text: libreBaskerville,
 		ui: 'text',
 	},
 	{
 		id: 'argesta-garamond',
-		name: 'Argesta Display (caps) + EB Garamond',
+		name: 'Argesta Display + EB Garamond',
 		display: argesta,
 		text: face('EB Garamond', 'serif', [400, 800], true),
 		ui: 'text',
 	},
 	{
 		id: 'argesta-ubuntu',
-		name: 'Argesta Display (caps) + Ubuntu',
+		name: 'Argesta Display + Ubuntu',
 		display: argesta,
 		text: face('Ubuntu', 'sans-serif', [300, 700], true, 'Google Fonts, Ubuntu Font Licence'),
 		ui: 'text',
@@ -718,8 +719,7 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 		font-family: var(--f-display);
 		font-weight: var(--lab-d-weight);
 		font-style: var(--lab-d-style);
-		text-transform: var(--d-case, none);
-		letter-spacing: calc(var(--lab-d-track) + var(--d-track-extra, 0em));
+		letter-spacing: var(--lab-d-track);
 		line-height: var(--lab-d-lead);
 	}
 
@@ -762,7 +762,10 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 		gap: 0.75rem;
 	}
 
+	/* Only the main heading goes to capitals; other headings keep their own case. */
 	.lab-hero__title {
+		text-transform: var(--d-case, none);
+		letter-spacing: calc(var(--lab-d-track) + var(--d-track-extra, 0em));
 		margin: 0;
 		font-size: calc(clamp(2.75rem, 13cqi, 8rem) * var(--lab-d-size) / 100);
 	}
