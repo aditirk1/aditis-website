@@ -56,7 +56,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 					}
 					document.documentElement.setAttribute('data-theme', t);
 					var tc = document.querySelector('meta[data-theme-color]');
-					if (tc) tc.setAttribute('content', t === 'beach' ? '#eaf6ff' : '#05030c');
+					if (tc) tc.setAttribute('content', t === 'beach' ? '#0c2f55' : '#05030c');
 					var pref = t === 'beach' ? '/brand/logo-beach' : '/brand/logo-universe';
 					var f16 = document.querySelector('link[data-favicon-16]');
 					var f32 = document.querySelector('link[data-favicon-32]');
@@ -260,7 +260,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 
 				document
 					.querySelector('meta[data-theme-color]')
-					?.setAttribute('content', theme === 'beach' ? '#eaf6ff' : '#05030c');
+					?.setAttribute('content', theme === 'beach' ? '#0c2f55' : '#05030c');
 			}
 
 			function getStoredTheme(): 'universe' | 'beach' {
