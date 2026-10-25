@@ -3,42 +3,100 @@
  * Typography lab — compare candidate pairings on the site's real content.
  * Exploration only: nothing here changes production typography. noindex.
  *
- * Fonts load only on this page, from Google Fonts (SIL Open Font License).
+ * Fonts load only on this page. Google Fonts serves the open-licensed families.
+ * Argesta and Geomanist (Atipo Foundry) must be self-hosted from Atipo's
+ * webfont download — drop the files into public/fonts/argesta and
+ * public/fonts/geomanist (names in the @font-face rules below). Until then
+ * their cards say so instead of quietly showing a stand-in.
  */
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import home from '../../data/home.json';
 
 const GOOGLE_FONTS =
-	'https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=Cormorant:ital,wght@0,300..700;1,300..700&display=swap';
+	'https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=Cormorant:ital,wght@0,300..700;1,300..700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&family=Nanum+Myeongjo:wght@400;700;800&display=swap';
+
+const OFL = 'Google Fonts, SIL Open Font License';
+const ATIPO = 'Atipo Foundry webfont licence, self-hosted';
 
 type Face = {
 	family: string;
 	stack: string;
 	weights: [number, number];
 	italic: boolean;
+	source: string;
+	selfHosted: boolean;
 };
 
-const face = (family: string, fallback: string, weights: [number, number], italic: boolean): Face => ({
+const face = (
+	family: string,
+	fallback: string,
+	weights: [number, number],
+	italic: boolean,
+	source: string = OFL,
+): Face => ({
 	family,
 	stack: `'${family}', ${fallback}`,
 	weights,
 	italic,
+	source,
+	selfHosted: source === ATIPO,
 });
+
+const instrumentSerif = face('Instrument Serif', 'serif', [400, 400], true);
+/* The free Argesta style is Display Regular; italics and other optical sizes are in the paid family. */
+const argesta = face('Argesta', 'serif', [400, 400], false, ATIPO);
+const libreBaskerville = face('Libre Baskerville', 'serif', [400, 700], true);
 
 const pairings: Array<{ id: string; name: string; display: Face; text: Face; ui: 'display' | 'text' }> = [
 	{
 		id: 'instrument',
 		name: 'Instrument Serif + Instrument Sans',
-		display: face('Instrument Serif', 'serif', [400, 400], true),
+		display: instrumentSerif,
 		text: face('Instrument Sans', 'sans-serif', [400, 700], true),
 		ui: 'text',
 	},
 	{
 		id: 'instrument-cormorant',
 		name: 'Instrument Serif + Cormorant',
-		display: face('Instrument Serif', 'serif', [400, 400], true),
+		display: instrumentSerif,
 		text: face('Cormorant', 'serif', [300, 700], true),
+		ui: 'text',
+	},
+	{
+		id: 'argesta-geomanist',
+		name: 'Argesta + Geomanist',
+		display: argesta,
+		/* Geomanist's free weight is Regular; the rest of the family is paid. */
+		text: face('Geomanist', 'sans-serif', [400, 400], false, ATIPO),
+		ui: 'text',
+	},
+	{
+		id: 'argesta-baskerville',
+		name: 'Argesta + Libre Baskerville',
+		display: argesta,
+		text: libreBaskerville,
+		ui: 'text',
+	},
+	{
+		id: 'argesta-garamond',
+		name: 'Argesta + EB Garamond',
+		display: argesta,
+		text: face('EB Garamond', 'serif', [400, 800], true),
+		ui: 'text',
+	},
+	{
+		id: 'argesta-ubuntu',
+		name: 'Argesta + Ubuntu',
+		display: argesta,
+		text: face('Ubuntu', 'sans-serif', [300, 700], true, 'Google Fonts, Ubuntu Font Licence'),
+		ui: 'text',
+	},
+	{
+		id: 'nanum-baskerville',
+		name: 'Nanum Myeongjo + Libre Baskerville',
+		display: face('Nanum Myeongjo', 'serif', [400, 800], false),
+		text: libreBaskerville,
 		ui: 'text',
 	},
 ];
@@ -75,7 +133,7 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 		<header class="lab-intro">
 			<h1 class="lab-intro__title">Type lab</h1>
 			<p class="lab-intro__text">
-				Two pairings on the site's own words. Headings use the first face, body text the second. Controls apply
+				Seven pairings on the site's own words. Headings use the first face, body text the second. Controls apply
 				to every card at once, so each pairing is judged on the same settings.
 			</p>
 		</header>
@@ -155,6 +213,11 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 							data-t-italic={String(p.text.italic)}
 							data-u-min={ui.weights[0]}
 							data-u-max={ui.weights[1]}
+							data-self-hosted={[p.display, p.text]
+								.filter((f) => f.selfHosted)
+								.map((f) => f.family)
+								.filter((f, n, all) => all.indexOf(f) === n)
+								.join(',')}
 							style={`--f-display: ${p.display.stack}; --f-text: ${p.text.stack}; --f-ui: ${ui.stack};`}
 						>
 							<header class="lab-specimen__label">
@@ -163,12 +226,11 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 									{p.name}
 								</h2>
 								<p class="lab-specimen__meta">
-									{p.display.family}: {weightNote(p.display)}, {italicNote(p.display)}.
+									{p.display.family}: {weightNote(p.display)}, {italicNote(p.display)}. {p.display.source}.
 									<br />
-									{p.text.family}: {weightNote(p.text)}, {italicNote(p.text)}.
-									<br />
-									Google Fonts, SIL Open Font License.
+									{p.text.family}: {weightNote(p.text)}, {italicNote(p.text)}. {p.text.source}.
 								</p>
+								<p class="lab-specimen__warn" data-missing hidden />
 								<p class="lab-specimen__warn" data-warn aria-live="polite" hidden />
 							</header>
 
@@ -248,7 +310,11 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 		const data = new FormData(form);
 		root.dataset.palette = String(data.get('palette') ?? 'orbit');
 		root.dataset.frame = String(data.get('frame') ?? 'desktop');
-		root.dataset.show = String(data.get('show') ?? 'all');
+		const show = String(data.get('show') ?? 'all');
+		root.dataset.show = show;
+		root.querySelectorAll<HTMLElement>('[data-pairing]').forEach((card) => {
+			card.hidden = show !== 'all' && card.dataset.pairing !== show;
+		});
 
 		for (const g of ['d', 't']) {
 			const size = Number(data.get(`${g}-size`));
@@ -302,9 +368,50 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 	/* Reset restores the defaults after the event, so read them on the next frame. */
 	form?.addEventListener('reset', () => requestAnimationFrame(sync));
 	sync();
+
+	/*
+	 * Self-hosted faces only exist once their files are dropped into public/fonts.
+	 * fonts.load() resolves to an empty list when nothing could be loaded, so a
+	 * card can say plainly that it's showing a fallback rather than the real face.
+	 */
+	root?.querySelectorAll<HTMLElement>('[data-self-hosted]').forEach(async (card) => {
+		const families = (card.dataset.selfHosted ?? '').split(',').filter(Boolean);
+		const missing: string[] = [];
+		for (const family of families) {
+			const loaded = await document.fonts.load(`400 24px "${family}"`).catch(() => []);
+			if (!loaded.length) missing.push(family);
+		}
+		const note = card.querySelector<HTMLElement>('[data-missing]');
+		if (!note || !missing.length) return;
+		note.hidden = false;
+		note.textContent = `${missing.join(' and ')} ${missing.length > 1 ? "aren't" : "isn't"} installed yet, so this card shows a fallback font. Add the webfont files from atipofoundry.com to public/fonts to see the real thing.`;
+	});
 </script>
 
 <style>
+	/* Atipo webfont kit files — see the note at the top of the frontmatter. */
+	@font-face {
+		font-family: 'Argesta';
+		src:
+			url('/fonts/argesta/argesta-display-regular.woff2') format('woff2'),
+			url('/fonts/argesta/argesta-display-regular.woff') format('woff'),
+			url('/fonts/argesta/argesta-display-regular.ttf') format('truetype');
+		font-weight: 400;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'Geomanist';
+		src:
+			url('/fonts/geomanist/geomanist-regular.woff2') format('woff2'),
+			url('/fonts/geomanist/geomanist-regular.woff') format('woff'),
+			url('/fonts/geomanist/geomanist-regular.ttf') format('truetype');
+		font-weight: 400;
+		font-style: normal;
+		font-display: swap;
+	}
+
 	.lab {
 		--lab-d-size: 100;
 		--lab-d-weight: 400;
@@ -522,15 +629,6 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 	.lab[data-frame='mobile'] .lab-grid {
 		grid-template-columns: repeat(auto-fill, minmax(min(100%, 390px), 1fr));
 		justify-items: center;
-	}
-
-	.lab:not([data-show='all']) .lab-specimen {
-		display: none;
-	}
-
-	.lab[data-show='instrument'] [data-pairing='instrument'],
-	.lab[data-show='instrument-cormorant'] [data-pairing='instrument-cormorant'] {
-		display: block;
 	}
 
 	.lab-specimen {
