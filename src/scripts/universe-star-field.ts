@@ -810,11 +810,11 @@ export function initUniverseStarField(): () => void {
 		if (secretHover && labelEl) {
 			labelEl.textContent = '??';
 			labelEl.classList.add('active');
-			canvasEl.style.cursor = 'pointer';
+			canvasEl.style.cursor = 'var(--cursor-pointer, pointer)';
 			currentHoveredPlanet = null;
 		} else if (hitPlanet) {
 			const pd = hitPlanet.userData as PlanetConfig;
-			canvasEl.style.cursor = 'pointer';
+			canvasEl.style.cursor = 'var(--cursor-pointer, pointer)';
 			if (labelEl) {
 				labelEl.textContent = pd.label;
 				labelEl.classList.add('active');

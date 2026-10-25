@@ -141,7 +141,7 @@ const returnPath = `/${scope}`;
 		font-size: calc(0.85rem * var(--reader-scale, var(--reader-text-scale, 1.1)));
 		font-weight: 600;
 		color: var(--page-fg);
-		cursor: pointer;
+		cursor: var(--cursor-pointer, pointer);
 	}
 
 	.comments-form__signout {
@@ -152,7 +152,7 @@ const returnPath = `/${scope}`;
 		color: var(--page-muted);
 		text-decoration: underline;
 		text-underline-offset: 0.12em;
-		cursor: pointer;
+		cursor: var(--cursor-pointer, pointer);
 	}
 
 	.comments-empty {
@@ -195,7 +195,7 @@ const returnPath = `/${scope}`;
 		padding: 0;
 		font-size: inherit;
 		color: color-mix(in srgb, #ff8a8a 90%, white);
-		cursor: pointer;
+		cursor: var(--cursor-pointer, pointer);
 		text-decoration: underline;
 		text-underline-offset: 0.12em;
 	}
