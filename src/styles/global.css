@@ -2283,3 +2283,23 @@ html[data-theme='beach'] nav[aria-label='Primary'] .nav-tab[data-active='true'] 
 	color: #1a6fc4;
 	box-shadow: none;
 }
+
+/* Portfolio: olive as the quiet second accent — dates, tags, quotes, selection. */
+html[data-theme='portfolio'] ::selection {
+	background: color-mix(in srgb, var(--pf-olive) 24%, transparent);
+	color: var(--pf-ink);
+}
+
+html[data-theme='portfolio'] :is(.full-page-article__meta-inner time, .post-date) {
+	color: var(--pf-olive);
+}
+
+html[data-theme='portfolio'] .full-page-article__tag {
+	border-color: color-mix(in srgb, var(--pf-olive) 45%, transparent);
+	color: var(--pf-olive);
+}
+
+html[data-theme='portfolio'] .blog-prose blockquote {
+	border-left-color: var(--pf-olive);
+	background: color-mix(in srgb, var(--pf-olive) 7%, transparent);
+}
