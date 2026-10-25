@@ -1,13 +1,27 @@
 /**
- * Themed nav hover for the "themed" transition experiment only.
+ * Themed nav hover, part of the "themed" transition experiment.
  * Orbit: a small orbiting dot glides to the hovered (else active) tab.
  * Flow: a wavy underline follows the cursor across the tabs.
  */
 const FLOW_EASE = 0.22;
 
+/**
+ * Follows the chosen mode, not whether this page plays transitions: pages
+ * excluded from transitions (Services, checkout) still get the hover feedback.
+ * Same lookup as the head script in ViewTransitionExperiment.astro.
+ */
+function themedModeChosen(): boolean {
+	try {
+		const framed = /^vt:([a-z]+)$/.exec(window.name || '');
+		return (framed ? framed[1] : localStorage.getItem('aditi-vt') || 'themed') === 'themed';
+	} catch {
+		return true;
+	}
+}
+
 export function initNavIndicators(): void {
 	const root = document.documentElement;
-	if (root.dataset.vt !== 'themed') return;
+	if (!themedModeChosen()) return;
 	const list = document.querySelector<HTMLElement>('[data-site-nav]');
 	if (!list) return;
 
