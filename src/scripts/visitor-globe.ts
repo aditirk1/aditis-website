@@ -233,7 +233,7 @@ export function initVisitorGlobe(container: HTMLElement): {
 	globe.onPointHover((point: object | null) => {
 		const p = point as PointDatum | null;
 		ctrls.autoRotate = !p;
-		container.style.cursor = p ? 'pointer' : '';
+		container.style.cursor = p ? 'var(--cursor-pointer, pointer)' : '';
 		if (!p) {
 			hideCallout();
 			return;

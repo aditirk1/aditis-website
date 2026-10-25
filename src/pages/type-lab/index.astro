@@ -418,7 +418,7 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 		gap: 0.25rem 1rem;
 		min-height: 2.75rem;
 		padding: 0.6rem 1.25rem;
-		cursor: pointer;
+		cursor: var(--cursor-pointer, pointer);
 		font-weight: 600;
 	}
 
@@ -521,7 +521,7 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 		padding: 0 0.75rem;
 		border-radius: 999px;
 		border: 1px solid color-mix(in srgb, var(--page-fg) 22%, transparent);
-		cursor: pointer;
+		cursor: var(--cursor-pointer, pointer);
 	}
 
 	.lab-seg label:has(input:checked) {
@@ -547,7 +547,7 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 		background: none;
 		color: var(--page-fg);
 		font: inherit;
-		cursor: pointer;
+		cursor: var(--cursor-pointer, pointer);
 	}
 
 	.lab-reset:focus-visible,

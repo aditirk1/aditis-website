@@ -69,6 +69,38 @@ html[data-theme='beach'] {
 	--globe-pin: #3fe4ff;
 }
 
+/*
+ * Themed cursors (Sweezy Cursors, credited in the footer). Hotspots are the
+ * packs' own, taken from their .cur files at 32px. If a browser can't parse
+ * image-set() here, the whole value is dropped and the system cursor shows.
+ */
+:root {
+	--cursor-default: auto;
+	--cursor-pointer: pointer;
+}
+
+html[data-theme='universe'] {
+	--cursor-default: image-set(url('/cursors/orbit-default-32.png') 1x, url('/cursors/orbit-default-64.png') 2x) 6 1, auto;
+	--cursor-pointer: image-set(url('/cursors/orbit-pointer-32.png') 1x, url('/cursors/orbit-pointer-64.png') 2x) 13 0, pointer;
+}
+
+html[data-theme='beach'] {
+	--cursor-default: image-set(url('/cursors/flow-default-32.png') 1x, url('/cursors/flow-default-64.png') 2x) 5 0, auto;
+	--cursor-pointer: image-set(url('/cursors/flow-pointer-32.png') 1x, url('/cursors/flow-pointer-64.png') 2x) 16 16, pointer;
+}
+
+html {
+	cursor: var(--cursor-default);
+}
+
+:where(a[href], button:not(:disabled), [role='button'], summary, select, label:has(input), input[type='checkbox'], input[type='radio'], input[type='range'], input[type='submit'], input[type='reset']) {
+	cursor: var(--cursor-pointer);
+}
+
+:where(input:not([type='checkbox'], [type='radio'], [type='range'], [type='submit'], [type='reset'], [type='button']), textarea, [contenteditable='true']) {
+	cursor: text;
+}
+
 /* Dream Journal route: ethereal override (still works with either theme toggle) */
 html[data-layout='dream'] {
 	--page-bg: #06030a;
