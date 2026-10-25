@@ -62,8 +62,8 @@ function clamp(v: number, lo: number, hi: number): number {
  *
  * Hovering a pin draws a leader line out of the globe — slanted radial segment,
  * short horizontal tick, then the label — instead of a centred tooltip that the
- * round frame would clip. Pinch zoom (touch only) makes sparse, single-visit pins
- * big enough to tap.
+ * round frame would clip. Pinch zoom (touchscreen or trackpad) makes sparse,
+ * single-visit pins big enough to hit.
  */
 export function initVisitorGlobe(container: HTMLElement): {
 	setMarkers: (markers: GlobeMarker[]) => void;
@@ -245,9 +245,14 @@ export function initVisitorGlobe(container: HTMLElement): {
 	});
 
 	/*
-	 * Pinch only. OrbitControls ties wheel and pinch to one switch, so zoom is
-	 * enabled for the length of a touch and off otherwise — a mouse wheel or a
-	 * trackpad over the globe always scrolls the page.
+	 * Pinch zooms the globe; plain scrolling moves the page. OrbitControls ties
+	 * wheel and pinch to one switch, so it is flipped per event:
+	 * - Touch: on for the length of a touch.
+	 * - Trackpad pinch (Chrome, Edge, Firefox): arrives as a wheel event with
+	 *   ctrlKey set. Captured on the container before OrbitControls sees it on
+	 *   the canvas, so a two-finger scroll (no ctrlKey) is left to the page.
+	 * - Trackpad pinch (Safari): arrives as gesture events instead, handled
+	 *   below; left alone, Safari zooms the whole page.
 	 */
 	const onPointerDown = (e: PointerEvent) => {
 		ctrls.enableZoom = e.pointerType === 'touch';
@@ -255,8 +260,27 @@ export function initVisitorGlobe(container: HTMLElement): {
 	const onPointerLeave = () => {
 		ctrls.enableZoom = false;
 	};
+	const onWheelCapture = (e: WheelEvent) => {
+		ctrls.enableZoom = e.ctrlKey;
+	};
 	container.addEventListener('pointerdown', onPointerDown);
 	container.addEventListener('pointerleave', onPointerLeave);
+	container.addEventListener('wheel', onWheelCapture, { capture: true, passive: true });
+
+	type SafariGesture = Event & { scale: number };
+	let gestureStartAltitude = 0;
+	const onGestureStart = (e: Event) => {
+		e.preventDefault();
+		gestureStartAltitude = globe.pointOfView().altitude;
+	};
+	const onGestureChange = (e: Event) => {
+		e.preventDefault();
+		const scale = (e as SafariGesture).scale || 1;
+		const pov = globe.pointOfView();
+		globe.pointOfView({ ...pov, altitude: clamp(gestureStartAltitude / scale, 0.25, 6) }, 0);
+	};
+	container.addEventListener('gesturestart', onGestureStart);
+	container.addEventListener('gesturechange', onGestureChange);
 
 	const resize = () => {
 		const w = container.clientWidth || 200;
@@ -309,6 +333,9 @@ export function initVisitorGlobe(container: HTMLElement): {
 			hideCallout();
 			container.removeEventListener('pointerdown', onPointerDown);
 			container.removeEventListener('pointerleave', onPointerLeave);
+			container.removeEventListener('wheel', onWheelCapture, { capture: true });
+			container.removeEventListener('gesturestart', onGestureStart);
+			container.removeEventListener('gesturechange', onGestureChange);
 			leaderPath.remove();
 			leaderDot.remove();
 			globe._destructor();
