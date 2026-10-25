@@ -149,7 +149,7 @@ html {
 /*
  * Instrument Serif ships one weight. Headings across the site still carry
  * semibold/bold utilities from the sans era; without this the browser would
- * fake-bold the serif. Instrument Sans has real weights, so it's unaffected.
+ * fake-bold the serif. EB Garamond and Inter load real weights, so they're unaffected.
  */
 html {
 	font-synthesis-weight: none;
@@ -159,11 +159,11 @@ body {
 	min-height: 100dvh;
 	background-color: var(--page-bg);
 	color: var(--page-fg);
-	font-family: var(--font-body, 'Instrument Sans', sans-serif);
+	font-family: var(--font-body, 'EB Garamond', serif);
 	font-optical-sizing: auto;
 	font-weight: 400;
 	font-size: 1.05rem;
-	line-height: 1.65;
+	line-height: 1.7;
 	transition:
 		background-color 0.65s ease,
 		color 0.65s ease;
