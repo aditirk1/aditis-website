@@ -2,9 +2,6 @@
 /**
  * Flow theme (data-theme="beach"): looping water video behind the site.
  * See flow-video-background.ts for when it loads and plays.
- *
- * The wash keeps Flow's light-theme text readable: the footage is deep blue,
- * and the palette assumes a pale background.
  */
 ---
 
@@ -28,7 +25,6 @@
 		<source src="/media/flow-water.webm" type="video/webm" />
 		<source src="/media/flow-water.mp4" type="video/mp4" />
 	</video>
-	<div class="flow-wash"></div>
 </div>
 
 <style>
@@ -40,17 +36,6 @@
 		object-fit: cover;
 		/* Poster and first frame share this, so there's no flash while it buffers. */
 		background: #2f6496 url('/media/flow-water-poster.jpg') center / cover no-repeat;
-	}
-
-	.flow-wash {
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(
-			180deg,
-			color-mix(in srgb, var(--color-beach-bg) 80%, transparent) 0%,
-			color-mix(in srgb, var(--color-beach-bg) 70%, transparent) 55%,
-			color-mix(in srgb, var(--color-beach-bg) 64%, transparent) 100%
-		);
 	}
 </style>
 
