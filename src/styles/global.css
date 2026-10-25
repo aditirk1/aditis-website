@@ -132,7 +132,7 @@ html {
 	border: 1px solid var(--color-amber);
 	background: color-mix(in srgb, var(--page-bg) 92%, transparent);
 	padding: 0.5rem 1rem;
-	font-family: var(--font-display, Inter, sans-serif);
+	font-family: var(--font-sans, sans-serif);
 	font-size: 0.875rem;
 	font-weight: 600;
 	color: var(--page-fg);
@@ -146,15 +146,24 @@ html {
 	transform: translateY(0);
 }
 
+/*
+ * Instrument Serif ships one weight. Headings across the site still carry
+ * semibold/bold utilities from the sans era; without this the browser would
+ * fake-bold the serif. Instrument Sans has real weights, so it's unaffected.
+ */
+html {
+	font-synthesis-weight: none;
+}
+
 body {
 	min-height: 100dvh;
 	background-color: var(--page-bg);
 	color: var(--page-fg);
-	font-family: var(--font-body, 'EB Garamond', serif);
+	font-family: var(--font-body, 'Instrument Sans', sans-serif);
 	font-optical-sizing: auto;
 	font-weight: 400;
 	font-size: 1.05rem;
-	line-height: 1.7;
+	line-height: 1.65;
 	transition:
 		background-color 0.65s ease,
 		color 0.65s ease;
@@ -240,7 +249,7 @@ h2,
 h3,
 .prose-shell h1,
 .prose-shell h2 {
-	font-family: var(--font-display, 'Inter', sans-serif);
+	font-family: var(--font-display, 'Instrument Serif', serif);
 	font-weight: 600;
 	letter-spacing: -0.01em;
 }
@@ -418,10 +427,30 @@ html[data-theme='beach'][data-layout='dream'] .dream-realm-panel {
 	line-height: 1.75;
 }
 
+/* Instrument Serif has one weight, so in-article headings get their emphasis from size. */
+.blog-prose :is(h2, h3) {
+	margin: 1.8em 0 0.45em;
+	line-height: 1.15;
+	font-weight: 400;
+	letter-spacing: 0;
+}
+
+.blog-prose h2 {
+	font-size: 1.65em;
+}
+
+.blog-prose h3 {
+	font-size: 1.3em;
+}
+
+.blog-prose > :is(h2, h3):first-child {
+	margin-top: 0;
+}
+
 .blog-prose p:first-of-type::first-letter {
 	float: left;
 	margin: 0.08em 0.14em 0 0;
-	font-family: 'Cormorant Garamond', serif;
+	font-family: var(--font-display);
 	font-size: calc(3.8rem * var(--reader-scale, var(--reader-text-scale, 1.1)));
 	line-height: 0.78;
 	font-weight: 300;
@@ -760,7 +789,7 @@ nav[aria-label='Primary'] .nav-tab[data-active='true'] {
 	border: 0;
 	border-radius: 0.2rem;
 	background: transparent;
-	font-family: var(--font-display, Inter, sans-serif);
+	font-family: var(--font-sans, sans-serif);
 	font-size: 0.68rem;
 	font-weight: 500;
 	line-height: 1;
@@ -910,8 +939,9 @@ html[data-coarse-pointer] .home-explore-card .explore-card-cta {
 	font-weight: 800;
 	font-style: normal;
 	font-size: clamp(8rem, 28cqi, 9.5rem);
-	line-height: 0.92;
-	letter-spacing: -0.03em;
+	line-height: 0.95;
+	/* Instrument Serif's spacing is already tight; the old sans needed -0.03em. */
+	letter-spacing: -0.01em;
 	text-transform: lowercase;
 	text-align: left;
 	color: var(--page-fg);

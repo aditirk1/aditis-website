@@ -128,7 +128,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
-			href="https://fonts.googleapis.com/css2?family=Castoro:ital@0;1&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@200;300;400;500;600;700;800&family=Bangers&family=IBM+Plex+Mono:wght@400;500&display=swap"
+			href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=Bangers&family=IBM+Plex+Mono:wght@400;500&display=swap"
 			rel="stylesheet"
 		/>
 
@@ -136,10 +136,12 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 
 		<style is:global>
 			:root {
-				--font-display: 'Inter', system-ui, sans-serif;
-				--font-title: 'Inter', system-ui, sans-serif;
-				--font-body: 'EB Garamond', 'Georgia', serif;
-				--font-dream-comic: 'Bangers', 'Inter', cursive;
+				/* Headings: Instrument Serif. Body and interface: Instrument Sans. */
+				--font-display: 'Instrument Serif', Georgia, serif;
+				--font-title: 'Instrument Serif', Georgia, serif;
+				--font-body: 'Instrument Sans', system-ui, sans-serif;
+				--font-sans: 'Instrument Sans', system-ui, sans-serif;
+				--font-dream-comic: 'Bangers', 'Instrument Sans', cursive;
 				--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 			}
 		</style>
