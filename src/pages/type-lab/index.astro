@@ -7,7 +7,9 @@
  * Argesta Display and Geomanist (Atipo Foundry) are self-hosted from Atipo's
  * official webfont kits, under their webfont licence (copies in docs/licenses).
  * Only webfont-kit files may go in public/fonts — Atipo's desktop licence
- * forbids converting the .otf desktop fonts.
+ * forbids converting the .otf desktop fonts. Argesta Hairline is therefore
+ * read with local() from the font installed on the viewing computer: nothing
+ * is copied or served, and anyone without it installed sees Argesta Display.
  */
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
@@ -28,6 +30,8 @@ type Face = {
 	selfHosted: boolean;
 	/** Set the main heading in capitals (with a touch of extra tracking). */
 	allCaps?: boolean;
+	/** Read from the viewer's installed fonts only; label for the fallback. */
+	localPreviewFallback?: string;
 };
 
 const face = (
@@ -43,7 +47,7 @@ const face = (
 	weights,
 	italic,
 	source,
-	selfHosted: source === ATIPO,
+	selfHosted: source === ATIPO && !extra.localPreviewFallback,
 	...extra,
 });
 
@@ -53,7 +57,14 @@ const instrumentSerif = face('Instrument Serif', 'serif', [400, 400], true);
  * italics are in the paid family; swap one in here once its webfont kit is in
  * public/fonts.
  */
-const argesta = face('Argesta Display', 'serif', [400, 400], false, ATIPO, { allCaps: true });
+const argesta = face(
+	'Argesta Hairline',
+	"'Argesta Display', serif",
+	[400, 400],
+	false,
+	'installed copy on this computer (preview only); others see the Argesta Display webfont, Atipo Foundry webfont licence',
+	{ allCaps: true, localPreviewFallback: 'Argesta Display' },
+);
 const libreBaskerville = face('Libre Baskerville', 'serif', [400, 700], true);
 
 const pairings: Array<{ id: string; name: string; display: Face; text: Face; ui: 'display' | 'text' }> = [
@@ -73,7 +84,7 @@ const pairings: Array<{ id: string; name: string; display: Face; text: Face; ui:
 	},
 	{
 		id: 'argesta-geomanist',
-		name: 'Argesta Display + Geomanist',
+		name: 'Argesta Hairline + Geomanist',
 		display: argesta,
 		/* Geomanist's free styles are Regular and Italic; other weights are paid. */
 		text: face('Geomanist', 'sans-serif', [400, 400], true, ATIPO),
@@ -81,21 +92,21 @@ const pairings: Array<{ id: string; name: string; display: Face; text: Face; ui:
 	},
 	{
 		id: 'argesta-baskerville',
-		name: 'Argesta Display + Libre Baskerville',
+		name: 'Argesta Hairline + Libre Baskerville',
 		display: argesta,
 		text: libreBaskerville,
 		ui: 'text',
 	},
 	{
 		id: 'argesta-garamond',
-		name: 'Argesta Display + EB Garamond',
+		name: 'Argesta Hairline + EB Garamond',
 		display: argesta,
 		text: face('EB Garamond', 'serif', [400, 800], true),
 		ui: 'text',
 	},
 	{
 		id: 'argesta-ubuntu',
-		name: 'Argesta Display + Ubuntu',
+		name: 'Argesta Hairline + Ubuntu',
 		display: argesta,
 		text: face('Ubuntu', 'sans-serif', [300, 700], true, 'Google Fonts, Ubuntu Font Licence'),
 		ui: 'text',
@@ -221,6 +232,7 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 							data-t-italic={String(p.text.italic)}
 							data-u-min={ui.weights[0]}
 							data-u-max={ui.weights[1]}
+							data-local-preview={p.display.localPreviewFallback ? `${p.display.family}|${p.display.localPreviewFallback}` : undefined}
 							data-self-hosted={[p.display, p.text]
 								.filter((f) => f.selfHosted)
 								.map((f) => f.family)
@@ -382,6 +394,18 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 	 * fonts.load() resolves to an empty list when nothing could be loaded, so a
 	 * card can say plainly that it's showing a fallback rather than the real face.
 	 */
+	/* Local-only faces: say so when this computer doesn't have the font installed. */
+	root?.querySelectorAll<HTMLElement>('[data-local-preview]').forEach(async (card) => {
+		const [family, fallback] = (card.dataset.localPreview ?? '').split('|');
+		if (!family) return;
+		const loaded = await document.fonts.load(`400 24px "${family}"`).catch(() => []);
+		if (loaded.length) return;
+		const note = card.querySelector<HTMLElement>('[data-missing]');
+		if (!note) return;
+		note.hidden = false;
+		note.textContent = `${family} isn't installed on this computer, so headings show ${fallback}.`;
+	});
+
 	root?.querySelectorAll<HTMLElement>('[data-self-hosted]').forEach(async (card) => {
 		const families = (card.dataset.selfHosted ?? '').split(',').filter(Boolean);
 		const missing: string[] = [];
@@ -397,6 +421,17 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 </script>
 
 <style>
+	/* Installed desktop copy only — see the note at the top of the frontmatter. */
+	@font-face {
+		font-family: 'Argesta Hairline';
+		src:
+			local('Argesta Hairline'),
+			local('ArgestaHairline');
+		font-weight: 400;
+		font-style: normal;
+		font-display: swap;
+	}
+
 	/* Atipo webfont kit files — see the note at the top of the frontmatter. */
 	@font-face {
 		font-family: 'Argesta Display';
