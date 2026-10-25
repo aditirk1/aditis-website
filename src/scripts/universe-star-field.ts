@@ -22,6 +22,7 @@ import {
 	type PlanetSurfaceMaps,
 } from '../utils/planet-surface-texture.ts';
 import { getScrollState, subscribeScroll } from './scroll-orchestrator.ts';
+import { recordTransitionOrigin } from './vt-origin.ts';
 
 const CANVAS_ID = 'universe-star-field-canvas';
 
@@ -884,6 +885,24 @@ export function initUniverseStarField(): () => void {
 		}, 3000);
 	}
 
+	/** Screen circle of the clicked planet, for the transition lab's zoom-into-planet. */
+	function recordPlanetOrigin(mesh: THREE.Mesh) {
+		const i = planetMeshes.indexOf(mesh);
+		if (i < 0) return;
+		const h = window.innerHeight || 1;
+		const w = window.innerWidth || 1;
+		planetPivots[i]!.getWorldPosition(tmpWorld);
+		const ndc = tmpWorld.clone().project(camera);
+		const pd = mesh.userData as PlanetConfig;
+		const camDist = camera.position.distanceTo(tmpWorld);
+		recordTransitionOrigin({
+			kind: 'planet',
+			x: (ndc.x * 0.5 + 0.5) * w,
+			y: (-ndc.y * 0.5 + 0.5) * h,
+			r: Math.max(8, (pd.radius / camDist) * h * 0.55),
+		});
+	}
+
 	function goDreamJournal() {
 		if (navigating) return;
 		beginNavigation();
@@ -928,6 +947,7 @@ export function initUniverseStarField(): () => void {
 			const pd = hitPlanet.userData as PlanetConfig;
 			if (!navigating) {
 				beginNavigation();
+				recordPlanetOrigin(hitPlanet);
 				window.location.assign(pd.href);
 			}
 		}

@@ -1,0 +1,243 @@
+---
+/**
+ * Opt-in cross-document view transitions (transition-lab experiments).
+ *
+ * Nothing here runs for ordinary visitors. The inline script enables
+ * `@view-transition { navigation: auto }` only when a mode was chosen in
+ * /transition-lab (localStorage `aditi-vt`) or the page sits in one of the
+ * lab's frames (window.name `vt:<mode>`), the browser supports cross-document
+ * transitions, reduced motion is off, and the path is not excluded. Everyone
+ * else gets the same full-page navigation as before. See docs/transitions.md.
+ *
+ * Must stay in <head>: `pagereveal` fires before the first render, so a
+ * deferred module would register its listener too late.
+ */
+const isProjectDetail = /^\/projects\/[^/]+\/?$/.test(Astro.url.pathname);
+---
+
+{
+	isProjectDetail && (
+		/* Holds first render until the title is parsed so the morph can find it. */
+		<link rel="expect" href="#project-title" blocking="render" />
+	)
+}
+
+<script is:inline>
+	(function () {
+		var MODES = ['portal', 'wave', 'morph', 'themed'];
+		/* Checkout, payment result, admin, private notes: always plain navigation. */
+		var EXCLUDED = /^\/(admin|quick|dream-journal|services)(\/|$)/;
+		var ORIGIN_KEY = 'aditi-vt-origin:' + window.name;
+		var root = document.documentElement;
+
+		var mode = '';
+		try {
+			var framed = /^vt:([a-z]+)$/.exec(window.name || '');
+			mode = framed ? framed[1] : localStorage.getItem('aditi-vt') || '';
+		} catch (e) {}
+		if (MODES.indexOf(mode) < 0) return;
+		if (!('CSSViewTransitionRule' in window) || !('onpagereveal' in window)) return;
+		if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+		if (EXCLUDED.test(location.pathname)) return;
+
+		root.dataset.vt = mode;
+		var optIn = document.createElement('style');
+		optIn.textContent = '@view-transition { navigation: auto; }';
+		document.head.appendChild(optIn);
+
+		function readOrigin() {
+			try {
+				var raw = sessionStorage.getItem(ORIGIN_KEY);
+				sessionStorage.removeItem(ORIGIN_KEY);
+				var o = raw ? JSON.parse(raw) : null;
+				return o && Date.now() - o.ts < 6000 ? o : null;
+			} catch (e) {
+				return null;
+			}
+		}
+
+		function pickEffect(origin, traverse, back, flow) {
+			if (traverse) {
+				if (mode === 'wave' || (mode === 'themed' && flow)) return back ? 'wave-back' : 'wave';
+				if (mode === 'morph') return 'fade';
+				return back ? 'portal-back' : 'fade';
+			}
+			var kind = origin ? origin.kind : 'link';
+			if (mode === 'portal') return 'portal';
+			if (mode === 'wave') return 'wave';
+			if (mode === 'morph') return kind === 'project' ? 'morph' : 'fade';
+			if (kind === 'project') return 'morph';
+			if (kind === 'planet') return 'zoom';
+			return flow ? 'wave' : 'portal';
+		}
+
+		function circle(r, x, y) {
+			return 'circle(' + r + 'px at ' + x + 'px ' + y + 'px)';
+		}
+
+		/* Revealed side of a soft vertical wave front; p runs 0 (hidden) to 1 (full). */
+		function wavePolygon(p, dir, W, H) {
+			var amp = Math.max(22, Math.min(W, H) * 0.055);
+			var edge = -amp * 1.6 + p * (W + amp * 3.2);
+			var side = dir > 0 ? 0 : W;
+			var pts = [side + 'px 0px'];
+			for (var i = 0; i <= 20; i++) {
+				var t = i / 20;
+				var x =
+					edge +
+					amp * 0.7 * Math.sin(t * Math.PI * 2.6 + p * Math.PI * 2.2) +
+					amp * 0.3 * Math.sin(t * Math.PI * 6.5 - p * Math.PI * 3);
+				pts.push((dir > 0 ? x : W - x).toFixed(1) + 'px ' + (t * H).toFixed(1) + 'px');
+			}
+			pts.push(side + 'px ' + H + 'px');
+			return 'polygon(' + pts.join(',') + ')';
+		}
+
+		function run(effect, origin) {
+			var W = innerWidth;
+			var H = innerHeight;
+			var x = origin ? origin.x : W / 2;
+			var y = origin ? origin.y : H / 2;
+			var r = origin ? origin.r : 0;
+			var far = Math.hypot(Math.max(x, W - x), Math.max(y, H - y));
+			var OLD = '::view-transition-old(root)';
+			var NEW = '::view-transition-new(root)';
+			function animate(pseudo, frames, opts) {
+				opts.pseudoElement = pseudo;
+				opts.fill = 'both';
+				root.animate(frames, opts);
+			}
+
+			if (effect === 'portal') {
+				animate(NEW, [{ clipPath: circle(r, x, y) }, { clipPath: circle(far, x, y) }], {
+					duration: 600,
+					easing: 'cubic-bezier(.4, 0, .1, 1)',
+				});
+				animate(OLD, [{ filter: 'brightness(1)' }, { filter: 'brightness(.6)' }], { duration: 600 });
+			} else if (effect === 'portal-back') {
+				var cx = W / 2;
+				var cy = H / 2;
+				var all = Math.hypot(cx, cy);
+				animate(OLD, [{ clipPath: circle(all, cx, cy) }, { clipPath: circle(0, cx, cy) }], {
+					duration: 460,
+					easing: 'cubic-bezier(.55, 0, .45, 1)',
+				});
+			} else if (effect === 'zoom') {
+				var at = x + 'px ' + y + 'px';
+				animate(
+					OLD,
+					[
+						{ transform: 'scale(1)', transformOrigin: at, opacity: 1 },
+						{ transform: 'scale(5)', transformOrigin: at, opacity: 0 },
+					],
+					{ duration: 680, easing: 'cubic-bezier(.6, 0, .9, .5)' },
+				);
+				animate(
+					NEW,
+					[
+						{ clipPath: circle(r, x, y), transform: 'scale(1.12)', transformOrigin: at },
+						{ clipPath: circle(far, x, y), transform: 'scale(1)', transformOrigin: at },
+					],
+					{ duration: 680, delay: 60, easing: 'cubic-bezier(.35, 0, .1, 1)' },
+				);
+			} else if (effect === 'wave' || effect === 'wave-back') {
+				var dir = effect === 'wave' ? 1 : -1;
+				var frames = [];
+				for (var i = 0; i <= 14; i++) {
+					var t = i / 14;
+					frames.push({ clipPath: wavePolygon(0.5 - 0.5 * Math.cos(Math.PI * t), dir, W, H) });
+				}
+				animate(NEW, frames, { duration: 760, easing: 'linear' });
+				animate(OLD, [{ filter: 'brightness(1)' }, { filter: 'brightness(.75) saturate(1.2)' }], {
+					duration: 760,
+				});
+			}
+		}
+
+		addEventListener('pagereveal', function (e) {
+			var vt = e.viewTransition;
+			if (!vt) return;
+			var origin = readOrigin();
+			var act = window.navigation && window.navigation.activation;
+			var traverse = Boolean(act && act.navigationType === 'traverse');
+			var back = traverse && act.from && act.entry && act.entry.index < act.from.index;
+			var flow = root.getAttribute('data-theme') === 'beach';
+			var effect = pickEffect(origin, traverse, back, flow);
+
+			var title = effect === 'morph' ? document.getElementById('project-title') : null;
+			if (effect === 'morph' && !title) effect = 'fade';
+			if (title) title.style.viewTransitionName = 'project-title';
+
+			root.dataset.vtEffect = effect;
+			vt.finished.finally(function () {
+				delete root.dataset.vtEffect;
+				if (title) title.style.viewTransitionName = '';
+			});
+			vt.ready
+				.then(function () {
+					run(effect, origin);
+				})
+				.catch(function () {});
+		});
+	})();
+</script>
+
+<style is:global>
+	@keyframes vt-fade-in {
+		from {
+			opacity: 0;
+		}
+	}
+
+	@keyframes vt-fade-out {
+		to {
+			opacity: 0;
+		}
+	}
+
+	/* Effects drawn with WAAPI start from a still frame; CSS-only effects set their own.
+	   No space before the pseudo-element: it belongs to <html> itself. */
+	html[data-vt-effect]::view-transition-old(root),
+	html[data-vt-effect]::view-transition-new(root) {
+		animation: none;
+		mix-blend-mode: normal;
+	}
+
+	html[data-vt-effect='portal-back']::view-transition-old(root) {
+		z-index: 1;
+	}
+
+	html[data-vt-effect='fade']::view-transition-old(root) {
+		animation: vt-fade-out 180ms ease-out both;
+	}
+
+	html[data-vt-effect='fade']::view-transition-new(root),
+	html[data-vt-effect='morph']::view-transition-new(root) {
+		animation: vt-fade-in 260ms ease-out both;
+	}
+
+	html[data-vt-effect='morph']::view-transition-old(root) {
+		animation: vt-fade-out 200ms ease-out both;
+	}
+
+	::view-transition-group(project-title) {
+		animation-duration: 520ms;
+		animation-timing-function: cubic-bezier(0.3, 0.7, 0.2, 1);
+	}
+
+	::view-transition-old(project-title) {
+		animation: vt-fade-out 260ms ease-out both;
+	}
+
+	::view-transition-new(project-title) {
+		animation: vt-fade-in 360ms ease-out both;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		::view-transition-group(*),
+		::view-transition-old(*),
+		::view-transition-new(*) {
+			animation: none !important;
+		}
+	}
+</style>

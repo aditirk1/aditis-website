@@ -1,0 +1,498 @@
+---
+/**
+ * Transition lab: compare the navigation-transition experiments on the real
+ * site. Each frame is the live site in an iframe whose window.name
+ * (`vt:<mode>`) switches that experiment on inside the frame only. Nothing
+ * changes for visitors unless "Use while browsing" is set in this browser.
+ * How each transition works: docs/transitions.md. noindex.
+ */
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+const projects = (await getCollection('projects', ({ data }) => data.draft !== true)).sort(
+	(a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+const firstProject = projects[0] ? `/projects/${projects[0].id}` : '/projects';
+
+const starts = [
+	{ href: '/', label: 'Home' },
+	{ href: '/projects', label: 'Projects' },
+	{ href: '/blog', label: 'Blog' },
+	{ href: firstProject, label: 'A project' },
+];
+
+const experiments = [
+	{
+		mode: 'portal',
+		name: 'Portal',
+		start: '/blog',
+		try: 'Click any tab: the next page opens as a circle from that tab.',
+		how: 'A circular clip-path on the new page grows from the clicked tab while the old page dims. Back shrinks the old page into the centre.',
+	},
+	{
+		mode: 'wave',
+		name: 'Wave',
+		start: '/blog',
+		try: 'Click any tab: a soft wave front sweeps across. Back runs it the other way.',
+		how: 'The new page is clipped to a wavy polygon whose edge travels across the screen; the old page darkens under it.',
+	},
+	{
+		mode: 'morph',
+		name: 'Morph',
+		start: '/projects',
+		try: 'Open Projects, then a project: its title moves and grows into the page heading.',
+		how: 'The clicked title and the project page heading share one view-transition-name, so the browser animates one into the other. Other navigations crossfade.',
+	},
+	{
+		mode: 'themed',
+		name: 'Themed',
+		start: '/',
+		try: 'Orbit: tabs open a portal, planets zoom into their page. Flow: tabs send a wave. Hover the tabs too.',
+		how: 'Combines the three by theme and by what was clicked, plus the themed tab indicators. Back is the reverse portal in Orbit and the reverse wave in Flow.',
+	},
+];
+---
+
+<Layout title="Transition lab" description="Navigation transition experiments." noindex>
+	<div class="tlab" data-transition-lab data-frame="desktop">
+		<header class="tlab-intro">
+			<h1 class="tlab-intro__title">Transition lab</h1>
+			<p class="tlab-intro__text">
+				Four experiments, each running on the real site in its own frame. Navigate inside a frame to see its
+				transition; the arrows under each frame are that frame's Back and Forward. Nothing here changes the
+				site for visitors.
+			</p>
+		</header>
+
+		<section class="tlab-panel" aria-labelledby="tlab-support">
+			<h2 id="tlab-support" class="tlab-panel__title">This browser</h2>
+			<ul class="tlab-caps" data-caps>
+				<li data-cap="cross-doc">Cross-document view transitions</li>
+				<li data-cap="reveal">pagereveal and pageswap events</li>
+				<li data-cap="pseudo-anim">Animating transition snapshots from script</li>
+				<li data-cap="nav-api">Navigation API (tells Back from Forward)</li>
+				<li data-cap="motion">Motion allowed</li>
+			</ul>
+			<p class="tlab-verdict" data-verdict></p>
+		</section>
+
+		<form class="tlab-panel tlab-controls" data-controls aria-label="Lab controls">
+			<label class="tlab-field">
+				<span>Start page</span>
+				<select name="start">
+					<option value="">Suggested for each</option>
+					{starts.map((s) => <option value={s.href}>{s.label}</option>)}
+				</select>
+			</label>
+			<fieldset class="tlab-seg">
+				<legend>Frame</legend>
+				<label><input type="radio" name="frame" value="desktop" checked /> Desktop</label>
+				<label><input type="radio" name="frame" value="phone" /> Phone</label>
+			</fieldset>
+			<label class="tlab-field">
+				<span>Use while browsing</span>
+				<select name="browse" data-browse>
+					<option value="">Off</option>
+					{experiments.map((x) => <option value={x.mode}>{x.name}</option>)}
+				</select>
+			</label>
+			<p class="tlab-note" data-browse-note aria-live="polite"></p>
+			<p class="tlab-note">The site's theme switch (top right) applies to the frames too: Orbit or Flow.</p>
+		</form>
+
+		<div class="tlab-grid">
+			{
+				experiments.map((x) => (
+					<article class="tlab-card" data-experiment={x.mode}>
+						<header class="tlab-card__head">
+							<h2 class="tlab-card__name">{x.name}</h2>
+							<p class="tlab-card__try">{x.try}</p>
+						</header>
+						<div class="tlab-stage" data-stage>
+							<iframe
+								name={`vt:${x.mode}`}
+								title={`${x.name} transition, live site`}
+								src={x.start}
+								loading="lazy"
+								data-frame
+								data-start={x.start}
+							/>
+						</div>
+						<div class="tlab-card__bar">
+							<button type="button" data-nav="back" aria-label={`Back in the ${x.name} frame`}>
+								&larr;
+							</button>
+							<button type="button" data-nav="forward" aria-label={`Forward in the ${x.name} frame`}>
+								&rarr;
+							</button>
+							<button type="button" data-nav="restart">Restart</button>
+						</div>
+						<p class="tlab-card__how">{x.how}</p>
+					</article>
+				))
+			}
+		</div>
+
+		<section class="tlab-panel tlab-docs" aria-labelledby="tlab-how">
+			<h2 id="tlab-how" class="tlab-panel__title">How it works</h2>
+			<p>
+				Every page on the site is a full page load. A transition plays only when both the page being left
+				and the page arriving opt in with <code>@view-transition &#123; navigation: auto &#125;</code>. The
+				browser then snapshots the old page, loads the new one, and animates between the two snapshots. The
+				navigation itself is never held back: the new page is already loaded while the animation runs.
+			</p>
+			<p>
+				The opt-in is written by a small script in the page head, and only when an experiment is chosen,
+				the browser supports it, reduced motion is off, and the page isn't excluded. Excluded pages always
+				load plainly: Services and checkout, the payment result page, admin, quick notes and the dream
+				journal. Without support (Firefox today, or older Chrome and Safari) links work exactly as before.
+			</p>
+			<p>
+				When a link is clicked, the old page stores where it was (the tab, the planet's position and size,
+				or the project title) for the new page to read. On arrival, the new page's
+				<code>pagereveal</code> event chooses the effect and draws it with the Web Animations API on the
+				transition's snapshots. GSAP isn't needed for any of them. Back and Forward are told apart with the
+				Navigation API; browsers without it play the forward effect on Back.
+			</p>
+		</section>
+	</div>
+</Layout>
+
+<script>
+	const lab = document.querySelector<HTMLElement>('[data-transition-lab]');
+	const form = document.querySelector<HTMLFormElement>('[data-controls]');
+
+	if (lab && form) {
+		const frames = Array.from(lab.querySelectorAll<HTMLIFrameElement>('[data-frame]'));
+		const FRAME = { desktop: [1280, 800], phone: [390, 844] } as const;
+
+		/* --- Capability readout --- */
+		const crossDoc = 'CSSViewTransitionRule' in window;
+		const reveal = 'onpagereveal' in window && 'onpageswap' in window;
+		let pseudoAnim = false;
+		try {
+			const a = document.documentElement.animate([], { pseudoElement: '::view-transition-new(root)' });
+			a.cancel();
+			pseudoAnim = true;
+		} catch {
+			pseudoAnim = false;
+		}
+		const navApi = 'navigation' in window && 'activation' in (window.navigation as object);
+		const motion = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+		const caps: Record<string, boolean> = {
+			'cross-doc': crossDoc,
+			reveal,
+			'pseudo-anim': pseudoAnim,
+			'nav-api': navApi,
+			motion,
+		};
+		for (const [key, ok] of Object.entries(caps)) {
+			const li = lab.querySelector<HTMLElement>(`[data-cap="${key}"]`);
+			if (li) li.dataset.ok = String(ok);
+		}
+		const verdict = lab.querySelector<HTMLElement>('[data-verdict]');
+		if (verdict) {
+			verdict.textContent = !motion
+				? 'Reduced motion is on, so every transition is skipped and pages load as usual.'
+				: crossDoc && reveal && pseudoAnim
+					? navApi
+						? 'All four experiments will play here.'
+						: 'The experiments play here, but Back plays the forward effect (no Navigation API).'
+					: 'This browser falls back to plain navigation: links work, nothing animates. Try Chrome or Edge 126+, or Safari 18.2+.';
+		}
+
+		/* --- Frame size: render at real size, scale to the card --- */
+		function fitFrames() {
+			const [w, h] = FRAME[lab!.dataset.frame as keyof typeof FRAME] ?? FRAME.desktop;
+			lab!.querySelectorAll<HTMLElement>('[data-stage]').forEach((stage) => {
+				const scale = Math.min(1, stage.clientWidth / w);
+				stage.style.setProperty('--frame-w', `${w}px`);
+				stage.style.setProperty('--frame-h', `${h}px`);
+				stage.style.setProperty('--frame-scale', String(scale));
+			});
+		}
+		new ResizeObserver(fitFrames).observe(lab);
+
+		/* --- Controls --- */
+		const [startSelect, browse] = Array.from(form.querySelectorAll('select'));
+		/* Orbit's homepage swaps the tabs for planets, so tab experiments start elsewhere. */
+		const startHref = (f: HTMLIFrameElement) => startSelect!.value || f.dataset.start || '/';
+		const restartAll = () => frames.forEach((f) => (f.src = startHref(f)));
+
+		form.addEventListener('change', (e) => {
+			const t = e.target as HTMLInputElement;
+			if (t.name === 'frame') {
+				lab.dataset.frame = t.value;
+				fitFrames();
+			} else if (t.name === 'start') {
+				restartAll();
+			} else if (t.name === 'browse') {
+				setBrowse(t.value);
+			}
+		});
+
+		const browseNote = form.querySelector<HTMLElement>('[data-browse-note]')!;
+		function setBrowse(mode: string) {
+			try {
+				if (mode) localStorage.setItem('aditi-vt', mode);
+				else localStorage.removeItem('aditi-vt');
+			} catch {
+				/* Storage blocked: the frames still work. */
+			}
+			browseNote.textContent = mode
+				? `${browse!.selectedOptions[0]?.text} is on for you in this browser, from the next page you open.`
+				: 'Off: the site navigates as it does for everyone.';
+		}
+		try {
+			browse!.value = localStorage.getItem('aditi-vt') ?? '';
+		} catch {
+			browse!.value = '';
+		}
+		setBrowse(browse!.value);
+
+		lab.addEventListener('click', (e) => {
+			const btn = (e.target as Element).closest<HTMLButtonElement>('[data-nav]');
+			if (!btn) return;
+			const frame = btn.closest('[data-experiment]')?.querySelector<HTMLIFrameElement>('[data-frame]');
+			const win = frame?.contentWindow as (Window & { navigation?: { back(): void; forward(): void; canGoBack: boolean; canGoForward: boolean } }) | null;
+			if (!frame || !win) return;
+			const action = btn.dataset.nav;
+			if (action === 'restart') {
+				frame.src = startHref(frame);
+				return;
+			}
+			/* The Navigation API steps through this frame's own history; history.back() would use the tab's joint history. */
+			const nav = win.navigation;
+			if (nav) {
+				if (action === 'back' && nav.canGoBack) nav.back();
+				if (action === 'forward' && nav.canGoForward) nav.forward();
+			} else if (action === 'back') {
+				win.history.back();
+			} else {
+				win.history.forward();
+			}
+		});
+
+		/* Frames read the theme when a page loads, so reload them when it changes. */
+		let theme = document.documentElement.dataset.theme;
+		new MutationObserver(() => {
+			const next = document.documentElement.dataset.theme;
+			if (next === theme) return;
+			theme = next;
+			frames.forEach((f) => f.contentWindow?.location.reload());
+		}).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+	}
+</script>
+
+<style>
+	.tlab {
+		pointer-events: auto;
+		max-width: 88rem;
+		margin-inline: auto;
+		display: grid;
+		gap: 1.5rem;
+	}
+
+	.tlab-intro__title {
+		margin: 0;
+		font-size: clamp(2.25rem, 5vw, 3rem);
+	}
+
+	.tlab-intro__text {
+		margin: 0.5rem 0 0;
+		max-width: 46rem;
+		color: var(--page-muted);
+	}
+
+	.tlab-panel {
+		border: 1px solid color-mix(in srgb, var(--color-amber) 28%, transparent);
+		border-radius: 1rem;
+		background: color-mix(in srgb, var(--page-bg) 88%, transparent);
+		backdrop-filter: blur(8px);
+		padding: 1rem 1.25rem;
+		font-size: 0.9rem;
+	}
+
+	.tlab-panel__title {
+		margin: 0 0 0.6rem;
+		font-size: 1.5rem;
+	}
+
+	.tlab-caps {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem 1.25rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.tlab-caps li::before {
+		content: '…';
+		display: inline-block;
+		width: 1.25em;
+		font-family: var(--font-mono);
+	}
+
+	.tlab-caps li[data-ok='true']::before {
+		content: '✓';
+		color: var(--color-amber);
+	}
+
+	.tlab-caps li[data-ok='false'] {
+		color: var(--page-muted);
+	}
+
+	.tlab-caps li[data-ok='false']::before {
+		content: '✗';
+	}
+
+	.tlab-verdict {
+		margin: 0.75rem 0 0;
+		font-weight: 600;
+	}
+
+	.tlab-controls {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: end;
+		gap: 0.75rem 1.75rem;
+	}
+
+	.tlab-field {
+		display: grid;
+		gap: 0.3rem;
+	}
+
+	.tlab-field span,
+	.tlab-seg legend {
+		font-size: 0.72rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--page-muted);
+	}
+
+	.tlab-field select {
+		min-height: 2.25rem;
+		padding: 0 0.6rem;
+		border: 1px solid color-mix(in srgb, var(--page-fg) 25%, transparent);
+		border-radius: 0.6rem;
+		background: color-mix(in srgb, var(--page-bg) 70%, transparent);
+		color: var(--page-fg);
+		font: inherit;
+	}
+
+	.tlab-seg {
+		display: flex;
+		gap: 0.9rem;
+		margin: 0;
+		padding: 0;
+		border: 0;
+	}
+
+	.tlab-seg legend {
+		margin-bottom: 0.3rem;
+	}
+
+	.tlab-note {
+		flex-basis: 100%;
+		margin: 0;
+		color: var(--page-muted);
+		font-size: 0.82rem;
+	}
+
+	.tlab-grid {
+		display: grid;
+		gap: 1.5rem;
+	}
+
+	@media (min-width: 1000px) {
+		.tlab-grid {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+
+	.tlab[data-frame='phone'] .tlab-grid {
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+	}
+
+	.tlab-card {
+		display: grid;
+		gap: 0.6rem;
+		align-content: start;
+	}
+
+	.tlab-card__name {
+		margin: 0;
+		font-size: 1.6rem;
+	}
+
+	.tlab-card__try {
+		margin: 0.15rem 0 0;
+		color: var(--page-muted);
+		font-size: 0.9rem;
+	}
+
+	.tlab-stage {
+		--frame-w: 1280px;
+		--frame-h: 800px;
+		--frame-scale: 0.5;
+		position: relative;
+		width: 100%;
+		max-width: var(--frame-w);
+		height: calc(var(--frame-h) * var(--frame-scale));
+		overflow: hidden;
+		border: 1px solid color-mix(in srgb, var(--page-fg) 18%, transparent);
+		border-radius: 0.9rem;
+		background: var(--page-bg);
+	}
+
+	.tlab-stage iframe {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: var(--frame-w);
+		height: var(--frame-h);
+		border: 0;
+		transform: scale(var(--frame-scale));
+		transform-origin: 0 0;
+	}
+
+	.tlab-card__bar {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.tlab-card__bar button {
+		min-width: 2.75rem;
+		min-height: 2.25rem;
+		padding: 0 0.85rem;
+		border: 1px solid color-mix(in srgb, var(--page-fg) 25%, transparent);
+		border-radius: 999px;
+		background: transparent;
+		color: var(--page-fg);
+		font: inherit;
+		font-size: 0.85rem;
+	}
+
+	.tlab-card__bar button:focus-visible {
+		outline: 2px solid var(--color-amber);
+		outline-offset: 2px;
+	}
+
+	.tlab-card__how {
+		margin: 0;
+		font-size: 0.85rem;
+		color: var(--page-muted);
+	}
+
+	.tlab-docs p {
+		margin: 0 0 0.75rem;
+		max-width: 52rem;
+	}
+
+	.tlab-docs code {
+		font-family: var(--font-mono);
+		font-size: 0.85em;
+	}
+</style>
