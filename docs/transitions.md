@@ -1,9 +1,9 @@
 # Navigation transition experiments
 
-Branch `transition-lab`. Compare them at `/transition-lab`. Production
-navigation is unchanged: no visitor sees a transition unless they opt in from
-the lab ("Use while browsing"), and the lab's frames opt in only for
-themselves.
+Branch `transition-lab`. Compare them at `/transition-lab`. On this branch
+the **themed** mode runs by default as you browse; the lab's "Use while
+browsing" switches to another mode or Off, and each lab frame runs its own.
+Production (`main`) is unchanged.
 
 ## The model: full page loads, animated by the browser
 
@@ -42,8 +42,9 @@ page takes more than about four seconds to render.
 
 The head script opts the page in only if **all** of these hold:
 
-- **An experiment is chosen.** Either `window.name` is `vt:<mode>` (the lab's
-  frames), or localStorage `aditi-vt` holds a mode ("Use while browsing").
+- **A mode is active.** `window.name` is `vt:<mode>` (the lab's frames);
+  otherwise localStorage `aditi-vt` ("Use while browsing"), defaulting to
+  `themed`. The value `off` disables transitions.
 - **The browser supports it.** `CSSViewTransitionRule` and `onpagereveal` must
   both exist.
 - **Reduced motion is off.** `prefers-reduced-motion: reduce` means no

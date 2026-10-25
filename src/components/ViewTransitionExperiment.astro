@@ -2,12 +2,12 @@
 /**
  * Opt-in cross-document view transitions (transition-lab experiments).
  *
- * Nothing here runs for ordinary visitors. The inline script enables
- * `@view-transition { navigation: auto }` only when a mode was chosen in
- * /transition-lab (localStorage `aditi-vt`) or the page sits in one of the
- * lab's frames (window.name `vt:<mode>`), the browser supports cross-document
- * transitions, reduced motion is off, and the path is not excluded. Everyone
- * else gets the same full-page navigation as before. See docs/transitions.md.
+ * On this branch the "themed" mode is on by default. /transition-lab can pick
+ * another mode or "off" (localStorage `aditi-vt`), and each lab frame sets its
+ * own (window.name `vt:<mode>`). The inline script enables
+ * `@view-transition { navigation: auto }` only when the browser supports
+ * cross-document transitions, reduced motion is off, and the path is not
+ * excluded; otherwise navigation is a plain page load. See docs/transitions.md.
  *
  * Must stay in <head>: `pagereveal` fires before the first render, so a
  * deferred module would register its listener too late.
@@ -33,7 +33,7 @@ const isProjectDetail = /^\/projects\/[^/]+\/?$/.test(Astro.url.pathname);
 		var mode = '';
 		try {
 			var framed = /^vt:([a-z]+)$/.exec(window.name || '');
-			mode = framed ? framed[1] : localStorage.getItem('aditi-vt') || '';
+			mode = framed ? framed[1] : localStorage.getItem('aditi-vt') || 'themed';
 		} catch (e) {}
 		if (MODES.indexOf(mode) < 0) return;
 		if (!('CSSViewTransitionRule' in window) || !('onpagereveal' in window)) return;
