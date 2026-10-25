@@ -19,11 +19,14 @@
 		playsinline
 		disablepictureinpicture
 		preload="none"
-		poster="/media/flow-water-poster.jpg"
+		poster="/media/flow-sea-poster.jpg"
 		tabindex="-1"
 	>
-		<source src="/media/flow-water.webm" type="video/webm" />
-		<source src="/media/flow-water.mp4" type="video/mp4" />
+		<!-- An 8 s loop whose last 2 s crossfade into its first, so the join never shows. -->
+		<source src="/media/flow-sea-1280.webm" type="video/webm" media="(max-width: 900px)" />
+		<source src="/media/flow-sea-1280.mp4" type="video/mp4" media="(max-width: 900px)" />
+		<source src="/media/flow-sea-1920.webm" type="video/webm" />
+		<source src="/media/flow-sea-1920.mp4" type="video/mp4" />
 	</video>
 </div>
 
@@ -35,7 +38,7 @@
 		height: 100%;
 		object-fit: cover;
 		/* Poster and first frame share this, so there's no flash while it buffers. */
-		background: #2f6496 url('/media/flow-water-poster.jpg') center / cover no-repeat;
+		background: #2f6496 url('/media/flow-sea-poster.jpg') center / cover no-repeat;
 	}
 </style>
 

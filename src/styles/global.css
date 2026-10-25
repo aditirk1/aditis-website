@@ -85,8 +85,9 @@ html[data-theme='universe'] {
 }
 
 html[data-theme='beach'] {
-	--cursor-default: image-set(url('/cursors/flow-default-32.png') 1x, url('/cursors/flow-default-64.png') 2x) 5 0, auto;
-	--cursor-pointer: image-set(url('/cursors/flow-pointer-32.png') 1x, url('/cursors/flow-pointer-64.png') 2x) 16 16, pointer;
+	/* SpongeBob sponge arrow and hand; hotspots from the pack's .cur files (arrow tip, fingertip). */
+	--cursor-default: image-set(url('/cursors/flow-default-32.png?v=2') 1x, url('/cursors/flow-default-64.png?v=2') 2x) 8 0, auto;
+	--cursor-pointer: image-set(url('/cursors/flow-pointer-32.png?v=2') 1x, url('/cursors/flow-pointer-64.png?v=2') 2x) 13 1, pointer;
 }
 
 html {
@@ -619,9 +620,14 @@ dialog.app-modal-backdrop::backdrop {
 }
 
 /* Transition lab, "themed" mode only (scripts/nav-indicators.ts). */
+/* Even space above and below keeps the tab row centred on the theme control beside it. */
 .site-nav-links.has-nav-indicator {
 	position: relative;
-	padding-bottom: 0.55rem;
+	padding-block: 0.55rem;
+}
+
+html[data-theme='portfolio'] .site-nav-links.has-nav-indicator {
+	padding-block: 0;
 }
 
 .nav-indicator {
@@ -965,7 +971,7 @@ html[data-coarse-pointer] .home-explore-card .explore-card-cta {
  *   Desktop overrides are in the @media (min-width: 768px) and 1024px blocks.
  *   Raise the middle value (e.g. 22cqi → 28cqi) and/or the MAX to go bigger.
  *   cqi = % of the LEFT column width, so a wider left column also helps:
- *     .home-hero-grid { grid-template-columns: 46% 54%; }  ← first % = left
+ *     .home-hero-grid { grid-template-columns: 52% 48%; }  ← first % = left
  *
  * GAP / OVERLAP between the two lines
  *   #sun-text { line-height: 0.8; }          ← raise toward 1.0 to add space
@@ -1023,7 +1029,8 @@ html[data-coarse-pointer] .home-explore-card .explore-card-cta {
 	font-family: var(--font-title);
 	font-weight: 800;
 	font-style: normal;
-	font-size: clamp(8rem, 28cqi, 9.5rem);
+	/* "universe." is 3em wide, so 31cqi fills the column without overflowing it. */
+	font-size: clamp(3rem, 31cqi, 16rem);
 	line-height: 0.95;
 	/* Instrument Serif's spacing is already tight; the old sans needed -0.03em. */
 	letter-spacing: -0.01em;
@@ -1107,7 +1114,7 @@ html[data-theme='beach'] #planet-label {
 	}
 
 	#sun-text {
-		font-size: clamp(2.5rem, 14vw, 3.75rem);
+		font-size: clamp(3rem, 31cqi, 7rem);
 	}
 
 	html[data-theme='beach'] .home-hero-grid {
@@ -1127,7 +1134,7 @@ html[data-theme='beach'] #planet-label {
 @media (min-width: 768px) {
 	/* Half / half — orrery gets a full-height column to grow into. */
 	.home-hero-grid {
-		grid-template-columns: 46% 54%;
+		grid-template-columns: 52% 48%;
 		grid-template-rows: minmax(0, 1fr);
 	}
 
@@ -1142,7 +1149,7 @@ html[data-theme='beach'] #planet-label {
 	}
 
 	#sun-text {
-		font-size: clamp(4.75rem, 22cqi, 10.5rem);
+		font-size: clamp(4.75rem, 31cqi, 16rem);
 	}
 
 	.home-intro {
@@ -1160,7 +1167,7 @@ html[data-theme='beach'] #planet-label {
 	}
 
 	#sun-text {
-		font-size: clamp(5.25rem, 23cqi, 11.5rem);
+		font-size: clamp(5.25rem, 31cqi, 16rem);
 	}
 
 	.home-intro {
@@ -1198,7 +1205,7 @@ html[data-theme='beach'] #planet-label {
 @media (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) {
 	/* Full-width title column now, so the side-by-side cqi size would overflow. */
 	html[data-theme='universe'] #sun-text {
-		font-size: clamp(4.5rem, 14cqi, 7.5rem);
+		font-size: clamp(4.5rem, 24cqi, 12rem);
 	}
 }
 
@@ -1961,31 +1968,29 @@ html[data-theme='portfolio'] .theme-menu {
 	display: none;
 }
 
+/* Same spacing from Blog as Blog has from Projects. */
+html[data-theme='portfolio'] .theme-switch {
+	margin-left: calc(1.75rem - 0.75rem);
+}
+
 html[data-theme='portfolio'] .theme-bored {
 	display: inline-flex;
 	align-items: center;
-	justify-content: center;
-	height: 2.1rem;
-	padding: 0 1rem;
-	border: 1px solid color-mix(in srgb, var(--pf-accent) 45%, transparent);
-	border-radius: 999px;
-	background: transparent;
+	/* Same box as the Projects and Blog links beside it, so all three share a line. */
+	padding: 0.3rem 0.1rem;
+	border: 0;
+	background: linear-gradient(currentColor, currentColor) 0 calc(100% - 0.15rem) / 0 1px no-repeat;
 	color: var(--pf-accent);
 	font-family: var(--font-display);
 	font-style: italic;
 	font-size: 1.02rem;
-	/* Line box = glyph box, so the italic sits on the pill's true centre. */
-	line-height: 1;
-	text-box: trim-both cap alphabetic;
+	line-height: inherit;
 	cursor: pointer;
-	transition:
-		background-color 220ms ease,
-		color 220ms ease;
+	transition: background-size 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 html[data-theme='portfolio'] .theme-bored:is(:hover, :focus-visible) {
-	background: var(--pf-accent);
-	color: var(--pf-bg);
+	background-size: 100% 1px;
 }
 
 .theme-bored:focus-visible,
@@ -1999,31 +2004,99 @@ html[data-theme='portfolio'] .theme-bored:is(:hover, :focus-visible) {
 	position: relative;
 }
 
+/* Just text: icon, name and chevron, on the nav's line. */
 .theme-menu__button {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.45rem;
-	min-height: 2.1rem;
-	padding: 0 0.8rem 0 0.75rem;
-	border: 1px solid color-mix(in srgb, var(--color-amber) 35%, transparent);
-	border-radius: 999px;
-	background: color-mix(in srgb, var(--page-bg) 75%, transparent);
-	backdrop-filter: blur(8px);
+	gap: 0.4rem;
+	min-height: 1.7rem;
+	padding: 0.34rem 0.2rem;
+	border: 0;
+	background: transparent;
 	color: var(--page-fg);
 	font-family: var(--font-sans);
-	font-size: 0.8rem;
+	font-size: 0.78rem;
 	font-weight: 500;
+	letter-spacing: 0.04em;
 	line-height: 1;
 	cursor: var(--cursor-pointer, pointer);
-	transition:
-		border-color 150ms ease,
-		color 150ms ease;
+	transition: color 150ms ease;
 }
 
-@media (hover: hover) and (pointer: fine) {
-	.theme-menu__button:hover {
-		border-color: var(--color-amber);
-		color: var(--color-amber);
+.theme-menu__button:is(:hover, :focus-visible, [aria-expanded='true']) {
+	color: var(--color-amber);
+}
+
+.theme-menu__label {
+	display: inline-flex;
+}
+
+.theme-menu__char {
+	display: inline-block;
+}
+
+/* Orbit: each letter loops a tiny orbit, one after another; the ring turns once. */
+@keyframes theme-letter-orbit {
+	0% {
+		transform: translate(0, 0);
+	}
+	25% {
+		transform: translate(0.09em, -0.09em);
+	}
+	50% {
+		transform: translate(0, -0.18em);
+	}
+	75% {
+		transform: translate(-0.09em, -0.09em);
+	}
+	100% {
+		transform: translate(0, 0);
+	}
+}
+
+@keyframes theme-ring-turn {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* Flow: the letters ripple like a passing wave; the wave icon drifts. */
+@keyframes theme-letter-wave {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	35% {
+		transform: translateY(-0.2em);
+	}
+	70% {
+		transform: translateY(0.06em);
+	}
+}
+
+@keyframes theme-wave-drift {
+	50% {
+		transform: translateX(0.12em);
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	html[data-theme='universe'] .theme-menu__button:is(:hover, :focus-visible) .theme-menu__char {
+		animation: theme-letter-orbit 620ms cubic-bezier(0.45, 0, 0.55, 1) both;
+		animation-delay: calc(var(--i) * 55ms);
+	}
+
+	html[data-theme='universe'] .theme-menu__button:is(:hover, :focus-visible) .theme-menu__icon--universe {
+		animation: theme-ring-turn 900ms cubic-bezier(0.45, 0, 0.55, 1);
+	}
+
+	html[data-theme='beach'] .theme-menu__button:is(:hover, :focus-visible) .theme-menu__char {
+		animation: theme-letter-wave 1100ms ease-in-out infinite;
+		animation-delay: calc(var(--i) * 90ms);
+	}
+
+	html[data-theme='beach'] .theme-menu__button:is(:hover, :focus-visible) .theme-menu__icon--beach {
+		animation: theme-wave-drift 1100ms ease-in-out infinite;
 	}
 }
 

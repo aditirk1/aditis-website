@@ -25,8 +25,8 @@ const isProjectDetail = /^\/projects\/[^/]+\/?$/.test(Astro.url.pathname);
 <script is:inline>
 	(function () {
 		var MODES = ['portal', 'wave', 'morph', 'themed'];
-		/* Checkout, payment result, admin, private notes: always plain navigation. */
-		var EXCLUDED = /^\/(admin|quick|dream-journal|services)(\/|$)/;
+		/* Payment result, admin, private notes: always plain navigation. Services only links out to Stripe. */
+		var EXCLUDED = /^\/(admin|quick|dream-journal|services\/success)(\/|$)/;
 		var ORIGIN_KEY = 'aditi-vt-origin:' + window.name;
 		var root = document.documentElement;
 
