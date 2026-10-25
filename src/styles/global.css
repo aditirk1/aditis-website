@@ -60,10 +60,10 @@ html[data-theme='beach'] {
 	--page-bg: var(--color-beach-bg);
 	--page-fg: var(--color-beach-fg);
 	--page-muted: var(--color-beach-muted);
-	/* Flow: white → aqua-white → aqua → sand, all light enough for the water. */
+	/* Flow: white → aqua-white → aqua → sky blue, all light enough for the water. */
 	--project-shade-0: var(--page-fg);
 	--project-pre-accent: color-mix(in srgb, var(--color-amber) 55%, var(--page-fg));
-	--project-post-accent: #ffe2a6;
+	--project-post-accent: #cfe6ff;
 	/* The text accent is dark enough for small type on the light page, which also
 	   makes it vanish on the globe's dark-blue ocean. Pins get their own bright aqua. */
 	--globe-pin: #3fe4ff;
