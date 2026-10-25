@@ -1,0 +1,262 @@
+---
+/**
+ * Portfolio homepage, shared by both lab variations so the content is
+ * identical: A (architectural) and B (expressive) differ only in composition,
+ * via html[data-pf-variant] in styles/portfolio.css.
+ */
+import { getCollection } from 'astro:content';
+import home from '../../data/home.json';
+import { typePairs } from '../../data/portfolio-type.ts';
+
+interface Props {
+	variant: 'a' | 'b';
+}
+
+const { variant } = Astro.props;
+const self = `/portfolio-lab/${variant}`;
+
+const projects = (await getCollection('projects', ({ data }) => data.draft !== true)).sort(
+	(a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+const taglines = (home.taglines ?? []).filter(Boolean) as string[];
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+/* "Biomedical engineer, researcher, writer." from the homepage taglines. */
+const [first = '', ...rest] = taglines;
+const last = rest.pop() ?? '';
+const firstWords = cap(first).split(' ');
+const headlineB = [...firstWords.slice(0, -1), `${firstWords.at(-1)},`, ...rest.map((t) => `${t},`)];
+
+const pad = (n: number) => String(n).padStart(2, '0');
+const monthYear = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+const tagList = (tags: string[]) => tags.map(cap).join(', ');
+const year = new Date().getFullYear();
+
+const nav = [
+	{ href: '/projects', label: 'Projects' },
+	{ href: '/blog', label: 'Blog' },
+	{ href: '/photo-dump', label: 'Photo Dump' },
+	{ href: '/thoughts', label: 'Thoughts' },
+	{ href: '/services', label: 'Services' },
+];
+
+const quote = 'the gap between a promising innovation and one that actually reaches patients.';
+const defaultPair = typePairs.find((p) => p.id === 'zodiak')!;
+---
+
+<a class="pf-skip" href="#pf-main">Skip to content</a>
+
+<div class="pf-grid" aria-hidden="true">
+	<div class="pf-container">
+		<div class="pf-cols">{Array.from({ length: 12 }, () => <span />)}</div>
+	</div>
+</div>
+
+<header class="pf-header pf-container pf-cols">
+	<a class="pf-wordmark" href={self}>Aditi</a>
+	<nav class="pf-nav" aria-label="Primary">
+		{nav.map((l) => <a class="pf-link" href={l.href}>{l.label}</a>)}
+	</nav>
+	<div class="pf-header__end">
+		<div class="pf-switch" role="group" aria-label="Site theme">
+			<button type="button" aria-pressed="true" data-pf-theme="portfolio">Portfolio</button>
+			<button type="button" aria-pressed="false" data-pf-theme="universe">Orbit</button>
+			<button type="button" aria-pressed="false" data-pf-theme="beach">Flow</button>
+		</div>
+		<button type="button" class="pf-bored" data-pf-bored title="Take me to Orbit or Flow">bored?</button>
+	</div>
+</header>
+
+<main id="pf-main" tabindex="-1">
+	<section class="pf-hero pf-container pf-cols" aria-labelledby="pf-hero-title">
+		{
+			variant === 'a' ? (
+				<svg class="pf-art" viewBox="0 0 1000 1000" aria-hidden="true">
+					{[490, 400, 310, 220, 130].map((r) => (
+						<circle cx="500" cy="500" r={r} />
+					))}
+					<path class="pf-art__accent" d="M 500 810 A 310 310 0 0 1 190 500" pathLength="1" />
+					<circle class="pf-art__dot" cx="190" cy="500" r="4" />
+				</svg>
+			) : (
+				<svg class="pf-art" viewBox="0 0 1000 1000" aria-hidden="true">
+					<circle class="pf-art__disc" cx="500" cy="500" r="455" />
+					<circle cx="500" cy="500" r="497" />
+				</svg>
+			)
+		}
+
+		<div class="pf-hero__labels">
+			<p class="pf-label pf-fade" style="--i: 0">Index</p>
+			<p class="pf-label pf-fade" style="--i: 1">MS Bioengineering, Columbia University</p>
+			<p class="pf-label pf-fade" style="--i: 2">New York, {year}</p>
+		</div>
+
+		<h1 id="pf-hero-title" class="pf-display pf-hero__title">
+			{
+				variant === 'a' ? (
+					<>
+						<span class="pf-hero__line pf-rise" style="--i: 0">{cap(first)},</span>
+						<span class="pf-hero__line pf-rise" style="--i: 1">
+							{rest.map((t) => `${t}, `)}
+							<em>{last}.</em>
+						</span>
+					</>
+				) : (
+					<>
+						{headlineB.map((w, i) => (
+							<span class="pf-hero__line pf-rise" style={`--i: ${i}`}>
+								{w}
+							</span>
+						))}
+						<span class="pf-hero__line pf-rise" style={`--i: ${headlineB.length}`}>
+							<em>{last}.</em>
+						</span>
+					</>
+				)
+			}
+		</h1>
+
+		<div class="pf-hero__aside pf-fade" style="--i: 4">
+			<p class="pf-hero__desc">{home.hero_description}</p>
+			<div class="pf-actions">
+				<a class="pf-button" href={home.cta_primary_href}>
+					{home.cta_primary_label}
+					<span class="pf-arrow" aria-hidden="true">→</span>
+				</a>
+				<a class="pf-textlink pf-link pf-link--rest" href={home.cta_secondary_href}>{home.cta_secondary_label}</a>
+			</div>
+		</div>
+
+		<p class="pf-hero__note pf-annot pf-fade" style="--i: 5">From model, to bench, to population data.</p>
+	</section>
+
+	<section class="pf-work" aria-labelledby="pf-work-title">
+		<div class="pf-hscroll" data-hscroll>
+			<div class="pf-hscroll__sticky">
+				<div class="pf-container pf-cols">
+					<div class="pf-section__rule"></div>
+					<div class="pf-section__head">
+						<span class="pf-label pf-num">01</span>
+						<h2 id="pf-work-title" class="pf-display pf-section__title">Selected work</h2>
+						<div class="pf-section__aside">
+							<p class="pf-label">{pad(projects.length)} projects</p>
+							<div class="pf-progress" aria-hidden="true"><span></span></div>
+						</div>
+					</div>
+				</div>
+				<div class="pf-hscroll__viewport" data-hscroll-viewport>
+					<ol class="pf-track" data-hscroll-track>
+						{projects.map((p, i) => (
+							<li class="pf-card-item">
+								<a class="pf-card" href={`/projects/${p.id}`}>
+									<span class="pf-card__top">
+										<span class="pf-label pf-num">{pad(i + 1)}</span>
+										<span class="pf-label">{monthYear(p.data.date)}</span>
+									</span>
+									<span class="pf-display pf-card__title">{p.data.title}</span>
+									<span class="pf-card__bottom">
+										<span class="pf-card__summary">{p.data.summary}</span>
+										<span class="pf-card__foot">
+											<span class="pf-label">{tagList(p.data.tags)}</span>
+											<span class="pf-card__go">
+												View <span class="pf-arrow" aria-hidden="true">→</span>
+											</span>
+										</span>
+									</span>
+								</a>
+							</li>
+						))}
+					</ol>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="pf-section pf-container pf-cols" aria-labelledby="pf-about-title">
+		<div class="pf-section__rule"></div>
+		<div class="pf-section__head">
+			<span class="pf-label pf-num">02</span>
+			<h2 id="pf-about-title" class="pf-display pf-section__title">{home.about_heading}</h2>
+		</div>
+		{
+			variant === 'b' && (
+				<p class="pf-display pf-quote">
+					<span class="pf-muted">…</span>
+					{quote.replace(' patients.', ' ')}
+					<em>patients.</em>
+				</p>
+			)
+		}
+		<div class="pf-about__notes">
+			<p class="pf-annot">
+				<span class="pf-label">Currently</span>
+				<br />
+				MS Bioengineering, Columbia University
+			</p>
+			<p class="pf-annot">
+				<span class="pf-label">Also</span>
+				<br />
+				Lead, Nucleate New York
+			</p>
+		</div>
+		<div class="pf-about__body">
+			{home.about_paragraphs.map((para) => <p>{para}</p>)}
+			<p>
+				<a class="pf-textlink pf-link pf-link--rest" href={home.resume_href}>{home.resume_label}</a>
+			</p>
+		</div>
+	</section>
+
+	<section class="pf-section pf-container pf-cols" aria-labelledby="pf-index-title">
+		<div class="pf-section__rule"></div>
+		<div class="pf-section__head">
+			<span class="pf-label pf-num">03</span>
+			<h2 id="pf-index-title" class="pf-display pf-section__title">{home.explore_heading}</h2>
+		</div>
+		<ul class="pf-index">
+			{home.explore_cards.map((c) => (
+				<li>
+					<a class="pf-cols" href={c.href}>
+						<span class="pf-display pf-index__title">{c.title}</span>
+						<span class="pf-index__desc">{c.desc}</span>
+						<span class="pf-index__go pf-arrow" aria-hidden="true">→</span>
+					</a>
+				</li>
+			))}
+		</ul>
+	</section>
+</main>
+
+<footer class="pf-footer pf-container pf-cols">
+	<a class="pf-display pf-footer__cta" href={home.cta_secondary_href}>{home.cta_secondary_label}.</a>
+	<div class="pf-footer__col">
+		<span class="pf-label">Elsewhere</span>
+		<a class="pf-link" href="https://www.linkedin.com/in/aditirk/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+		<a class="pf-link" href="https://github.com/aditirk1" target="_blank" rel="noopener noreferrer">GitHub</a>
+		<a class="pf-link" href={home.resume_href}>Résumé (PDF)</a>
+	</div>
+	<div class="pf-footer__col">
+		<span class="pf-label">Colophon</span>
+		<span class="pf-muted" data-pf-colophon>Set in {defaultPair.display.name} and {defaultPair.text.name}.</span>
+	</div>
+	<div class="pf-footer__base pf-label">
+		<span>© {year}, aditirk.me</span>
+		<span>Biomedical engineering, research, and writing</span>
+	</div>
+</footer>
+
+<div class="pf-labbar" data-pf-labbar>
+	<a href="/portfolio-lab">Portfolio lab</a>
+	<a href="/portfolio-lab/a" aria-current={variant === 'a' ? 'page' : undefined}>A, architectural</a>
+	<a href="/portfolio-lab/b" aria-current={variant === 'b' ? 'page' : undefined}>B, expressive</a>
+	<select aria-label="Font pair" data-pf-type-select>
+		{typePairs.map((p) => <option value={p.id}>{p.label}</option>)}
+	</select>
+	<span class="pf-labbar__status" data-pf-type-status aria-live="polite"></span>
+</div>
+
+<script>
+	import { initPortfolioPage } from '../../scripts/portfolio.ts';
+	initPortfolioPage();
+</script>
