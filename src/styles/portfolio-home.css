@@ -404,6 +404,7 @@ a:is(:hover, :focus-visible) .pfh-arrow {
 
 .pfh-portrait figcaption {
 	margin-top: 1.1rem;
+	text-wrap: balance;
 }
 
 .pfh-about .pfh-quote {
