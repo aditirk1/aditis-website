@@ -5,7 +5,9 @@
  *
  * Fonts load only on this page, from their official hosts:
  *   Google Fonts (SIL Open Font License) and Fontshare (ITF Free Font License,
- *   free for commercial use) for Satoshi and General Sans.
+ *   free for commercial use) for Satoshi and General Sans. Marlboro (Dieter
+ *   Steffmann) is self-hosted from 1001 Fonts under its Free For Commercial Use
+ *   licence, which allows web embedding; see docs/licenses.
  */
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
@@ -21,20 +23,33 @@ type Face = {
 	stack: string;
 	weights: [number, number];
 	italic: boolean;
-	source: 'Google Fonts' | 'Fontshare';
+	source: 'Google Fonts' | 'Fontshare' | '1001 Fonts';
 	license: string;
+	/** Some display faces ship very wide word spaces. */
+	wordSpacing?: string;
 };
 
-const OFL = 'SIL Open Font License';
-const ITF = 'ITF Free Font License';
+const LICENSES: Record<Face['source'], string> = {
+	'Google Fonts': 'SIL Open Font License',
+	Fontshare: 'ITF Free Font License',
+	'1001 Fonts': '1001Fonts Free For Commercial Use licence, self-hosted',
+};
 
-const face = (family: string, fallback: string, weights: [number, number], italic: boolean, source: Face['source']): Face => ({
+const face = (
+	family: string,
+	fallback: string,
+	weights: [number, number],
+	italic: boolean,
+	source: Face['source'],
+	extra: Partial<Face> = {},
+): Face => ({
 	family,
 	stack: `'${family}', ${fallback}`,
 	weights,
 	italic,
 	source,
-	license: source === 'Google Fonts' ? OFL : ITF,
+	license: LICENSES[source],
+	...extra,
 });
 
 const pairings: Array<{ id: string; name: string; display: Face; text: Face; ui: 'display' | 'text' }> = [
@@ -81,6 +96,15 @@ const pairings: Array<{ id: string; name: string; display: Face; text: Face; ui:
 		text: face('General Sans', 'sans-serif', [200, 700], true, 'Fontshare'),
 		ui: 'text',
 	},
+	{
+		id: 'marlboro',
+		name: 'Marlboro + DM Sans',
+		/* Condensed and heavy, so it's paired with a quiet, open sans; DM Sans's
+		   optical sizing keeps small labels crisp next to it. */
+		display: face('Marlboro', 'serif', [400, 400], false, '1001 Fonts', { wordSpacing: '-0.22em' }),
+		text: face('DM Sans', 'sans-serif', [100, 1000], true, 'Google Fonts'),
+		ui: 'text',
+	},
 ];
 
 const navLabels = ['Home', 'Projects', 'Blog', 'Photo Dump', 'Thoughts', 'Services'];
@@ -117,7 +141,7 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 		<header class="lab-intro">
 			<h1 class="lab-intro__title">Type lab</h1>
 			<p class="lab-intro__text">
-				Six pairings on the site's own words. Headings use the first face, body text the second. Controls apply
+				Seven pairings on the site's own words. Headings use the first face, body text the second. Controls apply
 				to every card at once, so each pairing is judged on the same settings.
 			</p>
 		</header>
@@ -197,7 +221,7 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 							data-t-italic={String(p.text.italic)}
 							data-u-min={ui.weights[0]}
 							data-u-max={ui.weights[1]}
-							style={`--f-display: ${p.display.stack}; --f-text: ${p.text.stack}; --f-ui: ${ui.stack};`}
+							style={`--f-display: ${p.display.stack}; --f-text: ${p.text.stack}; --f-ui: ${ui.stack};${p.display.wordSpacing ? ` --d-word: ${p.display.wordSpacing};` : ''}`}
 						>
 							<header class="lab-specimen__label">
 								<h2 class="lab-specimen__name">
@@ -349,6 +373,14 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 </script>
 
 <style>
+	@font-face {
+		font-family: 'Marlboro';
+		src: url('/fonts/marlboro/Marlboro.ttf') format('truetype');
+		font-weight: 400;
+		font-style: normal;
+		font-display: swap;
+	}
+
 	.lab {
 		--lab-d-size: 100;
 		--lab-d-weight: 400;
@@ -577,7 +609,8 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 	.lab[data-show='bodoni'] [data-pairing='bodoni'],
 	.lab[data-show='cormorant'] [data-pairing='cormorant'],
 	.lab[data-show='syne'] [data-pairing='syne'],
-	.lab[data-show='italiana'] [data-pairing='italiana'] {
+	.lab[data-show='italiana'] [data-pairing='italiana'],
+	.lab[data-show='marlboro'] [data-pairing='marlboro'] {
 		display: block;
 	}
 
@@ -651,6 +684,7 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 	.lab-d {
 		font-family: var(--f-display);
+		word-spacing: var(--d-word, normal);
 		font-weight: var(--lab-d-weight);
 		font-style: var(--lab-d-style);
 		letter-spacing: var(--lab-d-track);
