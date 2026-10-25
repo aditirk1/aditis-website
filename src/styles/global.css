@@ -2207,3 +2207,56 @@ html[data-theme='portfolio'][data-home] :is([data-site-footer], [data-reader-too
 html[data-theme='portfolio'][data-home] #main-content {
 	padding: 0;
 }
+
+/* ======================================================================
+ * Flow: readable surfaces over the water. Pages behind the tabs sit on a
+ * light-blue panel with near-black text and a normal-blue accent; the tabs
+ * get a light fill so their thin type holds up against the footage.
+ * ====================================================================== */
+html[data-theme='beach'] :is(.page-list-shell, .full-page-article) {
+	--page-fg: #0b1724;
+	--page-muted: #304657;
+	--color-amber: #1a6fc4;
+	--project-shade-0: #0b1724;
+	--project-pre-accent: #12406d;
+	--project-post-accent: #0d4f8f;
+	color: var(--page-fg);
+	text-shadow: none;
+}
+
+html[data-theme='beach'] .page-list-shell {
+	padding: clamp(1.5rem, 4vw, 3rem);
+	border: 1px solid rgb(255 255 255 / 0.6);
+	border-radius: 1.25rem;
+	background: rgb(222 242 253 / 0.88);
+	backdrop-filter: blur(10px);
+}
+
+html[data-theme='beach'] .full-page-article__backdrop {
+	background: linear-gradient(180deg, rgb(214 238 252 / 0.84) 0%, rgb(226 244 255 / 0.94) 40%, rgb(226 244 255 / 0.96) 100%);
+	opacity: 1;
+}
+
+html[data-theme='beach'] nav[aria-label='Primary'] .nav-tab {
+	border-color: rgb(255 255 255 / 0.65);
+	background: rgb(224 244 255 / 0.8);
+	color: #0b1724;
+	font-weight: 500;
+	text-shadow: none;
+	backdrop-filter: blur(6px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+	html[data-theme='beach'] nav[aria-label='Primary'] .nav-tab:hover {
+		border-color: #ffffff;
+		background: rgb(255 255 255 / 0.94);
+		color: #1a6fc4;
+	}
+}
+
+html[data-theme='beach'] nav[aria-label='Primary'] .nav-tab[data-active='true'] {
+	border-color: #1a6fc4;
+	background: rgb(255 255 255 / 0.94);
+	color: #1a6fc4;
+	box-shadow: none;
+}

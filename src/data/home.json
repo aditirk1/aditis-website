@@ -49,8 +49,7 @@
   "portfolio": {
     "labels": [
       "Index",
-      "MS Bioengineering, Columbia University",
-      "New York"
+      "MS Bioengineering, Columbia University"
     ],
     "note": "From model, to bench, to population data.",
     "work_heading": "Projects",
@@ -73,6 +72,7 @@
     ],
     "portrait": "/uploads/aditi-portrait.jpg",
     "portrait_alt": "Portrait of Aditi, smiling, in glasses and a dark blazer",
-    "portrait_caption": "Aditi, New York"
+    "portrait_caption": "Aditi, New York",
+    "location": "Currently in New York City"
   }
 }

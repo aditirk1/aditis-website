@@ -71,11 +71,6 @@
 	transform: translate(50%, -50%) rotate(180deg);
 }
 
-.pfh-rail--right {
-	left: calc(100% + var(--m) / 2);
-	transform: translate(-50%, -50%);
-}
-
 /* --- The row --- */
 .pfh-scroller {
 	position: relative;
@@ -234,13 +229,29 @@ a:is(:hover, :focus-visible) .pfh-arrow {
 }
 
 .pfh-hero__labels > :nth-child(2) {
-	grid-column: 8 / span 3;
+	grid-column: 6 / span 3;
 	white-space: nowrap;
 }
 
 .pfh-hero__labels > :nth-child(3) {
-	grid-column: 11 / -1;
-	text-align: right;
+	grid-column: 9 / -1;
+	justify-self: end;
+}
+
+.pfh-location {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	white-space: nowrap;
+}
+
+.pfh-location svg {
+	width: 0.62rem;
+	height: 0.82rem;
+	flex: none;
+	fill: none;
+	stroke: var(--pf-accent);
+	stroke-width: 1.2;
 }
 
 .pfh-hero__title {
@@ -450,13 +461,19 @@ a:is(:hover, :focus-visible) .pfh-arrow {
 	margin: 0;
 }
 
-.pfh-about__body .pfh-about__links {
+/* Résumé on its own line; the other links spaced evenly on the next. */
+.pfh-about__links {
+	display: grid;
+	justify-items: start;
+	gap: 0.9rem;
+	margin-top: 0.5rem;
+}
+
+.pfh-about__body .pfh-about__social {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: center;
-	gap: 0.6rem 1.5rem;
-	margin-top: 0.5rem;
-	color: inherit;
+	gap: 0.5rem 2rem;
+	margin: 0;
 }
 
 .pfh-preview__head {
@@ -611,6 +628,7 @@ a:is(:hover, :focus-visible) .pfh-arrow {
 
 	.pfh-hero__labels > :nth-child(n) {
 		grid-column: 1;
+		justify-self: start;
 		text-align: left;
 	}
 

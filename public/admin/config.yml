@@ -88,8 +88,9 @@ collections:
               - label: Top labels
                 name: labels
                 widget: list
-                hint: Small labels across the top of the first screen. The current year is added after the last one.
+                hint: Small labels across the top of the first screen.
                 field: { label: Label, name: item, widget: string }
+              - { label: Location, name: location, widget: string, hint: Top right of the first screen, after a location pin. }
               - { label: Margin note, name: note, widget: string, hint: Italic note under the headline. }
               - { label: Projects heading, name: work_heading, widget: string }
               - { label: Projects intro, name: work_intro, widget: string }

@@ -23,7 +23,6 @@ const posts = (await loadBlogPosts()).slice(0, 2);
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const pad = (n: number) => String(n).padStart(2, '0');
 const monthYear = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-const year = new Date().getFullYear();
 
 /* "Biomedical / engineer, / researcher, / writer." from the shared taglines. */
 const taglines = (home.taglines ?? []).filter(Boolean) as string[];
@@ -33,7 +32,6 @@ const firstWords = cap(first).split(' ');
 const lines = [...firstWords.slice(0, -1), `${firstWords.at(-1)},`, ...rest.map((t) => `${t},`)];
 
 const labels = [...pf.labels];
-if (labels.length) labels[labels.length - 1] = `${labels.at(-1)}, ${year}`;
 
 const quoteWords = pf.about_quote.trim().split(' ');
 const quoteEnd = quoteWords.pop() ?? '';
@@ -48,7 +46,6 @@ const sections = ['Index', pf.work_heading, pf.writing_heading, home.about_headi
 		<span class="pfh-cross pfh-cross--bl"></span>
 		<span class="pfh-cross pfh-cross--br"></span>
 		<span class="pfh-rail pfh-rail--left">aditirk.me</span>
-		<span class="pfh-rail pfh-rail--right">Portfolio, {year}</span>
 	</div>
 
 	<div class="pfh-scroller" data-pfh-scroller>
@@ -56,6 +53,17 @@ const sections = ['Index', pf.work_heading, pf.writing_heading, home.about_headi
 			<section class="pfh-panel pfh-hero" data-pfh-panel data-pfh-label={`01 ${sections[0]}`} aria-labelledby="pfh-title">
 				<div class="pfh-hero__labels">
 					{labels.map((l, i) => <p class="pfh-label pfh-fade" style={`--i: ${i}`}>{l}</p>)}
+					{
+						pf.location && (
+							<p class="pfh-label pfh-fade pfh-location" style={`--i: ${labels.length}`}>
+								<svg viewBox="0 0 12 16" aria-hidden="true">
+									<path d="M6 15s5-5.1 5-9A5 5 0 0 0 1 6c0 3.9 5 9 5 9Z" />
+									<circle cx="6" cy="6" r="1.8" />
+								</svg>
+								{pf.location}
+							</p>
+						)
+					}
 				</div>
 				<h1 id="pfh-title" class="pfh-display pfh-hero__title">
 					{lines.map((w, i) => <span class="pfh-hero__line pfh-rise" style={`--i: ${i}`}>{w}</span>)}
@@ -157,14 +165,16 @@ const sections = ['Index', pf.work_heading, pf.writing_heading, home.about_headi
 							</div>
 						))}
 					</dl>
-					<p class="pfh-about__links">
+					<div class="pfh-about__links">
 						<a class="pfh-more" href={home.resume_href}>
 							{home.resume_label} <span class="pfh-arrow" aria-hidden="true">→</span>
 						</a>
-						<a class="pfh-link" href={home.cta_secondary_href}>{home.cta_secondary_label}</a>
-						<a class="pfh-link" href="https://www.linkedin.com/in/aditirk/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-						<a class="pfh-link" href="https://github.com/aditirk1" target="_blank" rel="noopener noreferrer">GitHub</a>
-					</p>
+						<p class="pfh-about__social">
+							<a class="pfh-link" href={home.cta_secondary_href}>{home.cta_secondary_label}</a>
+							<a class="pfh-link" href="https://www.linkedin.com/in/aditirk/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+							<a class="pfh-link" href="https://github.com/aditirk1" target="_blank" rel="noopener noreferrer">GitHub</a>
+						</p>
+					</div>
 				</div>
 			</section>
 		</div>
