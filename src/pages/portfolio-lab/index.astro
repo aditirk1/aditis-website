@@ -1,0 +1,312 @@
+---
+/**
+ * Portfolio lab: compare the two homepage variations in each font pair, on
+ * the real homepage content. Each frame is the live variation page with
+ * ?type=<pair>&embed=1. noindex; not linked from the site.
+ */
+import PortfolioLayout from '../../layouts/PortfolioLayout.astro';
+import home from '../../data/home.json';
+import { typePairs, type TypeFace } from '../../data/portfolio-type.ts';
+
+const variants = [
+	{ id: 'a', name: 'A, architectural editorial', note: 'Visible column grid, concentric study behind the hero, four-column project cards on the grid lines.' },
+	{ id: 'b', name: 'B, expressive editorial', note: 'Type leads: a stepped four-line headline, one large cropped disc, wider cards and more air.' },
+];
+
+const stack = (face: TypeFace, generic: string) =>
+	[`'${face.cssFamily}'`, face.local ? `'${face.local.standIn}'` : null, generic].filter(Boolean).join(', ');
+const headline = 'Biomedical engineer, researcher, writer.';
+---
+
+<PortfolioLayout title="Portfolio lab">
+	<main class="plab pf-container">
+		<header class="plab-intro">
+			<p class="pf-label pf-num">Portfolio lab</p>
+			<h1 class="pf-display plab-intro__title">Two directions, three type pairs.</h1>
+			<p class="plab-intro__text">
+				The professional front of the site, on the real homepage content. Both variations use the same palette
+				and words; they differ only in composition. Open one to scroll it properly: Selected work moves
+				sideways as you scroll down.
+			</p>
+			<p class="plab-intro__links">
+				{variants.map((v) => <a class="pf-link pf-link--rest" href={`/portfolio-lab/${v.id}`}>Open {v.name}</a>)}
+			</p>
+		</header>
+
+		<section class="plab-section" aria-labelledby="plab-type">
+			<h2 id="plab-type" class="pf-label">Type specimens</h2>
+			<div class="plab-specimens">
+				{
+					typePairs.map((p) => (
+						<article class="plab-specimen" data-pair={p.id}>
+							<p class="pf-label">{p.label}</p>
+							<p class="plab-specimen__display" style={`font-family: ${stack(p.display, 'serif')}`}>
+								{headline}
+							</p>
+							<p class="plab-specimen__text" style={`font-family: ${stack(p.text, 'sans-serif')}`}>
+								{home.hero_description}
+							</p>
+							<ul class="plab-specimen__faces">
+								{[p.display, p.text].map((f) => (
+									<li data-face={f.name} data-local={f.local ? f.local.probe.join('|') : undefined}>
+										<strong>{f.name}</strong>, {f.source}.{' '}
+										<span class="plab-status" data-status>
+											{f.local ? 'Checking this Mac…' : 'Loaded from Fontshare.'}
+										</span>
+										{f.local && (
+											<>
+												{' '}
+												<a class="pf-link pf-link--rest" href={f.local.getIt} target="_blank" rel="noopener noreferrer">
+													Get the trial
+												</a>
+											</>
+										)}
+									</li>
+								))}
+							</ul>
+						</article>
+					))
+				}
+			</div>
+		</section>
+
+		<section class="plab-section" aria-labelledby="plab-matrix">
+			<div class="plab-matrix-head">
+				<h2 id="plab-matrix" class="pf-label">Homepage, both variations</h2>
+				<div class="pf-switch" role="group" aria-label="Frame size" data-plab-frame>
+					<button type="button" aria-pressed="true" data-size="desktop">Desktop</button>
+					<button type="button" aria-pressed="false" data-size="phone">Phone</button>
+				</div>
+			</div>
+			<div class="plab-matrix" data-frame="desktop">
+				{
+					typePairs.map((p) => (
+						<div class="plab-row">
+							<p class="plab-row__label pf-label">{p.label}</p>
+							{variants.map((v) => (
+								<figure class="plab-cell">
+									<div class="plab-stage" data-stage>
+										<iframe
+											src={`/portfolio-lab/${v.id}?type=${p.id}&embed=1`}
+											title={`${v.name}, ${p.label}`}
+											loading="lazy"
+										/>
+									</div>
+									<figcaption>
+										<a class="pf-link" href={`/portfolio-lab/${v.id}?type=${p.id}`}>
+											{v.name}
+										</a>
+										<span class="pf-muted">{v.note}</span>
+									</figcaption>
+								</figure>
+							))}
+						</div>
+					))
+				}
+			</div>
+		</section>
+
+		<section class="plab-section plab-notes" aria-labelledby="plab-licences">
+			<h2 id="plab-licences" class="pf-label">Licences</h2>
+			<p>
+				Zodiak, Switzer and General Sans come from Fontshare under the ITF Free Font License, which allows
+				commercial web use. PP Editorial New and PP Neue Montreal (Pangram Pangram) and Roslindale Display
+				(David Jonathan Ross) are commercial: nothing of theirs is served here. If a trial is installed on this
+				Mac it is read locally; otherwise a labelled open-licence stand-in shows (Newsreader, Hanken Grotesk,
+				Fraunces). Shipping either of those pairs needs a webfont licence.
+			</p>
+		</section>
+	</main>
+</PortfolioLayout>
+
+<script>
+	const FRAME = { desktop: [1440, 900], phone: [390, 844] } as const;
+	const matrix = document.querySelector<HTMLElement>('.plab-matrix');
+
+	function fit() {
+		if (!matrix) return;
+		const [w, h] = FRAME[matrix.dataset.frame as keyof typeof FRAME] ?? FRAME.desktop;
+		matrix.querySelectorAll<HTMLElement>('[data-stage]').forEach((stage) => {
+			const scale = Math.min(1, stage.clientWidth / w);
+			stage.style.setProperty('--w', `${w}px`);
+			stage.style.setProperty('--h', `${h}px`);
+			stage.style.setProperty('--s', String(scale));
+		});
+	}
+	if (matrix) new ResizeObserver(fit).observe(matrix);
+
+	document.querySelectorAll<HTMLButtonElement>('[data-plab-frame] button').forEach((btn) => {
+		btn.addEventListener('click', () => {
+			if (!matrix) return;
+			matrix.dataset.frame = btn.dataset.size ?? 'desktop';
+			document
+				.querySelectorAll<HTMLButtonElement>('[data-plab-frame] button')
+				.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+			fit();
+		});
+	});
+
+	document.querySelectorAll<HTMLElement>('[data-local]').forEach(async (li) => {
+		const status = li.querySelector<HTMLElement>('[data-status]');
+		const names = (li.dataset.local ?? '').split('|');
+		try {
+			await new FontFace('plab-probe', names.map((n) => `local("${n}")`).join(', ')).load();
+			if (status) status.textContent = 'Installed on this Mac, shown for real.';
+		} catch {
+			if (status) status.textContent = 'Not installed here, so the stand-in is showing.';
+			li.dataset.missing = '';
+		}
+	});
+</script>
+
+<style>
+	.plab {
+		padding-block: clamp(3rem, 9vh, 6rem) 6rem;
+	}
+
+	.plab-intro {
+		max-width: 52rem;
+		margin-bottom: clamp(3rem, 8vh, 5rem);
+	}
+
+	.plab-intro__title {
+		margin: 0.75rem 0 1.25rem;
+		font-size: clamp(2.6rem, 6vw, 5.5rem);
+	}
+
+	.plab-intro__text {
+		margin: 0;
+		max-width: 44rem;
+		font-size: 1.1rem;
+		color: var(--pf-ink-2);
+	}
+
+	.plab-intro__links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 2rem;
+		margin: 1.5rem 0 0;
+		font-weight: 500;
+	}
+
+	.plab-section {
+		padding-top: 1.1rem;
+		margin-bottom: clamp(3rem, 8vh, 5rem);
+		border-top: 1px solid var(--pf-line);
+	}
+
+	.plab-specimens {
+		display: grid;
+		gap: 2.5rem var(--pf-gutter);
+		margin-top: 1.5rem;
+	}
+
+	@media (min-width: 1000px) {
+		.plab-specimens {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	.plab-specimen__display {
+		margin: 0.9rem 0 1rem;
+		font-weight: 300;
+		font-size: clamp(2.2rem, 3.6vw, 3.4rem);
+		line-height: 0.98;
+		letter-spacing: -0.025em;
+		color: var(--pf-ink);
+	}
+
+	.plab-specimen__text {
+		margin: 0 0 1rem;
+		font-size: 1rem;
+		line-height: 1.6;
+		color: var(--pf-ink-2);
+	}
+
+	.plab-specimen__faces {
+		display: grid;
+		gap: 0.4rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-size: 0.82rem;
+		color: var(--pf-ink-2);
+	}
+
+	.plab-specimen__faces strong {
+		font-weight: 500;
+		color: var(--pf-ink);
+	}
+
+	.plab-specimen__faces li[data-missing] .plab-status {
+		color: var(--pf-accent);
+	}
+
+	.plab-matrix-head {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.plab-row {
+		display: grid;
+		gap: 1rem var(--pf-gutter);
+		margin-top: 2rem;
+	}
+
+	@media (min-width: 900px) {
+		.plab-row {
+			grid-template-columns: 1fr 1fr;
+		}
+
+		.plab-matrix[data-frame='phone'] .plab-row {
+			grid-template-columns: repeat(2, minmax(0, 22rem));
+		}
+	}
+
+	.plab-row__label {
+		grid-column: 1 / -1;
+		color: var(--pf-ink);
+	}
+
+	.plab-cell {
+		margin: 0;
+	}
+
+	.plab-stage {
+		--w: 1440px;
+		--h: 900px;
+		--s: 0.4;
+		position: relative;
+		width: 100%;
+		height: calc(var(--h) * var(--s));
+		overflow: hidden;
+		border: 1px solid var(--pf-line);
+		background: var(--pf-bg);
+	}
+
+	.plab-stage iframe {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: var(--w);
+		height: var(--h);
+		border: 0;
+		transform: scale(var(--s));
+		transform-origin: 0 0;
+	}
+
+	.plab-cell figcaption {
+		display: grid;
+		gap: 0.2rem;
+		margin-top: 0.7rem;
+		font-size: 0.86rem;
+	}
+
+	.plab-notes p {
+		max-width: 52rem;
+		margin: 1rem 0 0;
+		color: var(--pf-ink-2);
+	}
+</style>

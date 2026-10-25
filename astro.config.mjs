@@ -21,6 +21,7 @@ export default defineConfig({
 				!page.includes('/quick') &&
 				!page.includes('/type-lab') &&
 				!page.includes('/transition-lab') &&
+				!page.includes('/portfolio-lab') &&
 				!page.includes('/404'),
 		}),
 	],
