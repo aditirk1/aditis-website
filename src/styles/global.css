@@ -1700,3 +1700,101 @@ html[data-coarse-pointer] .project-index-link:active .project-index-link__label 
 		transition: none !important;
 	}
 }
+
+/*
+ * Orbit and Flow: 3D spatial scroll (after Adam Argyle's "3D spacial scroll
+ * zoom"). Things arrive from depth at the bottom of the screen and fly past at
+ * the top; anything fully on screen is at rest, so reading is never animated.
+ * Scroll-driven CSS only; without support, or with reduced motion, the page
+ * scrolls plainly. The orrery follows the same hero progress in
+ * universe-star-field.ts (SPATIAL_HERO_RANGE_VH).
+ */
+@keyframes spatial-arrive {
+	from {
+		opacity: 0;
+		filter: blur(4px);
+		transform: perspective(900px) translateZ(-420px);
+	}
+}
+
+@keyframes spatial-depart {
+	to {
+		opacity: 0;
+		filter: blur(3px);
+		transform: perspective(900px) translateZ(320px);
+	}
+}
+
+@keyframes spatial-hero-depart {
+	to {
+		opacity: 0;
+		filter: blur(4px);
+		transform: perspective(900px) translateZ(460px);
+	}
+}
+
+@supports (animation-timeline: view()) {
+	@media (prefers-reduced-motion: no-preference) {
+		[data-spatial-hero] {
+			animation: spatial-hero-depart linear both;
+			animation-timeline: scroll(root block);
+			animation-range: 0 70vh;
+		}
+
+		[data-spatial],
+		[data-spatial-section] {
+			animation:
+				spatial-arrive linear both,
+				spatial-depart linear both;
+			animation-timeline: view(), view();
+		}
+
+		/* Rows and tiles: in while crossing the bottom edge, out while crossing the top. */
+		[data-spatial] {
+			animation-range:
+				entry 0% entry 100%,
+				exit 0% exit 100%;
+		}
+
+		/* Sections can be taller than the screen: settle by mid-screen, leave late. */
+		[data-spatial-section] {
+			animation-range:
+				entry 0% entry 50%,
+				exit 60% exit 100%;
+		}
+
+		/* Live map (WebGL), and touch devices: depth and fade, no blur. */
+		[data-spatial-no-blur] {
+			animation-name: spatial-arrive-sharp, spatial-depart-sharp;
+		}
+
+		html[data-coarse-pointer] :is([data-spatial], [data-spatial-section]) {
+			animation-name: spatial-arrive-sharp, spatial-depart-sharp;
+		}
+
+		html[data-coarse-pointer] [data-spatial-hero] {
+			animation-name: spatial-hero-depart-sharp;
+		}
+	}
+}
+
+@keyframes spatial-arrive-sharp {
+	from {
+		opacity: 0;
+		transform: perspective(900px) translateZ(-420px);
+	}
+}
+
+@keyframes spatial-depart-sharp {
+	to {
+		opacity: 0;
+		transform: perspective(900px) translateZ(320px);
+	}
+}
+
+@keyframes spatial-hero-depart-sharp {
+	to {
+		opacity: 0;
+		transform: perspective(900px) translateZ(460px);
+	}
+}

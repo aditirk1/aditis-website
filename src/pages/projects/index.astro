@@ -27,7 +27,7 @@ const sorted = projects.sort((a, b) => b.data.date.valueOf() - a.data.date.value
 				<nav class="project-index" aria-label="Projects" data-reveal-stagger data-project-hover="underline">
 					<ul class="project-index__list">
 						{sorted.map((post, i) => (
-							<li class="project-index__item" data-reveal-child>
+							<li class="project-index__item" data-reveal-child data-spatial>
 								<a href={`/projects/${post.id}`} class="project-index-link" data-shade={String(i % 4)}>
 									<span class="project-index-link__label">{post.data.title}</span>
 								</a>
