@@ -71,6 +71,12 @@ const chars = home.hero_title.replace(/\.$/, '').split('');
 				</span>
 			))}
 		</p>
+
+		<!-- Theme loaders (styled in ThemeLoader.astro): Orbit's pulse, Flow's wave. -->
+		<div class="splash-loader" data-splash-loader aria-hidden="true">
+			<div class="loader-orbit"></div>
+			<div class="loader-flow"></div>
+		</div>
 	</div>
 </div>
 
@@ -125,6 +131,22 @@ const chars = home.hero_title.replace(/\.$/, '').split('');
 		);
 		background-size: 220% 100%;
 		background-position: 120% center;
+	}
+
+	.splash-loader {
+		display: grid;
+		place-items: center;
+		height: 60px;
+		margin-top: 2.25rem;
+	}
+
+	.splash-loader > * {
+		display: none;
+	}
+
+	:global(html[data-theme='universe']) .splash-loader .loader-orbit,
+	:global(html[data-theme='beach']) .splash-loader .loader-flow {
+		display: block;
 	}
 
 	@keyframes splash-logo-shimmer {

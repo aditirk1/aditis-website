@@ -14,8 +14,18 @@ import {
 } from '../utils/theme-preference.ts';
 import { recordTransitionOrigin } from './vt-origin.ts';
 
+/* Pages that exist only in Orbit and Flow; the head script in Layout.astro mirrors this. */
+const PLAYFUL_ONLY = /^\/(photo-dump|thoughts|dream-journal)(\/|$)/;
+
 function reloadInto(theme: SiteTheme, from?: Element | null) {
 	storeTheme(theme);
+	try {
+		/* The next page shows its theme's loading screen; a playful homepage replays its intro. */
+		sessionStorage.setItem('aditi-theme-switched', '1');
+		if (theme !== 'portfolio') sessionStorage.removeItem('aditi-splash-seen');
+	} catch {
+		/* Storage blocked: the switch still happens, without the loading screen. */
+	}
 	if (from) {
 		const r = from.getBoundingClientRect();
 		recordTransitionOrigin({
@@ -25,7 +35,17 @@ function reloadInto(theme: SiteTheme, from?: Element | null) {
 			r: Math.min(r.width, r.height) / 2,
 		});
 	}
-	location.replace(location.href);
+	location.replace(theme === 'portfolio' && PLAYFUL_ONLY.test(location.pathname) ? '/' : location.href);
+}
+
+/* Orbit and Flow swap without a reload, so show the new theme's loader here. */
+function flashLoader() {
+	const html = document.documentElement;
+	html.setAttribute('data-loading', '');
+	window.setTimeout(() => {
+		html.setAttribute('data-loading', 'out');
+		window.setTimeout(() => html.removeAttribute('data-loading'), 450);
+	}, matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : 800);
 }
 
 export function initThemeSwitch(applyPlayful: (theme: PlayfulTheme) => void): () => void {
@@ -77,6 +97,7 @@ export function initThemeSwitch(applyPlayful: (theme: PlayfulTheme) => void): ()
 	const onOther = () => {
 		const t = current();
 		if (t === 'portfolio') return;
+		flashLoader();
 		applyPlayful(other(t));
 		syncLabels();
 		setOpen(false);
