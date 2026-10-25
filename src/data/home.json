@@ -53,20 +53,12 @@
       "New York"
     ],
     "note": "From model, to bench, to population data.",
-    "work_heading": "Selected work",
-    "writing_heading": "Writing",
-    "writing_empty": "Essays will land here when they're ready.",
-    "about_quote": "the gap between a promising innovation and one that actually reaches patients.",
-    "facts": [
-      {
-        "label": "Currently",
-        "value": "MS Bioengineering, Columbia University"
-      },
-      {
-        "label": "Also",
-        "value": "Lead, Nucleate New York"
-      }
-    ],
-    "contact_heading": "Let's talk."
+    "work_heading": "Projects",
+    "work_intro": "A selection of what I've built, researched and worked on so far.",
+    "work_more": "View all projects",
+    "writing_heading": "Blog",
+    "writing_intro": "I write every day, to keep my thinking my own.",
+    "writing_more": "View all posts",
+    "writing_empty": "Essays will land here when they're ready."
   }
 }

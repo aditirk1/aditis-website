@@ -2,9 +2,9 @@
  * Portfolio homepage: the page is one sideways row (components/portfolio/
  * PortfolioHome.astro). The row is a native horizontal scroller, so touch
  * swipes, horizontal trackpad gestures, focus and find-in-page all work as
- * normal. This adds what browsers don't do for a sideways page: vertical wheel
- * and trackpad input move it sideways, keys step between panels, and the
- * status line follows along.
+ * normal. This adds what browsers don't do for a sideways page: wheel and
+ * trackpad input in either direction, anywhere on the page, moves it
+ * sideways; keys step between panels; the status line follows along.
  */
 const EASE = 0.18;
 
@@ -59,16 +59,25 @@ export function initPortfolioHome(): () => void {
 
 	const onWheel = (e: WheelEvent) => {
 		if (e.ctrlKey || e.defaultPrevented) return;
-		/* Sideways gestures are already sideways: leave them native. */
-		if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) {
-			if (!gliding) target = scroller.scrollLeft;
-			return;
-		}
-		if (innerCanScroll(e)) return;
-		let d = e.deltaY;
+		const sideways = Math.abs(e.deltaX) > Math.abs(e.deltaY);
+		if (!sideways && innerCanScroll(e)) return;
+		let d = sideways ? e.deltaX : e.deltaY;
 		if (e.deltaMode === 1) d *= 32;
 		else if (e.deltaMode === 2) d *= scroller.clientWidth;
 		e.preventDefault();
+		/*
+		 * Trackpads send many small deltas that already carry the OS's momentum:
+		 * follow them 1:1, in either direction, wherever the pointer is. Mouse
+		 * wheels send coarse notches: glide between them.
+		 */
+		if (sideways || (e.deltaMode === 0 && Math.abs(d) < 50)) {
+			cancelAnimationFrame(raf);
+			raf = 0;
+			gliding = false;
+			scroller.scrollLeft = clamp(scroller.scrollLeft + d);
+			target = scroller.scrollLeft;
+			return;
+		}
 		glideTo((gliding ? target : scroller.scrollLeft) + d);
 	};
 

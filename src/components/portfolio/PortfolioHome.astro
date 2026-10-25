@@ -14,10 +14,11 @@ import home from '../../data/home.json';
 import { loadBlogPosts } from '../../utils/blog.ts';
 
 const pf = home.portfolio;
-const projects = (await getCollection('projects', ({ data }) => data.draft !== true)).sort(
-	(a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
-);
-const posts = (await loadBlogPosts()).slice(0, 4);
+/* Previews only: the newest few, each section ending in a link to its full page. */
+const projects = (await getCollection('projects', ({ data }) => data.draft !== true))
+	.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+	.slice(0, 3);
+const posts = (await loadBlogPosts()).slice(0, 2);
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -34,10 +35,7 @@ const lines = [...firstWords.slice(0, -1), `${firstWords.at(-1)},`, ...rest.map(
 const labels = [...pf.labels];
 if (labels.length) labels[labels.length - 1] = `${labels.at(-1)}, ${year}`;
 
-const quoteWords = pf.about_quote.trim().split(' ');
-const quoteEnd = quoteWords.pop() ?? '';
-
-const sections = ['Index', pf.work_heading, pf.writing_heading, home.about_heading, pf.contact_heading.replace(/\.$/, '')];
+const sections = ['Index', pf.work_heading, pf.writing_heading];
 ---
 
 <section class="pfh" data-portfolio-home aria-label="Portfolio">
@@ -73,93 +71,59 @@ const sections = ['Index', pf.work_heading, pf.writing_heading, home.about_headi
 				<p class="pfh-hero__note pfh-annot pfh-fade" style="--i: 5">{pf.note}</p>
 			</section>
 
-			<section class="pfh-panel pfh-intro" id="pfh-work" data-pfh-panel data-pfh-label={`02 ${sections[1]}`} aria-labelledby="pfh-work-title">
-				<span class="pfh-label pfh-num">02</span>
-				<h2 id="pfh-work-title" class="pfh-display pfh-intro__title">{pf.work_heading}</h2>
-				<p class="pfh-label">{pad(projects.length)} projects</p>
-				<a class="pfh-link pfh-link--rest pfh-intro__all" href="/projects">All projects</a>
+			<section class="pfh-panel pfh-preview pfh-preview--work" id="pfh-work" data-pfh-panel data-pfh-label={`02 ${sections[1]}`} aria-labelledby="pfh-work-title">
+				<header class="pfh-preview__head">
+					<span class="pfh-label pfh-num">02</span>
+					<h2 id="pfh-work-title" class="pfh-display pfh-preview__title">{pf.work_heading}</h2>
+					<p class="pfh-preview__intro">{pf.work_intro}</p>
+				</header>
+				<ol class="pfh-list">
+					{projects.map((p, i) => (
+						<li>
+							<a class="pfh-item" href={`/projects/${p.id}`}>
+								<span class="pfh-label pfh-num">{pad(i + 1)}</span>
+								<span class="pfh-display pfh-item__title">{p.data.title}</span>
+								<span class="pfh-label pfh-item__meta">
+									{monthYear(p.data.date)}
+									{p.data.tags.length > 0 && <>, {p.data.tags.map(cap).join(', ')}</>}
+								</span>
+							</a>
+						</li>
+					))}
+				</ol>
+				<a class="pfh-more" href="/projects">
+					{pf.work_more} <span class="pfh-arrow" aria-hidden="true">→</span>
+				</a>
 			</section>
 
-			{
-				projects.map((p, i) => (
-					<article class:list={['pfh-panel pfh-card', i === 0 && 'pfh-card--lead']} data-pfh-panel data-pfh-label={`02 ${sections[1]}`}>
-						<a class="pfh-card__link" href={`/projects/${p.id}`}>
-							<span class="pfh-card__top">
-								<span class="pfh-label pfh-num">{pad(i + 1)}</span>
-								<span class="pfh-label">{monthYear(p.data.date)}</span>
-							</span>
-							<span class="pfh-display pfh-card__title">{p.data.title}</span>
-							<span class="pfh-card__summary">{p.data.summary}</span>
-							<span class="pfh-card__foot">
-								<span class="pfh-label">{p.data.tags.map(cap).join(', ')}</span>
-								<span class="pfh-card__go">
-									View <span class="pfh-arrow" aria-hidden="true">→</span>
-								</span>
-							</span>
-						</a>
-					</article>
-				))
-			}
-
-			<section class="pfh-panel pfh-writing" id="pfh-writing" data-pfh-panel data-pfh-label={`03 ${sections[2]}`} aria-labelledby="pfh-writing-title">
-				<span class="pfh-label pfh-num">03</span>
-				<h2 id="pfh-writing-title" class="pfh-display pfh-intro__title">{pf.writing_heading}</h2>
+			<section class="pfh-panel pfh-preview pfh-preview--blog" id="pfh-writing" data-pfh-panel data-pfh-label={`03 ${sections[2]}`} aria-labelledby="pfh-writing-title">
+				<header class="pfh-preview__head">
+					<span class="pfh-label pfh-num">03</span>
+					<h2 id="pfh-writing-title" class="pfh-display pfh-preview__title">{pf.writing_heading}</h2>
+					<p class="pfh-preview__intro">{pf.writing_intro}</p>
+				</header>
 				{
 					posts.length ? (
-						<ul class="pfh-posts">
-							{posts.map((post) => (
+						<ol class="pfh-list">
+							{posts.map((post, i) => (
 								<li>
-									<a href={post.href}>
-										<span class="pfh-display pfh-posts__title">{post.entry.data.title}</span>
-										<span class="pfh-label">{monthYear(post.entry.data.date)}</span>
+									<a class="pfh-item" href={post.href}>
+										<span class="pfh-label pfh-num">{pad(i + 1)}</span>
+										<span class="pfh-display pfh-item__title">{post.entry.data.title}</span>
+										<span class="pfh-label pfh-item__meta">
+											{monthYear(post.entry.data.date)}, {post.minutes} min read
+										</span>
 									</a>
 								</li>
 							))}
-						</ul>
+						</ol>
 					) : (
-						<p class="pfh-annot pfh-writing__empty">{pf.writing_empty}</p>
+						<p class="pfh-annot pfh-preview__empty">{pf.writing_empty}</p>
 					)
 				}
-				<a class="pfh-link pfh-link--rest" href="/blog">All writing</a>
-			</section>
-
-			<section class="pfh-panel pfh-about" data-pfh-panel data-pfh-label={`04 ${sections[3]}`} aria-labelledby="pfh-about-title">
-				<span class="pfh-label pfh-num">04</span>
-				<h2 id="pfh-about-title" class="pfh-display pfh-intro__title">{home.about_heading}</h2>
-				<p class="pfh-display pfh-quote">
-					<span class="pfh-muted">…</span>{quoteWords.join(' ')} <em>{quoteEnd}</em>
-				</p>
-				<dl class="pfh-facts">
-					{
-						pf.facts.map((f) => (
-							<div>
-								<dt class="pfh-label">{f.label}</dt>
-								<dd class="pfh-annot">{f.value}</dd>
-							</div>
-						))
-					}
-				</dl>
-			</section>
-
-			<section class="pfh-panel pfh-about-text" data-pfh-panel data-pfh-label={`04 ${sections[3]}`} aria-label={home.about_heading}>
-				{home.about_paragraphs.map((para) => <p>{para}</p>)}
-				<a class="pfh-link pfh-link--rest" href={home.resume_href}>{home.resume_label}</a>
-			</section>
-
-			<section class="pfh-panel pfh-contact" data-pfh-panel data-pfh-label={`05 ${sections[4]}`} aria-labelledby="pfh-contact-title">
-				<span class="pfh-label pfh-num">05</span>
-				<a id="pfh-contact-title" class="pfh-display pfh-contact__cta" href={home.cta_secondary_href}>{pf.contact_heading}</a>
-				<div class="pfh-contact__cols">
-					<div>
-						<p class="pfh-label">Elsewhere</p>
-						<a class="pfh-link" href="https://www.linkedin.com/in/aditirk/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-						<a class="pfh-link" href="https://github.com/aditirk1" target="_blank" rel="noopener noreferrer">GitHub</a>
-						<a class="pfh-link" href={home.resume_href}>Résumé (PDF)</a>
-					</div>
-					<div>
-						<p class="pfh-label">© {year}, aditirk.me</p>
-					</div>
-				</div>
+				<a class="pfh-more" href="/blog">
+					{pf.writing_more} <span class="pfh-arrow" aria-hidden="true">→</span>
+				</a>
 			</section>
 		</div>
 	</div>

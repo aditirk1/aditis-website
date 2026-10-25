@@ -83,7 +83,7 @@ collections:
             name: portfolio
             widget: object
             collapsed: true
-            hint: Only the professional (default) homepage uses these. Its headline is the taglines above, and its description, About text and résumé link are shared with Orbit and Flow, so edit those once above.
+            hint: Only the professional (default) homepage uses these. Its headline is the taglines above and its description is shared with Orbit and Flow, so edit those once above. It previews the newest projects and blog posts.
             fields:
               - label: Top labels
                 name: labels
@@ -92,16 +92,12 @@ collections:
                 field: { label: Label, name: item, widget: string }
               - { label: Margin note, name: note, widget: string, hint: Italic note under the headline. }
               - { label: Projects heading, name: work_heading, widget: string }
-              - { label: Writing heading, name: writing_heading, widget: string }
-              - { label: Writing, when there are no posts, name: writing_empty, widget: string }
-              - { label: About pull quote, name: about_quote, widget: text, hint: The last word is set in terracotta italics. }
-              - label: About facts
-                name: facts
-                widget: list
-                fields:
-                  - { label: Label, name: label, widget: string }
-                  - { label: Text, name: value, widget: string }
-              - { label: Closing line, name: contact_heading, widget: string, hint: The large link at the end, to the secondary button's page. }
+              - { label: Projects intro, name: work_intro, widget: string }
+              - { label: Projects link, name: work_more, widget: string, hint: Arrow link to the full Projects page. }
+              - { label: Blog heading, name: writing_heading, widget: string }
+              - { label: Blog intro, name: writing_intro, widget: string }
+              - { label: Blog link, name: writing_more, widget: string, hint: Arrow link to the full Blog page. }
+              - { label: Blog, when there are no posts, name: writing_empty, widget: string }
       - name: services
         label: Services page
         file: src/data/services.json

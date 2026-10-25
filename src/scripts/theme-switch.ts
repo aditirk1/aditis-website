@@ -42,10 +42,26 @@ export function initThemeSwitch(applyPlayful: (theme: PlayfulTheme) => void): ()
 	const other = (t: PlayfulTheme): PlayfulTheme => (t === 'universe' ? 'beach' : 'universe');
 	const items = () => Array.from(list?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? []);
 
+	/* One span per letter so the hover animation can move them in turn. */
+	function setLabel(text: string) {
+		if (!label) return;
+		button?.setAttribute('aria-label', `${text} theme, change theme`);
+		label.replaceChildren(
+			...Array.from(text, (ch, i) => {
+				const span = document.createElement('span');
+				span.className = 'theme-menu__char';
+				span.style.setProperty('--i', String(i));
+				span.setAttribute('aria-hidden', 'true');
+				span.textContent = ch;
+				return span;
+			}),
+		);
+	}
+
 	function syncLabels() {
 		const t = current();
 		if (t === 'portfolio') return;
-		if (label) label.textContent = THEME_LABEL[t];
+		setLabel(THEME_LABEL[t]);
 		if (otherLabel) otherLabel.textContent = `Switch to ${THEME_LABEL[other(t)]}`;
 	}
 
