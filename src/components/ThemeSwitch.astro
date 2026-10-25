@@ -1,0 +1,50 @@
+---
+/**
+ * Theme controls in the header. Portfolio shows only "bored?"; theme names
+ * appear once a visitor is in Orbit or Flow, as a menu to switch between them
+ * or go back to Portfolio. Which one shows is CSS on html[data-theme], so the
+ * right control is there on first paint. Behaviour: scripts/theme-switch.ts.
+ */
+---
+
+<div class="theme-switch pointer-events-auto shrink-0" data-theme-switch>
+	<button type="button" class="theme-bored" data-theme-bored>bored?</button>
+
+	<div class="theme-menu" data-theme-menu>
+		<button
+			type="button"
+			class="theme-menu__button"
+			aria-haspopup="menu"
+			aria-expanded="false"
+			aria-controls="theme-menu-list"
+			data-theme-menu-button
+		>
+			<svg class="theme-menu__icon theme-menu__icon--universe" viewBox="0 0 16 16" aria-hidden="true">
+				<circle cx="8" cy="8" r="3.2" />
+				<ellipse cx="8" cy="8" rx="7" ry="2.6" transform="rotate(-20 8 8)" />
+			</svg>
+			<svg class="theme-menu__icon theme-menu__icon--beach" viewBox="0 0 16 16" aria-hidden="true">
+				<path d="M1 6.2c2.3-2 4.7-2 7 0s4.7 2 7 0" />
+				<path d="M1 10.2c2.3-2 4.7-2 7 0s4.7 2 7 0" />
+			</svg>
+			<span class="theme-menu__label" data-theme-menu-label>Orbit</span>
+			<svg class="theme-menu__chevron" viewBox="0 0 10 10" aria-hidden="true">
+				<path d="M2 3.8 5 6.6 8 3.8" />
+			</svg>
+		</button>
+		<div class="theme-menu__list" id="theme-menu-list" role="menu" hidden data-theme-menu-list>
+			<button type="button" role="menuitem" data-theme-to-other>
+				<span data-theme-other-label>Switch to Flow</span>
+				<svg viewBox="0 0 16 16" aria-hidden="true">
+					<path d="M3 5.5h10m-2.5-2.5L13 5.5 10.5 8M13 10.5H3m2.5-2.5L3 10.5 5.5 13" />
+				</svg>
+			</button>
+			<button type="button" role="menuitem" data-theme-to-portfolio>
+				<span>Back to reality</span>
+				<svg viewBox="0 0 16 16" aria-hidden="true">
+					<path d="M4.5 3.5 2 6l2.5 2.5M2.5 6H10a4 4 0 0 1 0 8H6" />
+				</svg>
+			</button>
+		</div>
+	</div>
+</div>

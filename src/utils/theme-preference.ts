@@ -1,30 +1,38 @@
+/**
+ * Three themes. Portfolio is the professional front and the default for every
+ * visit; "bored?" enters Orbit or Flow for the rest of the browsing session.
+ * Stored values stay universe/beach (shown as Orbit/Flow) so CSS and scripts
+ * keyed on them are unchanged. The inline script in Layout.astro mirrors this.
+ */
 export const THEME_KEY = 'aditi-theme';
 
-export type SiteTheme = 'universe' | 'beach';
+export type PlayfulTheme = 'universe' | 'beach';
+export type SiteTheme = 'portfolio' | PlayfulTheme;
 
-/** 60% universe, 40% beach — persisted once chosen until user toggles. */
-export function pickWeightedTheme(): SiteTheme {
-	return Math.random() < 0.6 ? 'universe' : 'beach';
+export const THEME_LABEL: Record<PlayfulTheme, string> = { universe: 'Orbit', beach: 'Flow' };
+
+export function isSiteTheme(v: unknown): v is SiteTheme {
+	return v === 'portfolio' || v === 'universe' || v === 'beach';
 }
 
 export function readStoredTheme(): SiteTheme | null {
 	try {
-		const v = localStorage.getItem(THEME_KEY);
-		if (v === 'beach' || v === 'universe') return v;
+		const v = sessionStorage.getItem(THEME_KEY);
+		return isSiteTheme(v) ? v : null;
 	} catch {
-		/* ignore */
+		return null;
 	}
-	return null;
 }
 
-export function resolveTheme(): SiteTheme {
-	const stored = readStoredTheme();
-	if (stored) return stored;
-	const picked = pickWeightedTheme();
+export function storeTheme(theme: SiteTheme): void {
 	try {
-		localStorage.setItem(THEME_KEY, picked);
+		sessionStorage.setItem(THEME_KEY, theme);
 	} catch {
-		/* ignore */
+		/* Storage blocked: the choice lasts for this page only. */
 	}
-	return picked;
+}
+
+/** "bored?": an even chance of either playful theme. */
+export function pickPlayfulTheme(): PlayfulTheme {
+	return Math.random() < 0.5 ? 'universe' : 'beach';
 }

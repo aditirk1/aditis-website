@@ -35,6 +35,14 @@ export function initSplashIntro(): void {
 		return;
 	}
 
+	/* The loading screen belongs to the playful themes; Portfolio opens straight onto the page. */
+	if (document.documentElement.getAttribute('data-theme') === 'portfolio') {
+		overlay.remove();
+		window.dispatchEvent(new CustomEvent(SPLASH_DONE_EVENT));
+		document.dispatchEvent(new CustomEvent('splash:done'));
+		return;
+	}
+
 	if (sessionStorage.getItem(SPLASH_KEY) === '1') {
 		finish(overlay);
 		return;

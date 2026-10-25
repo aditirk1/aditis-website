@@ -67,6 +67,11 @@ export function initNavIndicators(): void {
 	}
 
 	function update() {
+		if (root.dataset.theme === 'portfolio') {
+			indicator.dataset.kind = 'none';
+			indicator.style.opacity = '0';
+			return;
+		}
 		indicator.dataset.kind = flow() ? 'flow' : 'orbit';
 		if (flow()) {
 			if (!finePointer.matches) {

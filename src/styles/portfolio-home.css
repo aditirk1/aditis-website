@@ -1,0 +1,689 @@
+/*
+ * Portfolio homepage (components/portfolio/PortfolioHome.astro). Everything is
+ * scoped under .pfh; colours come from the Portfolio tokens in global.css.
+ */
+.pfh {
+	--m: clamp(14px, 3.2vw, 48px);
+	--status-h: 2.75rem;
+	--pad-x: clamp(1.25rem, 2.6vw, 2.75rem);
+	--pad-y: clamp(1.25rem, 4.5vh, 3rem);
+	position: relative;
+	height: calc(100svh - var(--site-header-h, 4.5rem));
+	display: grid;
+	grid-template-rows: minmax(0, 1fr) var(--status-h);
+	pointer-events: auto;
+	color: var(--pf-ink);
+}
+
+/* --- The sheet: a hairline frame, corner crosses, labels in the side margins --- */
+.pfh-frame {
+	position: absolute;
+	inset: 0 var(--m) var(--status-h);
+	z-index: 2;
+	border: 1px solid var(--pf-line);
+	pointer-events: none;
+}
+
+.pfh-cross {
+	position: absolute;
+	width: 13px;
+	height: 13px;
+	background:
+		linear-gradient(var(--pf-ink-2), var(--pf-ink-2)) center / 1px 100% no-repeat,
+		linear-gradient(var(--pf-ink-2), var(--pf-ink-2)) center / 100% 1px no-repeat;
+	opacity: 0.5;
+}
+
+.pfh-cross--tl {
+	top: -7px;
+	left: -7px;
+}
+
+.pfh-cross--tr {
+	top: -7px;
+	right: -7px;
+}
+
+.pfh-cross--bl {
+	bottom: -7px;
+	left: -7px;
+}
+
+.pfh-cross--br {
+	bottom: -7px;
+	right: -7px;
+}
+
+.pfh-rail {
+	position: absolute;
+	top: 50%;
+	font-family: var(--font-sans);
+	font-size: 0.62rem;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+	color: var(--pf-ink-2);
+	white-space: nowrap;
+	writing-mode: vertical-rl;
+}
+
+.pfh-rail--left {
+	right: calc(100% + var(--m) / 2);
+	transform: translate(50%, -50%) rotate(180deg);
+}
+
+.pfh-rail--right {
+	left: calc(100% + var(--m) / 2);
+	transform: translate(-50%, -50%);
+}
+
+/* --- The row --- */
+.pfh-scroller {
+	position: relative;
+	z-index: 1;
+	margin-inline: var(--m);
+	overflow-x: auto;
+	overflow-y: hidden;
+	overscroll-behavior-x: contain;
+	scrollbar-width: none;
+	container-type: size;
+	outline: none;
+}
+
+.pfh-scroller::-webkit-scrollbar {
+	display: none;
+}
+
+@media (pointer: coarse) {
+	.pfh-scroller {
+		scroll-snap-type: x proximity;
+	}
+
+	.pfh-panel {
+		scroll-snap-align: start;
+	}
+}
+
+.pfh-track {
+	position: relative;
+	display: flex;
+	width: max-content;
+	height: 100%;
+}
+
+/* A ruler along the bottom edge; its ticks travel with the row. */
+.pfh-track::after {
+	content: '';
+	position: absolute;
+	inset: auto 0 0;
+	height: 11px;
+	pointer-events: none;
+	background:
+		repeating-linear-gradient(to right, var(--pf-line) 0 1px, transparent 1px 24px) left bottom / 100% 5px
+			no-repeat,
+		repeating-linear-gradient(to right, var(--pf-ink-2) 0 1px, transparent 1px 120px) left bottom / 100% 11px
+			no-repeat;
+	opacity: 0.7;
+}
+
+.pfh-panel {
+	position: relative;
+	flex: none;
+	height: 100%;
+	padding: var(--pad-y) var(--pad-x) calc(var(--pad-y) + 14px);
+	border-left: 1px solid var(--pf-line);
+	overflow-y: auto;
+	scrollbar-width: none;
+}
+
+.pfh-panel:first-child {
+	border-left: 0;
+}
+
+/* --- Type --- */
+.pfh-display {
+	margin: 0;
+	font-family: var(--font-display);
+	font-weight: 300;
+	letter-spacing: -0.025em;
+	line-height: 0.95;
+	font-optical-sizing: auto;
+	color: var(--pf-ink);
+}
+
+.pfh-display em {
+	font-style: italic;
+}
+
+.pfh-label {
+	margin: 0;
+	font-family: var(--font-sans);
+	font-size: 0.68rem;
+	font-weight: 500;
+	line-height: 1.5;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--pf-ink-2);
+}
+
+.pfh-num {
+	font-variant-numeric: tabular-nums;
+	color: var(--pf-accent);
+}
+
+.pfh-annot {
+	margin: 0;
+	font-family: var(--font-display);
+	font-style: italic;
+	font-weight: 300;
+	font-size: 1.02rem;
+	line-height: 1.4;
+	color: var(--pf-ink-2);
+}
+
+.pfh-muted {
+	color: var(--pf-ink-2);
+}
+
+.pfh-link {
+	width: fit-content;
+	color: var(--pf-ink);
+	font-family: var(--font-sans);
+	font-size: 0.9rem;
+	font-weight: 500;
+	text-decoration: none;
+	background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+	transition:
+		background-size 320ms cubic-bezier(0.2, 0.7, 0.2, 1),
+		color 200ms ease;
+}
+
+.pfh-link--rest {
+	background-image: linear-gradient(var(--pf-line), var(--pf-line));
+	background-size: 100% 1px;
+}
+
+.pfh-link:is(:hover, :focus-visible) {
+	color: var(--pf-accent);
+	background-image: linear-gradient(currentColor, currentColor);
+	background-size: 100% 1px;
+}
+
+.pfh-arrow {
+	display: inline-block;
+	transition: transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+a:is(:hover, :focus-visible) .pfh-arrow {
+	transform: translateX(0.25em);
+}
+
+.pfh :focus-visible {
+	outline: 2px solid var(--pf-accent);
+	outline-offset: 3px;
+}
+
+/* --- 01 Index --- */
+.pfh-hero {
+	width: 100cqw;
+	display: grid;
+	grid-template-columns: repeat(12, minmax(0, 1fr));
+	grid-template-rows: auto minmax(0, 1fr);
+	column-gap: clamp(12px, 1.4vw, 24px);
+}
+
+.pfh-hero__labels {
+	grid-column: 1 / -1;
+	display: grid;
+	grid-template-columns: subgrid;
+	margin-bottom: clamp(1rem, 4cqh, 2.5rem);
+}
+
+.pfh-hero__labels > :nth-child(1) {
+	grid-column: 1 / span 4;
+}
+
+.pfh-hero__labels > :nth-child(2) {
+	grid-column: 8 / span 3;
+	white-space: nowrap;
+}
+
+.pfh-hero__labels > :nth-child(3) {
+	grid-column: 11 / -1;
+	text-align: right;
+}
+
+.pfh-hero__title {
+	grid-area: 2 / 1 / 3 / -1;
+	align-self: center;
+	font-size: min(9.4cqw, 16.5cqh);
+	line-height: 0.88;
+	letter-spacing: -0.03em;
+}
+
+.pfh-hero__line {
+	display: block;
+}
+
+/* Each line steps in from the margin, on the panel's twelfths. */
+.pfh-hero__line:nth-child(2) {
+	padding-left: calc(200% / 12);
+}
+
+.pfh-hero__line:nth-child(3) {
+	padding-left: calc(100% / 12);
+}
+
+.pfh-hero__line:nth-child(4) {
+	padding-left: calc(700% / 12);
+}
+
+.pfh-hero__aside {
+	grid-area: 2 / 9 / 3 / -1;
+	align-self: start;
+	margin-top: clamp(0.5rem, 3cqh, 2rem);
+}
+
+.pfh-hero__desc {
+	margin: 0 0 1.5rem;
+	max-width: 34ch;
+	font-family: var(--font-sans);
+	font-size: clamp(0.95rem, 1.1vw, 1.08rem);
+	line-height: 1.55;
+	color: var(--pf-ink-2);
+	text-wrap: pretty;
+}
+
+.pfh-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem 1.5rem;
+}
+
+.pfh-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.55rem;
+	min-height: 2.75rem;
+	padding: 0 1.25rem;
+	border-radius: 999px;
+	background: var(--pf-ink);
+	color: var(--pf-bg);
+	font-family: var(--font-sans);
+	font-size: 0.9rem;
+	font-weight: 500;
+	text-decoration: none;
+	transition: background-color 240ms ease;
+}
+
+.pfh-button:is(:hover, :focus-visible) {
+	background: var(--pf-accent);
+}
+
+.pfh-hero__note {
+	grid-area: 2 / 1 / 3 / span 4;
+	align-self: end;
+	max-width: 24ch;
+}
+
+/* --- 02 Selected work --- */
+.pfh-intro,
+.pfh-writing,
+.pfh-about {
+	display: flex;
+	flex-direction: column;
+	gap: 1.1rem;
+}
+
+.pfh-intro {
+	width: max(17rem, 30cqw);
+	justify-content: flex-end;
+}
+
+.pfh-intro__title {
+	font-size: min(5.6cqw, 11cqh);
+	line-height: 0.95;
+}
+
+.pfh-intro__all {
+	margin-top: 0.5rem;
+}
+
+.pfh-card {
+	width: max(16.5rem, 28cqw);
+	padding: 0;
+}
+
+.pfh-card--lead {
+	width: max(19rem, 40cqw);
+}
+
+.pfh-card__link {
+	display: flex;
+	flex-direction: column;
+	gap: 1.2rem;
+	height: 100%;
+	padding: var(--pad-y) var(--pad-x) calc(var(--pad-y) + 14px);
+	color: inherit;
+	text-decoration: none;
+	transition: background-color 280ms ease;
+}
+
+.pfh-card__link:is(:hover, :focus-visible) {
+	background: color-mix(in srgb, var(--pf-surface) 85%, transparent);
+}
+
+.pfh-card__top,
+.pfh-card__foot {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 1rem;
+}
+
+.pfh-card__title {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	font-size: min(3.3cqw, 6.4cqh);
+	line-height: 1.02;
+	transition: color 220ms ease;
+}
+
+.pfh-card--lead .pfh-card__title {
+	font-size: min(4.8cqw, 9cqh);
+}
+
+.pfh-card__link:is(:hover, :focus-visible) .pfh-card__title {
+	color: var(--pf-accent);
+}
+
+.pfh-card__summary {
+	max-width: 38ch;
+	font-family: var(--font-sans);
+	font-size: 0.92rem;
+	line-height: 1.55;
+	color: var(--pf-ink-2);
+}
+
+.pfh-card__go {
+	font-family: var(--font-sans);
+	font-size: 0.85rem;
+	font-weight: 500;
+	color: var(--pf-accent);
+}
+
+/* --- 03 Writing --- */
+.pfh-writing {
+	width: max(18rem, 34cqw);
+	justify-content: flex-end;
+}
+
+.pfh-posts {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pfh-posts a {
+	display: grid;
+	gap: 0.3rem;
+	padding-block: 0.9rem;
+	border-top: 1px solid var(--pf-line);
+	color: inherit;
+	text-decoration: none;
+}
+
+.pfh-posts__title {
+	font-size: min(2.2cqw, 4.4cqh);
+	line-height: 1.1;
+	transition: color 220ms ease;
+}
+
+.pfh-posts a:is(:hover, :focus-visible) .pfh-posts__title {
+	color: var(--pf-accent);
+}
+
+.pfh-writing__empty {
+	max-width: 24ch;
+	font-size: 1.2rem;
+}
+
+/* --- 04 About --- */
+.pfh-about {
+	width: max(20rem, 46cqw);
+	justify-content: flex-end;
+}
+
+.pfh-quote {
+	max-width: 18ch;
+	font-size: min(3.9cqw, 7.4cqh);
+	line-height: 1.04;
+}
+
+.pfh-quote em {
+	color: var(--pf-accent);
+}
+
+.pfh-facts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem 2.5rem;
+	margin: 1rem 0 0;
+}
+
+.pfh-facts dd {
+	margin: 0;
+}
+
+.pfh-about-text {
+	width: max(20rem, 34cqw);
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	gap: 1.1rem;
+}
+
+.pfh-about-text p {
+	margin: 0;
+	max-width: 46ch;
+	font-family: var(--font-sans);
+	font-size: clamp(0.92rem, 1.05vw, 1.02rem);
+	line-height: 1.65;
+	text-wrap: pretty;
+}
+
+.pfh-about-text p + p {
+	color: var(--pf-ink-2);
+}
+
+/* --- 05 Contact --- */
+.pfh-contact {
+	width: max(20rem, 62cqw);
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.pfh-contact__cta {
+	font-size: min(13cqw, 26cqh);
+	line-height: 0.86;
+	letter-spacing: -0.04em;
+	text-decoration: none;
+	transition: color 220ms ease;
+}
+
+.pfh-contact__cta:is(:hover, :focus-visible) {
+	color: var(--pf-accent);
+}
+
+.pfh-contact__cols {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	align-items: end;
+	gap: 1.5rem;
+}
+
+.pfh-contact__cols > div {
+	display: grid;
+	gap: 0.35rem;
+}
+
+/* --- Status line under the sheet --- */
+.pfh-status {
+	white-space: nowrap;
+	display: grid;
+	grid-template-columns: 1fr minmax(6rem, 22rem) 1fr;
+	align-items: center;
+	gap: 1rem;
+	padding-inline: var(--m);
+}
+
+.pfh-progress {
+	position: relative;
+	height: 1px;
+	background: var(--pf-line);
+	overflow: hidden;
+}
+
+.pfh-progress span {
+	position: absolute;
+	inset: 0;
+	background: var(--pf-accent);
+	transform: scaleX(var(--p, 0));
+	transform-origin: 0 50%;
+}
+
+.pfh-status__hint {
+	justify-self: end;
+	transition: opacity 400ms ease;
+}
+
+.pfh-status__hint[data-hidden] {
+	opacity: 0;
+}
+
+/* --- Phones: the same row, panels sized to the screen --- */
+@media (max-width: 759px) {
+	.pfh {
+		--status-h: 2.4rem;
+		--pad-x: 1.1rem;
+		--pad-y: 1.1rem;
+	}
+
+	.pfh-rail {
+		display: none;
+	}
+
+	.pfh-hero {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	.pfh-hero__labels {
+		grid-template-columns: 1fr;
+		gap: 0.1rem;
+		margin-bottom: 0;
+	}
+
+	.pfh-hero__labels > :nth-child(n) {
+		grid-column: 1;
+		text-align: left;
+	}
+
+	.pfh-hero__title {
+		align-self: stretch;
+		font-size: 14.5cqw;
+	}
+
+	.pfh-hero__line:nth-child(n) {
+		padding-left: 0;
+	}
+
+	.pfh-hero__line:nth-child(2),
+	.pfh-hero__line:nth-child(4) {
+		padding-left: 25%;
+	}
+
+	.pfh-hero__aside {
+		margin-top: 0;
+	}
+
+	.pfh-hero__note {
+		align-self: flex-start;
+		margin-top: auto;
+	}
+
+	.pfh-status {
+		grid-template-columns: auto minmax(3rem, 1fr) auto;
+	}
+
+	.pfh-status .pfh-label {
+		font-size: 0.6rem;
+	}
+
+	.pfh-intro,
+	.pfh-writing {
+		width: 72cqw;
+	}
+
+	.pfh-intro__title {
+		font-size: 12cqw;
+	}
+
+	.pfh-card,
+	.pfh-card--lead {
+		width: 84cqw;
+	}
+
+	.pfh-card__title,
+	.pfh-card--lead .pfh-card__title {
+		font-size: 9cqw;
+	}
+
+	.pfh-posts__title {
+		font-size: 6.5cqw;
+	}
+
+	.pfh-about,
+	.pfh-about-text,
+	.pfh-contact {
+		width: 100cqw;
+	}
+
+	.pfh-quote {
+		font-size: 8.5cqw;
+	}
+
+	.pfh-contact__cta {
+		font-size: 22cqw;
+	}
+}
+
+/* --- Motion: entrance only, CSS-driven, nothing depends on it --- */
+@media (prefers-reduced-motion: no-preference) {
+	.pfh-rise {
+		animation: pfh-rise 1100ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+		animation-delay: calc(120ms + var(--i, 0) * 90ms);
+	}
+
+	.pfh-fade {
+		animation: pfh-fade 1400ms ease both;
+		animation-delay: calc(200ms + var(--i, 0) * 90ms);
+	}
+}
+
+@keyframes pfh-rise {
+	from {
+		opacity: 0;
+		transform: translateY(0.28em);
+	}
+}
+
+@keyframes pfh-fade {
+	from {
+		opacity: 0;
+	}
+}
