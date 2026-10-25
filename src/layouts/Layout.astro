@@ -10,6 +10,7 @@ import SiteNav from '../components/SiteNav.astro';
 import TextSizeControl from '../components/TextSizeControl.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import ThemeSwitch from '../components/ThemeSwitch.astro';
+import ThemeLoader from '../components/ThemeLoader.astro';
 import ViewTransitionExperiment from '../components/ViewTransitionExperiment.astro';
 
 interface Props {
@@ -56,14 +57,33 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 			(function () {
 				/* Mirrors utils/theme-preference.ts: Portfolio unless "bored?" chose a playful theme this session. */
 				try {
+					var html = document.documentElement;
 					var t = sessionStorage.getItem('aditi-theme');
 					if (t !== 'portfolio' && t !== 'universe' && t !== 'beach') t = 'portfolio';
-					/* The dream journal only exists in the playful themes. */
-					if (t === 'portfolio' && document.documentElement.getAttribute('data-layout') === 'dream') t = 'universe';
-					document.documentElement.setAttribute('data-theme', t);
+					/* Photo Dump, Thoughts and the dream journal are playful-only: Portfolio goes home. */
+					if (t === 'portfolio' && /^\/(photo-dump|thoughts|dream-journal)(\/|$)/.test(location.pathname)) {
+						html.style.visibility = 'hidden';
+						location.replace('/');
+						/* Leave the loading-screen flags for the homepage this is heading to. */
+						return;
+					}
+					html.setAttribute('data-theme', t);
+
+					/*
+					 * Loading screen (components/ThemeLoader.astro): when the site is opened
+					 * afresh, and on the page after a theme switch. The playful homepage's
+					 * own intro (SplashIntro) plays instead whenever it is due.
+					 */
+					var fresh = !sessionStorage.getItem('aditi-session');
+					var switched = sessionStorage.getItem('aditi-theme-switched') === '1';
+					var introDue =
+						t !== 'portfolio' && location.pathname === '/' && sessionStorage.getItem('aditi-splash-seen') !== '1';
+					if ((fresh || switched) && !introDue) html.setAttribute('data-loading', '');
+					sessionStorage.setItem('aditi-session', '1');
+					sessionStorage.removeItem('aditi-theme-switched');
 					var tc = document.querySelector('meta[data-theme-color]');
 					if (tc) tc.setAttribute('content', t === 'beach' ? '#0c2f55' : t === 'portfolio' ? '#fffdfa' : '#05030c');
-					var pref = t === 'beach' ? '/brand/logo-beach' : '/brand/logo-universe';
+					var pref = t === 'beach' ? '/brand/logo-flow' : '/brand/logo-universe';
 					var f16 = document.querySelector('link[data-favicon-16]');
 					var f32 = document.querySelector('link[data-favicon-32]');
 					var apple = document.querySelector('link[data-apple-touch-icon]');
@@ -162,6 +182,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 		</style>
 	</head>
 	<body class="relative antialiased">
+		<ThemeLoader />
 		<div class="dream-realm-tint" aria-hidden="true"></div>
 
 		<!-- Beach before universe so its theme observer can release WebGL first. -->
@@ -260,7 +281,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 			const html = document.documentElement;
 
 			function syncBrandAssets(theme: SiteTheme) {
-				const pref = theme === 'beach' ? '/brand/logo-beach' : '/brand/logo-universe';
+				const pref = theme === 'beach' ? '/brand/logo-flow' : '/brand/logo-universe';
 
 				const link16 = document.querySelector('link[data-favicon-16]') as HTMLLinkElement | null;
 				const link32 = document.querySelector('link[data-favicon-32]') as HTMLLinkElement | null;

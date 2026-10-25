@@ -35,7 +35,10 @@ const lines = [...firstWords.slice(0, -1), `${firstWords.at(-1)},`, ...rest.map(
 const labels = [...pf.labels];
 if (labels.length) labels[labels.length - 1] = `${labels.at(-1)}, ${year}`;
 
-const sections = ['Index', pf.work_heading, pf.writing_heading];
+const quoteWords = pf.about_quote.trim().split(' ');
+const quoteEnd = quoteWords.pop() ?? '';
+
+const sections = ['Index', pf.work_heading, pf.writing_heading, home.about_heading];
 ---
 
 <section class="pfh" data-portfolio-home aria-label="Portfolio">
@@ -77,7 +80,7 @@ const sections = ['Index', pf.work_heading, pf.writing_heading];
 					<h2 id="pfh-work-title" class="pfh-display pfh-preview__title">{pf.work_heading}</h2>
 					<p class="pfh-preview__intro">{pf.work_intro}</p>
 				</header>
-				<ol class="pfh-list">
+				<ol class="pfh-list pfh-preview__list">
 					{projects.map((p, i) => (
 						<li>
 							<a class="pfh-item" href={`/projects/${p.id}`}>
@@ -104,7 +107,7 @@ const sections = ['Index', pf.work_heading, pf.writing_heading];
 				</header>
 				{
 					posts.length ? (
-						<ol class="pfh-list">
+						<ol class="pfh-list pfh-preview__list">
 							{posts.map((post, i) => (
 								<li>
 									<a class="pfh-item" href={post.href}>
@@ -124,6 +127,35 @@ const sections = ['Index', pf.work_heading, pf.writing_heading];
 				<a class="pfh-more" href="/blog">
 					{pf.writing_more} <span class="pfh-arrow" aria-hidden="true">→</span>
 				</a>
+			</section>
+
+			<section class="pfh-panel pfh-about" id="pfh-about" data-pfh-panel data-pfh-label={`04 ${sections[3]}`} aria-labelledby="pfh-about-title">
+				<header class="pfh-preview__head pfh-about__head">
+					<span class="pfh-label pfh-num">04</span>
+					<h2 id="pfh-about-title" class="pfh-display pfh-preview__title">{home.about_heading}</h2>
+					<p class="pfh-display pfh-quote">
+						<span class="pfh-muted">…</span>{quoteWords.join(' ')} <em>{quoteEnd}</em>
+					</p>
+				</header>
+				<div class="pfh-about__body">
+					{home.about_paragraphs.map((para) => <p>{para}</p>)}
+					<dl class="pfh-facts">
+						{pf.facts.map((f) => (
+							<div>
+								<dt class="pfh-label">{f.label}</dt>
+								<dd class="pfh-annot">{f.value}</dd>
+							</div>
+						))}
+					</dl>
+					<p class="pfh-about__links">
+						<a class="pfh-more" href={home.resume_href}>
+							{home.resume_label} <span class="pfh-arrow" aria-hidden="true">→</span>
+						</a>
+						<a class="pfh-link" href={home.cta_secondary_href}>{home.cta_secondary_label}</a>
+						<a class="pfh-link" href="https://www.linkedin.com/in/aditirk/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+						<a class="pfh-link" href="https://github.com/aditirk1" target="_blank" rel="noopener noreferrer">GitHub</a>
+					</p>
+				</div>
 			</section>
 		</div>
 	</div>

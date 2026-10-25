@@ -25,7 +25,7 @@ function finish(overlay: HTMLElement) {
 
 function setSplashLogoSrc(logo: HTMLImageElement) {
 	const theme = document.documentElement.getAttribute('data-theme') === 'beach' ? 'beach' : 'universe';
-	logo.src = theme === 'beach' ? '/brand/logo-beach-512.png' : '/brand/logo-universe-512.png';
+	logo.src = theme === 'beach' ? '/brand/logo-flow-512.png' : '/brand/logo-universe-512.png';
 }
 
 export function initSplashIntro(): void {
@@ -57,6 +57,7 @@ export function initSplashIntro(): void {
 	const logo = overlay.querySelector('[data-splash-logo]') as HTMLImageElement | null;
 	const title = overlay.querySelector('[data-splash-title]') as HTMLElement | null;
 	const chars = overlay.querySelectorAll<HTMLElement>('.splash-char');
+	const loader = overlay.querySelector<HTMLElement>('[data-splash-loader]');
 
 	if (!logoWrap || !logo || !title || !chars.length) {
 		finish(overlay);
@@ -70,6 +71,7 @@ export function initSplashIntro(): void {
 	gsap.set(logoWrap, { y: 0 });
 	gsap.set(logo, { opacity: 0 });
 	gsap.set(title, { autoAlpha: 0 });
+	if (loader) gsap.set(loader, { autoAlpha: 0 });
 	gsap.set(chars, { opacity: 1, x: 0, y: 0, rotation: 0, scale: 1 });
 
 	const tl = gsap.timeline();
@@ -100,6 +102,8 @@ export function initSplashIntro(): void {
 		'<0.1',
 	);
 
+	if (loader) tl.to(loader, { autoAlpha: 1, duration: TITLE_FADE_S, ease: 'power2.out' }, '<');
+
 	tl.to({}, { duration: TITLE_HOLD_S });
 
 	/* Phase 3 — scatter letters outward (original exit) */
@@ -108,6 +112,8 @@ export function initSplashIntro(): void {
 		duration: 0.35,
 		ease: 'power2.in',
 	});
+
+	if (loader) tl.to(loader, { autoAlpha: 0, scale: 0.6, duration: 0.35, ease: 'power2.in' }, '<');
 
 	tl.to(
 		chars,

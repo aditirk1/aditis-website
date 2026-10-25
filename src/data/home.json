@@ -59,6 +59,17 @@
     "writing_heading": "Blog",
     "writing_intro": "I write every day, to keep my thinking my own.",
     "writing_more": "View all posts",
-    "writing_empty": "Essays will land here when they're ready."
+    "writing_empty": "Essays will land here when they're ready.",
+    "about_quote": "the gap between a promising innovation and one that actually reaches patients.",
+    "facts": [
+      {
+        "label": "Currently",
+        "value": "MS Bioengineering, Columbia University"
+      },
+      {
+        "label": "Also",
+        "value": "Lead, Nucleate New York"
+      }
+    ]
   }
 }
