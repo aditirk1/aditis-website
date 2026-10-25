@@ -1984,6 +1984,15 @@ html[data-theme='portfolio'] .theme-switch {
 	margin-left: calc(1.75rem - 0.75rem);
 }
 
+/*
+ * "bored?" is a different face from the links, so centring the boxes leaves the
+ * words on different lines wherever the two fonts' metrics differ. Line up the
+ * text itself instead.
+ */
+html[data-theme='portfolio'] :is([data-site-nav-slot], .site-nav-links, .theme-switch) {
+	align-items: baseline;
+}
+
 html[data-theme='portfolio'] .theme-bored {
 	display: inline-flex;
 	align-items: center;
