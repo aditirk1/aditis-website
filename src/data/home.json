@@ -70,6 +70,9 @@
         "label": "Also",
         "value": "Lead, Nucleate New York"
       }
-    ]
+    ],
+    "portrait": "/uploads/aditi-portrait.jpg",
+    "portrait_alt": "Portrait of Aditi, smiling, in glasses and a dark blazer",
+    "portrait_caption": "Aditi, New York"
   }
 }

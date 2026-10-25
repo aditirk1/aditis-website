@@ -133,10 +133,20 @@ const sections = ['Index', pf.work_heading, pf.writing_heading, home.about_headi
 				<header class="pfh-preview__head pfh-about__head">
 					<span class="pfh-label pfh-num">04</span>
 					<h2 id="pfh-about-title" class="pfh-display pfh-preview__title">{home.about_heading}</h2>
-					<p class="pfh-display pfh-quote">
-						<span class="pfh-muted">…</span>{quoteWords.join(' ')} <em>{quoteEnd}</em>
-					</p>
 				</header>
+				{
+					pf.portrait && (
+						<figure class="pfh-portrait">
+							<div class="pfh-portrait__frame">
+								<img src={pf.portrait} alt={pf.portrait_alt} width="576" height="720" loading="lazy" decoding="async" />
+							</div>
+							{pf.portrait_caption && <figcaption class="pfh-label">{pf.portrait_caption}</figcaption>}
+						</figure>
+					)
+				}
+				<p class="pfh-display pfh-quote">
+					<span class="pfh-muted">…</span>{quoteWords.join(' ')} <em>{quoteEnd}</em>
+				</p>
 				<div class="pfh-about__body">
 					{home.about_paragraphs.map((para) => <p>{para}</p>)}
 					<dl class="pfh-facts">

@@ -357,17 +357,73 @@ a:is(:hover, :focus-visible) .pfh-arrow {
 	align-self: end;
 }
 
+/* About: heading and portrait on the left; quote, then text, on the right. */
+.pfh-about {
+	grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
 .pfh-about__head {
-	grid-column: 1 / span 6;
+	grid-column: 1 / span 4;
+	grid-row: 1;
+}
+
+.pfh-portrait {
+	grid-column: 1 / span 3;
+	grid-row: 2 / span 2;
+	align-self: end;
+	margin: 0;
+	/* Height-led, so the section still fits one screen on short windows. */
+	width: min(100%, 36cqh);
+}
+
+/* A hairline on the photo, and an offset olive frame behind it, like a print set in a mount. */
+.pfh-portrait__frame {
+	position: relative;
+	isolation: isolate;
+}
+
+.pfh-portrait__frame::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border: 1px solid var(--pf-olive);
+	transform: translate(10px, 10px);
+}
+
+.pfh-portrait img {
+	display: block;
+	width: 100%;
+	aspect-ratio: 4 / 5;
+	object-fit: cover;
+	object-position: 50% 30%;
+	border: 1px solid var(--pf-ink);
+	background: var(--pf-surface);
+}
+
+.pfh-portrait figcaption {
+	margin-top: 1.1rem;
+}
+
+.pfh-about .pfh-quote {
+	grid-column: 6 / -1;
 	grid-row: 1 / span 2;
+	align-self: start;
+	margin-top: clamp(2.2rem, 7cqh, 4rem);
+	max-width: 22ch;
 }
 
 .pfh-about__body {
-	grid-column: 8 / -1;
-	grid-row: 1 / span 2;
-	align-self: center;
+	grid-column: 6 / -1;
+	grid-row: 3;
+	align-self: end;
 	display: grid;
-	gap: 1.1rem;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1rem clamp(1.25rem, 2.4vw, 2.5rem);
+}
+
+.pfh-about__body > :is(.pfh-facts, .pfh-about__links) {
+	grid-column: 1 / -1;
 }
 
 .pfh-about__body p {
@@ -384,8 +440,7 @@ a:is(:hover, :focus-visible) .pfh-arrow {
 }
 
 .pfh-quote {
-	margin: clamp(1.5rem, 6cqh, 3.5rem) 0 0;
-	max-width: 18ch;
+	margin: 0;
 	font-size: min(3.6cqw, 7cqh);
 	line-height: 1.04;
 }
@@ -612,9 +667,19 @@ a:is(:hover, :focus-visible) .pfh-arrow {
 		margin-top: auto;
 	}
 
-	.pfh-quote {
-		margin-top: 1rem;
+	.pfh-quote,
+	.pfh-about .pfh-quote {
+		margin-top: 0.5rem;
 		font-size: 7.5cqw;
+	}
+
+	.pfh-portrait {
+		width: 58%;
+	}
+
+	.pfh-about__body {
+		display: grid;
+		grid-template-columns: 1fr;
 	}
 
 	.pfh-preview__title {

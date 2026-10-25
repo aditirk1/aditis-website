@@ -105,6 +105,9 @@ collections:
                 fields:
                   - { label: Label, name: label, widget: string }
                   - { label: Text, name: value, widget: string }
+              - { label: Portrait, name: portrait, widget: image, hint: Shown in the About section, cropped to a 4:5 portrait around the centre. }
+              - { label: Portrait description, name: portrait_alt, widget: string, hint: For screen readers. }
+              - { label: Portrait caption, name: portrait_caption, widget: string }
       - name: services
         label: Services page
         file: src/data/services.json
