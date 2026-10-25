@@ -59,8 +59,8 @@ const experiments = [
 			<h1 class="tlab-intro__title">Transition lab</h1>
 			<p class="tlab-intro__text">
 				Four experiments, each running on the real site in its own frame. Navigate inside a frame to see its
-				transition; the arrows under each frame are that frame's Back and Forward. Nothing here changes the
-				site for visitors.
+				transition; the arrows under each frame are that frame's Back and Forward. On this development
+				branch Themed also runs as you browse the whole site; production is unchanged.
 			</p>
 		</header>
 
@@ -92,8 +92,8 @@ const experiments = [
 			<label class="tlab-field">
 				<span>Use while browsing</span>
 				<select name="browse" data-browse>
-					<option value="">Off</option>
 					{experiments.map((x) => <option value={x.mode}>{x.name}</option>)}
+					<option value="off">Off</option>
 				</select>
 			</label>
 			<p class="tlab-note" data-browse-note aria-live="polite"></p>
@@ -142,7 +142,7 @@ const experiments = [
 				navigation itself is never held back: the new page is already loaded while the animation runs.
 			</p>
 			<p>
-				The opt-in is written by a small script in the page head, and only when an experiment is chosen,
+				The opt-in is written by a small script in the page head, and only when a mode is on (Themed by default here),
 				the browser supports it, reduced motion is off, and the page isn't excluded. Excluded pages always
 				load plainly: Services and checkout, the payment result page, admin, quick notes and the dream
 				journal. Without support (Firefox today, or older Chrome and Safari) links work exactly as before.
@@ -234,19 +234,20 @@ const experiments = [
 		const browseNote = form.querySelector<HTMLElement>('[data-browse-note]')!;
 		function setBrowse(mode: string) {
 			try {
-				if (mode) localStorage.setItem('aditi-vt', mode);
-				else localStorage.removeItem('aditi-vt');
+				if (mode === 'themed') localStorage.removeItem('aditi-vt');
+				else localStorage.setItem('aditi-vt', mode);
 			} catch {
 				/* Storage blocked: the frames still work. */
 			}
-			browseNote.textContent = mode
-				? `${browse!.selectedOptions[0]?.text} is on for you in this browser, from the next page you open.`
-				: 'Off: the site navigates as it does for everyone.';
+			browseNote.textContent =
+				mode === 'off'
+					? 'Off: plain page loads, as in production.'
+					: `${browse!.selectedOptions[0]?.text} is on in this browser${mode === 'themed' ? ' (the default here)' : ''}, from the next page you open.`;
 		}
 		try {
-			browse!.value = localStorage.getItem('aditi-vt') ?? '';
+			browse!.value = localStorage.getItem('aditi-vt') ?? 'themed';
 		} catch {
-			browse!.value = '';
+			browse!.value = 'themed';
 		}
 		setBrowse(browse!.value);
 
