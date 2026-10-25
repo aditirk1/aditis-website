@@ -8,7 +8,7 @@
  * the page, moves it sideways, and the status line follows along.
  */
 /* Share of the remaining distance the row covers per 60 Hz frame. */
-const GLIDE = 0.12;
+const GLIDE = 0.30;
 
 export function initPortfolioHome(): () => void {
 	const root = document.documentElement;
