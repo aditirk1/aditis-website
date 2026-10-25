@@ -1,7 +1,11 @@
 {
   "hero_title": "aditi's universe.",
   "planet_label": "tap a planet to explore",
-  "taglines": ["biomedical engineer", "researcher", "writer"],
+  "taglines": [
+    "biomedical engineer",
+    "researcher",
+    "writer"
+  ],
   "hero_description": "MS Bioengineering at Columbia. I work across genomics pipelines, Medicare-scale outcomes research, EEG/brain–computer interfaces, and hardware — the full arc from model to bench to population data.",
   "cta_primary_label": "See my work",
   "cta_primary_href": "/projects",
@@ -41,5 +45,28 @@
       "title": "Services",
       "desc": "Research consulting, writing, and design."
     }
-  ]
+  ],
+  "portfolio": {
+    "labels": [
+      "Index",
+      "MS Bioengineering, Columbia University",
+      "New York"
+    ],
+    "note": "From model, to bench, to population data.",
+    "work_heading": "Selected work",
+    "writing_heading": "Writing",
+    "writing_empty": "Essays will land here when they're ready.",
+    "about_quote": "the gap between a promising innovation and one that actually reaches patients.",
+    "facts": [
+      {
+        "label": "Currently",
+        "value": "MS Bioengineering, Columbia University"
+      },
+      {
+        "label": "Also",
+        "value": "Lead, Nucleate New York"
+      }
+    ],
+    "contact_heading": "Let's talk."
+  }
 }

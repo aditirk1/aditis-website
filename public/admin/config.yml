@@ -79,6 +79,29 @@ collections:
               - { label: Title, name: title, widget: string }
               - { label: Description, name: desc, widget: string }
               - { label: Link, name: href, widget: string }
+          - label: Portfolio front page
+            name: portfolio
+            widget: object
+            collapsed: true
+            hint: Only the professional (default) homepage uses these. Its headline is the taglines above, and its description, About text and résumé link are shared with Orbit and Flow, so edit those once above.
+            fields:
+              - label: Top labels
+                name: labels
+                widget: list
+                hint: Small labels across the top of the first screen. The current year is added after the last one.
+                field: { label: Label, name: item, widget: string }
+              - { label: Margin note, name: note, widget: string, hint: Italic note under the headline. }
+              - { label: Projects heading, name: work_heading, widget: string }
+              - { label: Writing heading, name: writing_heading, widget: string }
+              - { label: Writing, when there are no posts, name: writing_empty, widget: string }
+              - { label: About pull quote, name: about_quote, widget: text, hint: The last word is set in terracotta italics. }
+              - label: About facts
+                name: facts
+                widget: list
+                fields:
+                  - { label: Label, name: label, widget: string }
+                  - { label: Text, name: value, widget: string }
+              - { label: Closing line, name: contact_heading, widget: string, hint: The large link at the end, to the secondary button's page. }
       - name: services
         label: Services page
         file: src/data/services.json

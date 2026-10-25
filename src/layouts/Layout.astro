@@ -9,6 +9,7 @@ import BeachBackground from '../components/BeachBackground.astro';
 import SiteNav from '../components/SiteNav.astro';
 import TextSizeControl from '../components/TextSizeControl.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import ThemeSwitch from '../components/ThemeSwitch.astro';
 import ViewTransitionExperiment from '../components/ViewTransitionExperiment.astro';
 
 interface Props {
@@ -42,22 +43,26 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 ---
 
 <!doctype html>
-<html lang="en" data-layout={layoutVariant} data-dream-realm={dreamRealm ? '1' : undefined}>
+<html
+	lang="en"
+	data-layout={layoutVariant}
+	data-dream-realm={dreamRealm ? '1' : undefined}
+	data-home={isHome ? '' : undefined}
+>
 	<head>
 		<meta charset="utf-8" />
 		<meta name="theme-color" content="#05030c" data-theme-color />
 		<script is:inline>
 			(function () {
+				/* Mirrors utils/theme-preference.ts: Portfolio unless "bored?" chose a playful theme this session. */
 				try {
-					var KEY = 'aditi-theme';
-					var t = localStorage.getItem(KEY);
-					if (t !== 'beach' && t !== 'universe') {
-						t = Math.random() < 0.6 ? 'universe' : 'beach';
-						localStorage.setItem(KEY, t);
-					}
+					var t = sessionStorage.getItem('aditi-theme');
+					if (t !== 'portfolio' && t !== 'universe' && t !== 'beach') t = 'portfolio';
+					/* The dream journal only exists in the playful themes. */
+					if (t === 'portfolio' && document.documentElement.getAttribute('data-layout') === 'dream') t = 'universe';
 					document.documentElement.setAttribute('data-theme', t);
 					var tc = document.querySelector('meta[data-theme-color]');
-					if (tc) tc.setAttribute('content', t === 'beach' ? '#0c2f55' : '#05030c');
+					if (tc) tc.setAttribute('content', t === 'beach' ? '#0c2f55' : t === 'portfolio' ? '#fffdfa' : '#05030c');
 					var pref = t === 'beach' ? '/brand/logo-beach' : '/brand/logo-universe';
 					var f16 = document.querySelector('link[data-favicon-16]');
 					var f32 = document.querySelector('link[data-favicon-32]');
@@ -66,7 +71,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 					if (f32) f32.setAttribute('href', pref + '-32.png');
 					if (apple) apple.setAttribute('href', pref + '-180.png');
 				} catch (e) {
-					document.documentElement.setAttribute('data-theme', 'universe');
+					document.documentElement.setAttribute('data-theme', 'portfolio');
 				}
 				try {
 					if (
@@ -130,7 +135,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
-			href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@200;400;500;600&family=Bangers&family=IBM+Plex+Mono:wght@400;500&display=swap"
+			href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,200..600;1,6..72,200..600&family=Hanken+Grotesk:wght@300..600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@200;400;500;600&family=Bangers&family=IBM+Plex+Mono:wght@400;500&display=swap"
 			rel="stylesheet"
 		/>
 
@@ -145,6 +150,14 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 				--font-sans: 'Inter', system-ui, sans-serif;
 				--font-dream-comic: 'Bangers', 'Inter', cursive;
 				--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+			}
+
+			/* Portfolio: Newsreader headings, Hanken Grotesk text and interface. */
+			html[data-theme='portfolio'] {
+				--font-display: 'Newsreader', Georgia, serif;
+				--font-title: 'Newsreader', Georgia, serif;
+				--font-body: 'Hanken Grotesk', system-ui, sans-serif;
+				--font-sans: 'Hanken Grotesk', system-ui, sans-serif;
 			}
 		</style>
 	</head>
@@ -189,7 +202,8 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 							loading="eager"
 							data-site-logo
 						/>
-						Home
+						<span class="brand-playful">Home</span>
+						<span class="brand-portfolio">Aditi</span>
 					</a>
 				</div>
 
@@ -200,14 +214,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 					<div class="min-w-0 flex-1 md:flex-none md:w-auto">
 						<SiteNav />
 					</div>
-					<button
-						type="button"
-						class="theme-toggle-btn shrink-0 rounded-full border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_75%,transparent)] px-2.5 py-1 text-[0.7rem] font-medium leading-none text-[var(--page-fg)] backdrop-blur-sm transition fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)] md:px-4 md:py-2 md:text-sm md:font-semibold"
-						data-theme-toggle
-						aria-label="Switch between Orbit and Flow themes"
-					>
-						<span data-theme-toggle-label>Orbit</span>
-					</button>
+					<ThemeSwitch />
 				</div>
 			</header>
 
@@ -245,13 +252,14 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 			import { initTextSizeControl } from '../scripts/text-size-control.ts';
 			import { initHomeHero } from '../scripts/home-hero.ts';
 			import { syncCoarsePointerAttribute } from '../utils/input-capabilities.ts';
-			import { readStoredTheme, resolveTheme, THEME_KEY } from '../utils/theme-preference.ts';
+			import { readStoredTheme, storeTheme, type PlayfulTheme, type SiteTheme } from '../utils/theme-preference.ts';
+			import { initThemeSwitch } from '../scripts/theme-switch.ts';
 
 			gsap.registerPlugin(ScrollTrigger);
 
 			const html = document.documentElement;
 
-			function syncBrandAssets(theme: 'universe' | 'beach') {
+			function syncBrandAssets(theme: SiteTheme) {
 				const pref = theme === 'beach' ? '/brand/logo-beach' : '/brand/logo-universe';
 
 				const link16 = document.querySelector('link[data-favicon-16]') as HTMLLinkElement | null;
@@ -266,27 +274,21 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 
 				document
 					.querySelector('meta[data-theme-color]')
-					?.setAttribute('content', theme === 'beach' ? '#0c2f55' : '#05030c');
+					?.setAttribute('content', theme === 'beach' ? '#0c2f55' : theme === 'portfolio' ? '#fffdfa' : '#05030c');
 			}
 
-			function getStoredTheme(): 'universe' | 'beach' {
-				return readStoredTheme() ?? resolveTheme();
+			/* The head script already chose; this only re-reads its decision (dream pages force Orbit). */
+			function initialTheme(): SiteTheme {
+				const t = html.getAttribute('data-theme');
+				return t === 'universe' || t === 'beach' || t === 'portfolio' ? t : (readStoredTheme() ?? 'portfolio');
 			}
 
-			function applyTheme(theme: 'universe' | 'beach') {
+			function applyTheme(theme: SiteTheme) {
 				html.setAttribute('data-theme', theme);
 				syncBrandAssets(theme);
-				syncHeroLayout(theme);
+				if (theme !== 'portfolio') syncHeroLayout(theme);
 				/* Sync now so the orrery fade doesn't read a stale heroBottom=0. */
 				refreshScrollMetrics();
-				try {
-					localStorage.setItem(THEME_KEY, theme);
-				} catch {
-					/* ignore */
-				}
-				const label = document.querySelector('[data-theme-toggle-label]');
-				/* Visible names; the stored values stay universe/beach so saved choices carry over. */
-				if (label) label.textContent = theme === 'universe' ? 'Orbit' : 'Flow';
 				/* Second pass after layout/fonts settle. */
 				requestAnimationFrame(() => {
 					refreshScrollMetrics();
@@ -294,19 +296,17 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 				});
 			}
 
-			function onThemeToggleClick(e: MouseEvent) {
-				const btn = (e.target as HTMLElement).closest('[data-theme-toggle]');
-				if (!btn) return;
-				const next = html.getAttribute('data-theme') === 'universe' ? 'beach' : 'universe';
-				applyTheme(next);
+			function applyPlayfulTheme(theme: PlayfulTheme) {
+				storeTheme(theme);
+				applyTheme(theme);
 			}
 
-			applyTheme(getStoredTheme());
+			applyTheme(initialTheme());
 			syncCoarsePointerAttribute();
 			syncSiteNavChrome();
 			initTransitionExperiment();
 			initNavIndicators();
-			document.addEventListener('click', onThemeToggleClick);
+			const stopThemeSwitch = initThemeSwitch(applyPlayfulTheme);
 			const stopTextSizeControl = initTextSizeControl();
 
 			/* Reader text size changes document height — trigger positions must follow. */
@@ -332,22 +332,24 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 
 			const path = window.location.pathname.replace(/\/$/, '') || '/';
 			const onHome = path === '' || path === '/';
-			/* Editorial pages render settled; only the homepage's lower sections reveal. */
-			const stopReveal = onHome ? initPageRevealAnimations() : () => {};
+			const playful = html.getAttribute('data-theme') !== 'portfolio';
+			/* Editorial pages render settled; only the playful homepage's lower sections reveal. */
+			const stopReveal = onHome && playful ? initPageRevealAnimations() : () => {};
 			let stopHome = () => {};
-			if (onHome) {
+			if (onHome && playful) {
 				stopHome = initHomeHero();
 			}
 
 			/* Reveal/GSAP may have just zeroed the Beach hero copy — re-sync layout
 			 * and scroll metrics so planets + Beach text are visible without a refresh. */
-			syncHeroLayout(getStoredTheme());
+			const startTheme = initialTheme();
+			if (startTheme !== 'portfolio') syncHeroLayout(startTheme);
 			refreshScrollMetrics();
 			requestAnimationFrame(() => {
 				refreshScrollMetrics();
 				ScrollTrigger.refresh();
 				window.dispatchEvent(
-					new CustomEvent('aditi:theme-layout', { detail: { theme: getStoredTheme() } }),
+					new CustomEvent('aditi:theme-layout', { detail: { theme: startTheme } }),
 				);
 			});
 
@@ -395,7 +397,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 					unsubscribeHeader();
 					headerResize?.disconnect();
 					stopScrollOrchestrator();
-					document.removeEventListener('click', onThemeToggleClick);
+					stopThemeSwitch();
 					document.removeEventListener('click', onTextSizeChange);
 					window.removeEventListener('resize', onResizeNav);
 					ScrollTrigger.getAll().forEach((t) => t.kill());

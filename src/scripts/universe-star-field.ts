@@ -233,9 +233,9 @@ type PlanetMeshUserData = PlanetConfig & {
 	baseMetalness: number;
 };
 
-function getTheme(): 'universe' | 'beach' {
+function getTheme(): 'universe' | 'beach' | 'portfolio' {
 	const t = document.documentElement.getAttribute('data-theme');
-	return t === 'beach' ? 'beach' : 'universe';
+	return t === 'beach' || t === 'portfolio' ? t : 'universe';
 }
 
 function isDreamRealmPage(): boolean {
@@ -853,7 +853,7 @@ export function initUniverseStarField(): () => void {
 	function isBlockingOverlay(el: Element | null): boolean {
 		if (!el || el === canvasEl || el.closest('[data-universe-canvas]')) return false;
 		const hit = el.closest(
-			'a, button, input, textarea, select, label, [role="button"], [data-theme-toggle], [data-contact-modal]',
+			'a, button, input, textarea, select, label, [role="button"], [data-theme-switch], [data-contact-modal]',
 		);
 		return !!hit && getComputedStyle(hit).pointerEvents !== 'none';
 	}
@@ -1388,7 +1388,7 @@ export function initUniverseStarField(): () => void {
 		window.cancelAnimationFrame(showRaf);
 		window.cancelAnimationFrame(showRaf2);
 
-		if (theme === 'beach') {
+		if (theme !== 'universe') {
 			stop();
 			/* opacity (not visibility:hidden) — Safari is less eager to drop the GL layer. */
 			if (root) {

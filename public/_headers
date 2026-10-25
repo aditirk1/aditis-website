@@ -12,7 +12,7 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
-  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com; font-src 'self' data: https://fonts.gstatic.com https://cdn.fontshare.com; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https://api.github.com https://*.githubusercontent.com https://api.web3forms.com https://unpkg.com; worker-src 'self' blob:; form-action 'self' https://api.web3forms.com https://github.com; base-uri 'self'; object-src 'none'; frame-ancestors 'self'
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https://api.github.com https://*.githubusercontent.com https://api.web3forms.com https://unpkg.com; worker-src 'self' blob:; form-action 'self' https://api.web3forms.com https://github.com; base-uri 'self'; object-src 'none'; frame-ancestors 'self'
 
 /admin/*
   Cache-Control: no-store

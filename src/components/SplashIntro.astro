@@ -21,7 +21,8 @@ const chars = home.hero_title.replace(/\.$/, '').split('');
 </script>
 
 <style is:global>
-	html[data-splash-skip='1'] #splash-intro {
+	html[data-splash-skip='1'] #splash-intro,
+	html[data-theme='portfolio'] #splash-intro {
 		display: none !important;
 		pointer-events: none !important;
 		visibility: hidden !important;

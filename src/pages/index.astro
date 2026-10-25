@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import SplashIntro from '../components/SplashIntro.astro';
 import LiveVisitorMap from '../components/LiveVisitorMap.astro';
 import Button from '../components/Button.astro';
+import PortfolioHome from '../components/portfolio/PortfolioHome.astro';
 import home from '../data/home.json';
 
 const heroTitle = home.hero_title;
@@ -16,7 +17,12 @@ const firstTagline = taglines[0] ?? '';
 ---
 
 <Layout title={documentTitle}>
+	<PortfolioHome />
+
 	<SplashIntro />
+
+	<!-- Orbit and Flow homepage. Hidden in Portfolio, which has its own above. -->
+	<div data-playful-home>
 
 	<!-- Hero: pointer-events-none so the starfield canvas can receive clicks (secret star). Interactive bits opt in. -->
 	<section class="home-hero pointer-events-none relative" data-hero-root>
@@ -154,4 +160,5 @@ const firstTagline = taglines[0] ?? '';
 			<LiveVisitorMap />
 		</div>
 	</section>
+	</div>
 </Layout>

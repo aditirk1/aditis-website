@@ -162,7 +162,11 @@ const isProjectDetail = /^\/projects\/[^/]+\/?$/.test(Astro.url.pathname);
 			var traverse = Boolean(act && act.navigationType === 'traverse');
 			var back = traverse && act.from && act.entry && act.entry.index < act.from.index;
 			var flow = root.getAttribute('data-theme') === 'beach';
-			var effect = pickEffect(origin, traverse, back, flow);
+			/* Portfolio keeps motion quiet: a crossfade, except the shared project-title morph. */
+			var effect =
+				root.getAttribute('data-theme') === 'portfolio'
+					? origin && origin.kind === 'project' && !traverse ? 'morph' : 'fade'
+					: pickEffect(origin, traverse, back, flow);
 
 			var title = effect === 'morph' ? document.getElementById('project-title') : null;
 			if (effect === 'morph' && !title) effect = 'fade';
