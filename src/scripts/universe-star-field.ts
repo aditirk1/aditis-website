@@ -298,8 +298,8 @@ function createStarfieldMaterial(): THREE.ShaderMaterial {
 
 				vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
 				/* Generous size: the halo needs pixels to read as glow instead of a dot. */
-				float baseSize = aSize * uPixelRatio * 260.0 / max(1.0, -mvPosition.z);
-				gl_PointSize = clamp(baseSize * (1.0 + wake * 0.85), 2.0, 16.0);
+				float baseSize = aSize * uPixelRatio * 380.0 / max(1.0, -mvPosition.z);
+				gl_PointSize = clamp(baseSize * (1.0 + wake * 0.85), 3.0, 22.0);
 				gl_Position = projectionMatrix * mvPosition;
 			}
 		`,
@@ -315,12 +315,16 @@ function createStarfieldMaterial(): THREE.ShaderMaterial {
 				 * Two gaussians: a tight core for the point of light and a wide, faint
 				 * halo around it. A single falloff just reads as a flat dot.
 				 */
-				float core = exp(-r2 * 44.0);
+				float core = exp(-r2 * 32.0);
 				float halo = exp(-r2 * 7.0) * 0.42;
 
-				/* Real starlight runs blue-white through warm; pure white looks synthetic. */
-				vec3 col = mix(vec3(0.76, 0.84, 1.0), vec3(1.0, 0.9, 0.72), vTint);
-				col = mix(col, vec3(1.0), core * 0.7);
+				/* A third each: light pink, light yellow, white. */
+				vec3 col = vTint < 0.34
+					? vec3(1.0, 0.8, 0.9)
+					: vTint < 0.67
+						? vec3(1.0, 0.94, 0.7)
+						: vec3(1.0);
+				col = mix(col, vec3(1.0), core * 0.4);
 
 				float alpha = clamp((core + halo) * vStrength, 0.0, 1.0);
 				gl_FragColor = vec4(col, alpha);
