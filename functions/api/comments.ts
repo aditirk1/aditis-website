@@ -69,6 +69,18 @@ async function isAdmin(session: DreamSessionPayload | null, request: Request, en
 	return allow.includes(session.sub);
 }
 
+const FALLBACK_NAME = 'Reader';
+
+/*
+ * What visitors see. The sign-in provider and account id stay in storage for
+ * moderation but never leave the server: nobody's name should say which app
+ * they signed in with.
+ */
+function publicComment(c: SiteComment) {
+	const name = c.name === 'GitHub user' || c.name === 'Google user' ? FALLBACK_NAME : c.name;
+	return { id: c.id, name, body: c.body, createdAt: c.createdAt };
+}
+
 async function readComments(kv: KVNamespace, scope: string): Promise<SiteComment[]> {
 	const raw = await kv.get(kvKey(scope));
 	if (!raw) return [];
@@ -101,12 +113,10 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 		{
 			ok: true,
 			scope,
-			comments,
+			comments: comments.map(publicComment),
 			authenticated: !!session,
 			isAdmin: await isAdmin(session, request, env),
-			viewer: session
-				? { name: session.name ?? null, provider: session.provider, sub: session.sub }
-				: null,
+			viewer: session ? { name: session.name ?? null } : null,
 		},
 		200,
 		request,
@@ -141,7 +151,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	const comment: SiteComment = {
 		id: crypto.randomUUID().replace(/-/g, ''),
 		sub: session.sub,
-		name: session.name?.trim() || (session.provider === 'github' ? 'GitHub user' : 'Google user'),
+		name: session.name?.trim() || FALLBACK_NAME,
 		provider: session.provider,
 		body,
 		createdAt: new Date().toISOString(),
@@ -149,7 +159,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	list.unshift(comment);
 	await writeComments(env.VISITOR_KV, scope, list);
 
-	return json({ ok: true, comment }, 201, request);
+	return json({ ok: true, comment: publicComment(comment) }, 201, request);
 };
 
 export const onRequestDelete: PagesFunction<Env> = async ({ request, env }) => {
