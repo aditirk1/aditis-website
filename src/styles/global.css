@@ -1178,16 +1178,17 @@ html[data-theme='beach'] #planet-label {
 	}
 
 	html[data-theme='beach'] .home-hero-side-col [data-hero-copy] {
-		max-width: 32rem;
+		max-width: 36rem;
 	}
 
-	html[data-theme='beach'] .home-hero-side-col [data-hero-tagline] {
-		font-size: clamp(1.5rem, 2.1vw, 2rem);
+	/* The #main-content id outranks the reader-scale .text-* rules these elements carry. */
+	html[data-theme='beach'] #site-shell #main-content .home-hero-side-col [data-hero-tagline] {
+		font-size: calc(clamp(1.6rem, 2.2vw, 2.25rem) * var(--reader-scale));
 	}
 
-	html[data-theme='beach'] .home-hero-side-col .home-hero-desc {
-		font-size: clamp(1.2rem, 1.55vw, 1.5rem);
-		line-height: 1.6;
+	html[data-theme='beach'] #site-shell #main-content .home-hero-side-col .home-hero-desc {
+		font-size: calc(clamp(1.25rem, 1.6vw, 1.7rem) * var(--reader-scale));
+		line-height: 1.55;
 	}
 }
 
