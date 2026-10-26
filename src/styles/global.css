@@ -870,26 +870,55 @@ nav[aria-label='Primary'] .nav-tab[data-active='true'] {
  * Reader text-size control. Floats in the bottom-right corner with pill chrome,
  * kept visually quiet so it never competes with page content.
  */
+/* Collapsed to a faint "Aa"; the buttons slide out on hover, keyboard focus or tap. */
 .text-size-control {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.15rem;
 	padding: 0.2rem 0.5rem;
 	border-radius: 9999px;
 	border: 1px solid color-mix(in srgb, var(--color-amber) 28%, transparent);
 	background: color-mix(in srgb, var(--page-bg) 88%, transparent);
 	backdrop-filter: blur(6px);
-	opacity: 0.62;
+	opacity: 0.38;
+	cursor: var(--cursor-pointer, pointer);
 	transition: opacity 200ms ease;
 }
 
 .text-size-label {
-	font-family: var(--font-mono);
-	font-size: 0.65rem;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
+	font-family: var(--font-sans, sans-serif);
+	font-size: 0.72rem;
+	font-weight: 500;
+	letter-spacing: 0.02em;
 	color: var(--page-muted);
-	margin-right: 0.2rem;
+}
+
+.text-size-btns {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.15rem;
+	max-width: 0;
+	overflow: hidden;
+	opacity: 0;
+	transition:
+		max-width 260ms cubic-bezier(0.22, 1, 0.36, 1),
+		opacity 180ms ease,
+		margin 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.text-size-control:is(:hover, :has(:focus-visible), [data-open]) {
+	opacity: 0.9;
+}
+
+.text-size-control:is(:hover, :has(:focus-visible), [data-open]) .text-size-btns {
+	max-width: 8rem;
+	margin-left: 0.35rem;
+	opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.text-size-btns {
+		transition: none;
+	}
 }
 
 .text-size-btn {
@@ -924,10 +953,6 @@ nav[aria-label='Primary'] .nav-tab[data-active='true'] {
 }
 
 @media (hover: hover) and (pointer: fine) {
-	.text-size-control:hover {
-		opacity: 0.85;
-	}
-
 	.text-size-btn:hover:not(:disabled) {
 		color: var(--color-amber);
 	}
@@ -2322,4 +2347,9 @@ html[data-theme='portfolio'] .full-page-article__tag {
 html[data-theme='portfolio'] .blog-prose blockquote {
 	border-left-color: var(--pf-olive);
 	background: color-mix(in srgb, var(--pf-olive) 7%, transparent);
+}
+
+/* Flow About copy starts two text-size steps up (1.25 vs the 1.1 default) and still follows A−/A+. */
+html[data-theme='beach'] #site-shell #main-content [data-home-about] p {
+	font-size: calc(1.125rem * var(--reader-scale) * 1.25 / 1.1);
 }
