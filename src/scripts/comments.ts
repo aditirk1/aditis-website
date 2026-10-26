@@ -4,7 +4,6 @@
 export type CommentItem = {
 	id: string;
 	name: string;
-	provider: 'github' | 'google';
 	body: string;
 	createdAt: string;
 };
@@ -72,7 +71,6 @@ export function initComments(root: HTMLElement): () => void {
 				(c) => `<article class="comments-item" data-comment-id="${escapeHtml(c.id)}">
 					<header class="comments-item__meta">
 						<span class="comments-item__name">${escapeHtml(c.name)}</span>
-						<span class="comments-item__via">${c.provider === 'google' ? 'Google' : 'GitHub'}</span>
 						<time datetime="${escapeHtml(c.createdAt)}">${escapeHtml(formatWhen(c.createdAt))}</time>
 						${
 							isAdmin
