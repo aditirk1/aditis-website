@@ -46,9 +46,27 @@ export function initTextSizeControl(): () => void {
 	inc?.addEventListener('click', onIncrease);
 	reset?.addEventListener('click', onReset);
 
+	/* No hover on touch screens: a tap opens the collapsed control, a tap elsewhere closes it. */
+	const control = document.querySelector<HTMLElement>('[data-text-size-control]');
+	const noHover = matchMedia('(hover: none)');
+	const onControlTap = (e: Event) => {
+		if (!control || !noHover.matches || control.hasAttribute('data-open')) return;
+		e.preventDefault();
+		control.setAttribute('data-open', '');
+	};
+	const onOutside = (e: Event) => {
+		if (control?.hasAttribute('data-open') && !control.contains(e.target as Node)) {
+			control.removeAttribute('data-open');
+		}
+	};
+	control?.addEventListener('click', onControlTap, { capture: true });
+	document.addEventListener('pointerdown', onOutside);
+
 	return () => {
 		dec?.removeEventListener('click', onDecrease);
 		inc?.removeEventListener('click', onIncrease);
 		reset?.removeEventListener('click', onReset);
+		control?.removeEventListener('click', onControlTap, { capture: true });
+		document.removeEventListener('pointerdown', onOutside);
 	};
 }
