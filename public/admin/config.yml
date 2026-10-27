@@ -99,7 +99,7 @@ collections:
               - { label: Blog intro, name: writing_intro, widget: string }
               - { label: Blog link, name: writing_more, widget: string, hint: Arrow link to the full Blog page. }
               - { label: Blog, when there are no posts, name: writing_empty, widget: string }
-              - { label: About pull quote, name: about_quote, widget: text, hint: Shown beside the About text, which is shared with Orbit and Flow. The last word is set in terracotta italics. }
+              - { label: About pull quote, name: about_quote, widget: text, hint: Shown beside the About text, which is shared with Orbit and Flow. The last word is set in green italics. }
               - label: About facts
                 name: facts
                 widget: list

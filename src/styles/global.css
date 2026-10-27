@@ -1886,14 +1886,14 @@ html[data-coarse-pointer] .project-index-link:active .project-index-link__label 
  * ====================================================================== */
 html[data-theme='portfolio'] {
 	color-scheme: light;
-	--pf-bg: #fffdfa;
-	--pf-glow: #fff2e8;
-	--pf-surface: #fff9f4;
-	--pf-ink: #382b28;
-	--pf-ink-2: #675b56;
-	--pf-accent: #a64f39;
-	--pf-line: #e6d8ce;
-	--pf-olive: #70734d;
+	--pf-bg: #fbfaf6;
+	--pf-glow: #eef2ea;
+	--pf-surface: #f6f6f0;
+	--pf-ink: #1d2420;
+	--pf-ink-2: #565d57;
+	--pf-accent: #2f5d44;
+	--pf-line: #e2e3dc;
+	--pf-accent-2: #8a6d2a;
 	--color-amber: var(--pf-accent);
 	--page-bg: var(--pf-bg);
 	--page-fg: var(--pf-ink);
@@ -1905,9 +1905,9 @@ html[data-theme='portfolio'] {
 
 html[data-theme='portfolio'] body {
 	background-color: var(--pf-bg);
-	/* Almost white, a barely perceptible warm glow at the top right. */
+	/* Almost white, a barely perceptible green glow at the top right. */
 	background-image:
-		radial-gradient(110% 60% at 86% -6%, var(--pf-glow) 0%, rgb(255 242 232 / 0) 60%),
+		radial-gradient(110% 60% at 86% -6%, var(--pf-glow) 0%, transparent 60%),
 		linear-gradient(180deg, var(--pf-bg) 0%, var(--pf-bg) 35%, var(--pf-surface) 100%);
 }
 
@@ -1994,7 +1994,7 @@ html[data-theme='portfolio'] nav[aria-label='Primary'] .nav-tab[data-active='tru
 	box-shadow: none;
 }
 
-/* Current page: a small terracotta dot under the label. */
+/* Current page: a small accent dot under the label. */
 html[data-theme='portfolio'] nav[aria-label='Primary'] .nav-tab[data-active='true']::after {
 	content: '';
 	position: absolute;
@@ -2329,27 +2329,28 @@ html[data-theme='beach'] nav[aria-label='Primary'] .nav-tab[data-active='true'] 
 	box-shadow: none;
 }
 
-/* Portfolio: olive as the quiet second accent — dates, tags, quotes, selection. */
+/* Portfolio: brass as the quiet second accent — dates, tags, quotes, selection. */
 html[data-theme='portfolio'] ::selection {
-	background: color-mix(in srgb, var(--pf-olive) 24%, transparent);
+	background: color-mix(in srgb, var(--pf-accent-2) 24%, transparent);
 	color: var(--pf-ink);
 }
 
 html[data-theme='portfolio'] :is(.full-page-article__meta-inner time, .post-date) {
-	color: var(--pf-olive);
+	color: var(--pf-accent-2);
 }
 
 html[data-theme='portfolio'] .full-page-article__tag {
-	border-color: color-mix(in srgb, var(--pf-olive) 45%, transparent);
-	color: var(--pf-olive);
+	border-color: color-mix(in srgb, var(--pf-accent-2) 45%, transparent);
+	color: var(--pf-accent-2);
 }
 
 html[data-theme='portfolio'] .blog-prose blockquote {
-	border-left-color: var(--pf-olive);
-	background: color-mix(in srgb, var(--pf-olive) 7%, transparent);
+	border-left-color: var(--pf-accent-2);
+	background: color-mix(in srgb, var(--pf-accent-2) 7%, transparent);
 }
 
 /* Flow About copy starts two text-size steps up (1.25 vs the 1.1 default) and still follows A−/A+. */
 html[data-theme='beach'] #site-shell #main-content [data-home-about] p {
 	font-size: calc(1.125rem * var(--reader-scale) * 1.25 / 1.1);
 }
+
