@@ -82,7 +82,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 					sessionStorage.setItem('aditi-session', '1');
 					sessionStorage.removeItem('aditi-theme-switched');
 					var tc = document.querySelector('meta[data-theme-color]');
-					if (tc) tc.setAttribute('content', t === 'beach' ? '#0c2f55' : t === 'portfolio' ? '#fffdfa' : '#05030c');
+					if (tc) tc.setAttribute('content', t === 'beach' ? '#0c2f55' : t === 'portfolio' ? '#fbfaf6' : '#05030c');
 					var pref = t === 'beach' ? '/brand/logo-flow' : '/brand/logo-universe';
 					var f16 = document.querySelector('link[data-favicon-16]');
 					var f32 = document.querySelector('link[data-favicon-32]');
@@ -301,7 +301,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 
 				document
 					.querySelector('meta[data-theme-color]')
-					?.setAttribute('content', theme === 'beach' ? '#0c2f55' : theme === 'portfolio' ? '#fffdfa' : '#05030c');
+					?.setAttribute('content', theme === 'beach' ? '#0c2f55' : theme === 'portfolio' ? '#fbfaf6' : '#05030c');
 			}
 
 			/* The head script already chose; this only re-reads its decision (dream pages force Orbit). */
