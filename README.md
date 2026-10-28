@@ -2,7 +2,7 @@
 
 **Live at aditirk.me**
 
-My website that hosts a portfolio, and a notebook: projects and research, long-form writing, quick thoughts, a photo dump, freelance services, and a private dream journal. It has two moods — **Universe** (a WebGL starfield with an orbiting planet system) and **Beach** (animated waves) — and picks one at random on your first visit.
+My website that hosts a portfolio, and a notebook: projects and research, long-form writing, quick thoughts, a photo dump, freelance services, and a secret space. There's three ways to view it - Regular, Orbit and Flow.
 
 ## What's inside
 
@@ -12,7 +12,7 @@ My website that hosts a portfolio, and a notebook: projects and research, long-f
 - **Thoughts**: short-form posts, which can also be sent from a phone via `/quick`
 - **Photo dump**: albums with a full-screen viewer
 - **Services**: freelance offerings with a contact form and optional Stripe checkout
-- **Dream journal**: private entries behind Google/GitHub sign-in, with comic-style pop-out words
+- **Secret**: private entries behind Google/GitHub sign-in, with comic-style pop-out words
 - **Comments**: signed-in readers can comment, with moderation for the admin
 - **/admin**: browser-based content editing, so no code is needed to publish
 
