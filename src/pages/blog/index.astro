@@ -8,7 +8,7 @@ const categories = groupByCategory(posts);
 const showCategories = hasNamedCategories(categories);
 ---
 
-<Layout title="Blog · aditi's universe">
+<Layout title="Blog | aditi's universe">
 	<div class="page-list-shell page-list-shell--blog">
 		<div data-reveal-stagger class="page-list-header">
 			<h1
@@ -59,6 +59,7 @@ const showCategories = hasNamedCategories(categories);
 								href={post.href}
 								class="blog-list-card group block py-8 transition-colors first:pt-0"
 								data-reveal-child
+								data-spatial
 							>
 								<div class="flex items-baseline justify-between gap-4">
 									<h3
@@ -71,7 +72,7 @@ const showCategories = hasNamedCategories(categories);
 										{post.minutes} min
 									</span>
 								</div>
-								<p class="mt-1 text-sm uppercase tracking-wider text-[var(--page-muted)]">
+								<p class="post-date mt-1 text-sm uppercase tracking-wider text-[var(--page-muted)]">
 									{post.entry.data.date.toLocaleDateString('en-US', {
 										year: 'numeric',
 										month: 'long',

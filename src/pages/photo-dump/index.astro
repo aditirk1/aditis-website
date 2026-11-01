@@ -12,7 +12,7 @@ const albums = await loadPhotoAlbums(photosRoot, cmsPhotos);
 const hasPhotos = albums.some((a) => a.photos.length > 0);
 ---
 
-<Layout title="Photo dump · aditi's universe">
+<Layout title="Photo dump | aditi's universe">
 	<div class="page-list-shell">
 		<div data-reveal-stagger class="page-list-header">
 			<h1
@@ -49,10 +49,10 @@ const hasPhotos = albums.some((a) => a.photos.length > 0);
 								</h2>
 								<ul class="columns-2 gap-4 sm:columns-3 md:columns-4">
 									{album.photos.map((photo, i) => (
-										<li class="mb-4 break-inside-avoid" data-reveal-child>
+										<li class="mb-4 break-inside-avoid" data-reveal-child data-spatial>
 											<button
 												type="button"
-												class="photo-dump-btn group w-full overflow-hidden rounded-xl border-0 bg-transparent p-0 text-left shadow-md transition-shadow hover:shadow-[0_0_20px_color-mix(in_srgb,var(--color-amber)_20%,transparent)]"
+												class="photo-dump-btn group w-full overflow-hidden rounded-xl border-0 bg-transparent p-0 text-left shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-amber)]"
 												data-lightbox-open={i}
 												aria-label={`Open ${photo.alt} larger`}
 											>

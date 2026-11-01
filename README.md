@@ -2,7 +2,7 @@
 
 **Live at aditirk.me**
 
-My website that hosts a portfolio, and a notebook: projects and research, long-form writing, quick thoughts, a photo dump, freelance services, and a private dream journal. It has two moods — **Universe** (a WebGL starfield with an orbiting planet system) and **Beach** (animated waves) — and picks one at random on your first visit.
+My website that hosts a portfolio, and a notebook: projects and research, long-form writing, quick thoughts, a photo dump, a Let's Talk page, and a secret space. There's three ways to view it - Regular, Orbit and Flow.
 
 ## What's inside
 
@@ -11,8 +11,8 @@ My website that hosts a portfolio, and a notebook: projects and research, long-f
 - **Blog**: essays, notes, and reading, grouped by category, with an RSS feed
 - **Thoughts**: short-form posts, which can also be sent from a phone via `/quick`
 - **Photo dump**: albums with a full-screen viewer
-- **Services**: freelance offerings with a contact form and optional Stripe checkout
-- **Dream journal**: private entries behind Google/GitHub sign-in, with comic-style pop-out words
+- **Let's Talk**: email, LinkedIn, and GitHub. (A fuller Work With Me page with Cal.com booking exists at `/work-with-me` but isn't linked yet.)
+- **Secret**: private entries behind Google/GitHub sign-in, with comic-style pop-out words
 - **Comments**: signed-in readers can comment, with moderation for the admin
 - **/admin**: browser-based content editing, so no code is needed to publish
 
@@ -28,7 +28,7 @@ My website that hosts a portfolio, and a notebook: projects and research, long-f
 | Hosting | Cloudflare Pages |
 | Backend | Cloudflare Pages Functions (`functions/api/*`) + Workers KV |
 | Auth | Google & GitHub OAuth with HMAC-signed session cookies |
-| Integrations | Web3Forms (contact), Stripe Checkout, GitHub Contents API |
+| Integrations | Cal.com (booking), GitHub Contents API |
 | Media | `sharp` for EXIF stripping/resizing and generating the social card |
 
 ## Under the hood

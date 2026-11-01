@@ -3,24 +3,30 @@ import Layout from '../layouts/Layout.astro';
 import SplashIntro from '../components/SplashIntro.astro';
 import LiveVisitorMap from '../components/LiveVisitorMap.astro';
 import Button from '../components/Button.astro';
+import PortfolioHome from '../components/portfolio/PortfolioHome.astro';
 import home from '../data/home.json';
 
 const heroTitle = home.hero_title;
 /* Grouped by word so per-letter spans can't be broken mid-word by wrapping. */
 const heroWords = heroTitle.split(' ').map((word) => word.split(''));
 /* The displayed title ends in a full stop; the browser tab reads better without it. */
-const documentTitle = `${heroTitle.replace(/\.$/, '')} · aditirk.me`;
+const documentTitle = `${heroTitle.replace(/\.$/, '')} | aditirk.me`;
 const exploreCards = home.explore_cards;
 const taglines = Array.isArray(home.taglines) ? home.taglines.filter(Boolean) : [];
 const firstTagline = taglines[0] ?? '';
 ---
 
 <Layout title={documentTitle}>
+	<PortfolioHome />
+
 	<SplashIntro />
+
+	<!-- Orbit and Flow homepage. Hidden in Portfolio, which has its own above. -->
+	<div data-playful-home>
 
 	<!-- Hero: pointer-events-none so the starfield canvas can receive clicks (secret star). Interactive bits opt in. -->
 	<section class="home-hero pointer-events-none relative" data-hero-root>
-		<div class="home-hero-grid">
+		<div class="home-hero-grid" data-spatial-hero>
 			<div class="home-hero-title-col">
 				<div id="sun-wrapper">
 					<h1 id="sun-text" data-hero-title>
@@ -33,32 +39,11 @@ const firstTagline = taglines[0] ?? '';
 						))}
 					</h1>
 				</div>
-				<!-- Beach only: tagline carousel, description and CTAs under the title. Universe hides it. -->
-				<div class="home-hero-copy" data-hero-copy data-reveal-stagger>
-					<p
-						class="home-hero-extra text-[var(--color-amber)]"
-						data-hero-tagline
-						data-tagline-items={JSON.stringify(taglines)}
-						data-reveal-child
-					>
-						{firstTagline}
-					</p>
-					<p
-						class="home-hero-extra home-hero-desc mt-4 text-pretty text-lg leading-relaxed text-[var(--page-muted)] md:text-xl"
-						data-reveal-child
-					>
-						{home.hero_description}
-					</p>
-					<div class="home-hero-extra pointer-events-auto mt-8 flex flex-wrap gap-4" data-reveal-child>
-						<Button href={home.cta_primary_href}>{home.cta_primary_label}</Button>
-						<Button href={home.cta_secondary_href} variant="secondary">{home.cta_secondary_label}</Button>
-					</div>
-				</div>
 			</div>
 			<!--
 				RIGHT zone. Universe: the orrery renders here (WebGL, behind) and this
 				box is what it centres on; the caption is placed against its bottom edge.
-				Beach: hidden.
+				Beach: the copy block is moved in by syncHeroLayout().
 			-->
 			<div class="home-hero-side-col" data-hero-side-slot>
 				<div id="planet-label">
@@ -72,9 +57,39 @@ const firstTagline = taglines[0] ?? '';
 		</div>
 	</section>
 
+	<!--
+		Copy block: Beach only (right column via syncHeroLayout).
+		Universe hides this entire band — hero is title + planets only.
+	-->
+	<section class="home-intro pointer-events-none relative" data-hero-intro-home hidden>
+		<div class="home-intro-inner" data-hero-copy data-reveal-stagger>
+			<p
+				class="home-hero-extra text-xl font-medium tracking-wide text-[var(--color-amber)] md:text-2xl"
+				style="font-family: var(--font-display)"
+				data-hero-tagline
+				data-tagline-items={JSON.stringify(taglines)}
+				data-reveal-child
+			>
+				{firstTagline}
+			</p>
+			<p
+				class="home-hero-extra home-hero-desc mt-6 text-pretty text-lg leading-relaxed text-[var(--page-muted)] md:text-xl"
+				data-reveal-child
+			>
+				{home.hero_description}
+			</p>
+			<div class="home-hero-extra pointer-events-auto mt-10 flex flex-wrap gap-4" data-reveal-child>
+				<Button href={home.cta_primary_href} size="lg">{home.cta_primary_label}</Button>
+				<Button href={home.cta_secondary_href} variant="secondary" size="lg">{home.cta_secondary_label}</Button>
+			</div>
+		</div>
+	</section>
+
 	<section
 		class="pointer-events-auto relative mx-auto max-w-5xl px-8 py-20 md:px-16 md:py-28"
 		data-reveal-stagger
+		data-spatial-section
+		data-home-about
 	>
 		<h2
 			class="text-3xl font-semibold tracking-tight md:text-4xl"
@@ -110,6 +125,7 @@ const firstTagline = taglines[0] ?? '';
 	<section
 		class="home-explore pointer-events-auto relative mx-auto max-w-5xl px-8 py-12 md:px-16 md:py-20"
 		data-reveal-stagger
+		data-spatial-section
 	>
 		<h2
 			class="text-3xl font-semibold tracking-tight md:text-4xl"
@@ -123,7 +139,7 @@ const firstTagline = taglines[0] ?? '';
 			{exploreCards.map(({ href, title, desc }) => (
 				<a
 					href={href}
-					class="home-explore-card group relative overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--page-fg)_12%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_70%,transparent)] p-6 backdrop-blur-md transition-all duration-300 fine-hover:border-[var(--color-amber)] fine-hover:shadow-[0_0_32px_color-mix(in_srgb,var(--color-amber)_15%,transparent)]"
+					class="home-explore-card group relative overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--page-fg)_12%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_70%,transparent)] p-6 backdrop-blur-md transition-colors duration-150 fine-hover:border-[var(--color-amber)] focus-visible:border-[var(--color-amber)]"
 					data-reveal-child
 				>
 					<h3 class="text-lg font-semibold" style="font-family: var(--font-display)">
@@ -132,7 +148,7 @@ const firstTagline = taglines[0] ?? '';
 					<p class="mt-2 text-sm leading-relaxed text-[var(--page-muted)] transition-colors fine-group-hover:text-[var(--page-fg)]">
 						{desc}
 					</p>
-					<span class="explore-card-cta mt-3 inline-block text-xs font-bold tracking-wide text-[var(--color-amber)] opacity-0 transition-opacity fine-group-hover:opacity-100 group-focus-within:opacity-100">
+					<span class="explore-card-cta mt-3 inline-block text-xs font-bold tracking-wide text-[var(--color-amber)] opacity-70 transition-opacity duration-150 fine-group-hover:opacity-100 group-focus-visible:opacity-100">
 						Explore →
 					</span>
 				</a>
@@ -140,9 +156,10 @@ const firstTagline = taglines[0] ?? '';
 		</div>
 	</section>
 
-	<section class="pointer-events-auto relative mx-auto max-w-3xl px-8 py-12 md:px-16 md:py-20" data-reveal-stagger>
+	<section class="pointer-events-auto relative mx-auto max-w-3xl px-8 py-12 md:px-16 md:py-20" data-reveal-stagger data-spatial-section data-spatial-no-blur>
 		<div data-reveal-child>
 			<LiveVisitorMap />
 		</div>
 	</section>
+	</div>
 </Layout>

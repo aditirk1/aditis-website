@@ -1,0 +1,61 @@
+{
+  "page_title": "Work With Me",
+  "intro": "Personalized guidance for college applications and career decisions, alongside mentorship for students interested in exploring science, getting involved in research, and building practical experience.",
+  "offerings": [
+    {
+      "title": "Conversations & Guidance",
+      "teaser": "From navigating college and graduate school applications to exploring careers in biotech, research, and beyond.",
+      "detail": "Book a conversation, ask questions, or get a second perspective from someone who's been through it. Pick a session below and we'll meet to discuss.",
+      "links": [
+        {
+          "label": "20-minute 1-1 chat",
+          "price": "$15",
+          "url": "https://cal.com/aditi-ravi-kumar-06s8ne/20min"
+        },
+        {
+          "label": "45-minute application review",
+          "price": "$30",
+          "url": "https://cal.com/aditi-ravi-kumar-06s8ne/45min"
+        }
+      ],
+      "includes": []
+    },
+    {
+      "title": "STEM Mentorship",
+      "teaser": "For curious middle and high school students who want to explore science beyond the classroom.",
+      "detail": "From discovering interests in biology and engineering to developing projects, asking better questions, and building confidence in STEM. I've taught AI to middle and high school students as an instructor at Inspirit AI.",
+      "links": [
+        {
+          "label": "Email me about mentorship",
+          "price": "",
+          "url": "mailto:ar4997@columbia.edu?subject=STEM%20mentorship"
+        }
+      ],
+      "includes": [
+        "Individual sessions",
+        "Ongoing mentorship",
+        "Virtual sessions, and parents are welcome to join the first conversation"
+      ]
+    }
+  ],
+  "process_heading": "How mentorship starts",
+  "process": [
+    {
+      "step": "01",
+      "title": "Reach out",
+      "body": "Email me with a little about the student: their grade, what they're curious about, and what they'd like to get out of mentorship."
+    },
+    {
+      "step": "02",
+      "title": "Introductory conversation",
+      "body": "We'll start with a 15-minute conversation to understand the student's current level, interests, and goals, and to answer any questions you have."
+    },
+    {
+      "step": "03",
+      "title": "Shape the plan",
+      "body": "From there, we'll decide together whether individual sessions or ongoing mentorship fits best, and set a pace and focus that work for the student."
+    }
+  ],
+  "cta_heading": "Have something else in mind?",
+  "cta_body": "I'm always open to interesting conversations and collaborations. Send me a message on LinkedIn."
+}

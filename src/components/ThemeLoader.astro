@@ -1,0 +1,220 @@
+---
+/**
+ * Loading screen for opening the site afresh and for theme switches. The head
+ * script in Layout.astro sets html[data-loading] when it is due; this shows the
+ * current theme's loader until the page has loaded (at least MIN_MS), then
+ * fades out. Orbit and Flow use the same loaders inside the homepage intro
+ * (SplashIntro). A CSS failsafe clears it even if scripts never run.
+ */
+---
+
+<div class="theme-loader" data-theme-loader role="status" aria-live="polite">
+	<div class="theme-loader__portfolio">
+		<div class="loader-bars" aria-hidden="true"></div>
+		<p class="theme-loader__word">Loading…</p>
+	</div>
+	<div class="loader-orbit" aria-hidden="true"></div>
+	<div class="loader-flow" aria-hidden="true"></div>
+	<span class="sr-only">Loading</span>
+</div>
+
+<script is:inline>
+	(function () {
+		var html = document.documentElement;
+		if (!html.hasAttribute('data-loading')) return;
+		/* Counted from when the loader appears, so a slow page never skips it. */
+		var MIN_MS = matchMedia('(prefers-reduced-motion: reduce)').matches ? 400 : 900;
+		var MAX_MS = 3500;
+		var shownAt = performance.now();
+		var done = false;
+		function finish() {
+			if (done) return;
+			done = true;
+			var wait = Math.max(0, MIN_MS - (performance.now() - shownAt));
+			setTimeout(function () {
+				html.setAttribute('data-loading', 'out');
+				setTimeout(function () {
+					html.removeAttribute('data-loading');
+				}, 450);
+			}, wait);
+		}
+		if (document.readyState === 'complete') finish();
+		else addEventListener('load', finish, { once: true });
+		setTimeout(finish, MAX_MS - MIN_MS);
+	})();
+</script>
+
+<style is:global>
+	.theme-loader {
+		display: none;
+	}
+
+	html[data-loading] .theme-loader {
+		position: fixed;
+		inset: 0;
+		z-index: 200;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--page-bg);
+		transition: opacity 420ms ease;
+		/* Failsafe: never outlive a broken script. */
+		animation: theme-loader-failsafe 0s linear 6s forwards;
+	}
+
+	html[data-loading='out'] .theme-loader {
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	@keyframes theme-loader-failsafe {
+		to {
+			opacity: 0;
+			visibility: hidden;
+			pointer-events: none;
+		}
+	}
+
+	.theme-loader > :is(.theme-loader__portfolio, .loader-orbit, .loader-flow) {
+		display: none;
+	}
+
+	html[data-theme='portfolio'] .theme-loader__portfolio {
+		display: grid;
+		justify-items: center;
+		gap: 1.1rem;
+	}
+
+	html[data-theme='universe'] .theme-loader .loader-orbit,
+	html[data-theme='beach'] .theme-loader .loader-flow {
+		display: block;
+	}
+
+	.theme-loader__word {
+		margin: 0;
+		font-family: var(--font-display);
+		font-weight: 300;
+		font-size: 1.35rem;
+		letter-spacing: -0.01em;
+		color: var(--pf-ink, var(--page-fg));
+	}
+
+	/* Portfolio: striped bars. */
+	.loader-bars {
+		height: 6px;
+		width: 60px;
+		--c: no-repeat repeating-linear-gradient(90deg, var(--pf-ink, #382b28) 0 3px, #0000 0 6px);
+		background: var(--c), var(--c);
+		background-size: 100% 3px;
+		animation: loader-bars 1s infinite;
+	}
+
+	@keyframes loader-bars {
+		0%,
+		70%,
+		100% {
+			background-position:
+				0 50%,
+				3px 50%;
+		}
+		23.33% {
+			background-position:
+				0 0,
+				3px 100%;
+		}
+		46.67% {
+			background-position:
+				3px 0,
+				0 100%;
+		}
+		69.99% {
+			background-position:
+				3px 50%,
+				0 50%;
+		}
+	}
+
+	/* Orbit: a pulse rippling outward, in the theme's amber. */
+	.loader-orbit {
+		position: relative;
+		width: 20px;
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background: var(--color-amber, #ffaa00);
+		box-shadow: 0 0 0 0 rgb(255 170 0 / 0.27);
+		animation: loader-orbit 1.5s infinite linear;
+	}
+
+	.loader-orbit::before,
+	.loader-orbit::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		box-shadow: 0 0 0 0 rgb(255 170 0 / 0.27);
+		animation: inherit;
+		animation-delay: -0.5s;
+	}
+
+	.loader-orbit::after {
+		animation-delay: -1s;
+	}
+
+	@keyframes loader-orbit {
+		100% {
+			box-shadow: 0 0 0 40px rgb(255 170 0 / 0);
+		}
+	}
+
+	/* Flow: a ball of water with a wave rolling through it. */
+	.loader-flow {
+		--r1: 154%;
+		--r2: 68.5%;
+		width: 60px;
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background:
+			radial-gradient(var(--r1) var(--r2) at top, #0000 79.5%, #269af2 80%),
+			radial-gradient(var(--r1) var(--r2) at bottom, #269af2 79.5%, #0000 80%),
+			radial-gradient(var(--r1) var(--r2) at top, #0000 79.5%, #269af2 80%),
+			#ccc;
+		background-size: 50.5% 220%;
+		background-position:
+			-100% 0%,
+			0% 0%,
+			100% 0%;
+		background-repeat: no-repeat;
+		animation: loader-flow 2s infinite linear;
+	}
+
+	@keyframes loader-flow {
+		33% {
+			background-position:
+				0% 33%,
+				100% 33%,
+				200% 33%;
+		}
+		66% {
+			background-position:
+				-100% 66%,
+				0% 66%,
+				100% 66%;
+		}
+		100% {
+			background-position:
+				0% 100%,
+				100% 100%,
+				200% 100%;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.loader-bars,
+		.loader-orbit,
+		.loader-orbit::before,
+		.loader-orbit::after,
+		.loader-flow {
+			animation: none;
+		}
+	}
+</style>

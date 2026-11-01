@@ -291,7 +291,7 @@ export function initDreamJournalGate(root: HTMLElement): () => void {
 		listEl.innerHTML = entries
 			.map(
 				(e) => `<article class="dream-realm-panel relative rounded-2xl px-6 py-6 md:px-8 md:py-8">
-					<p class="dream-entry-meta mb-3">${formatDate(e.date)}${e.mood ? ` · ${escapeHtml(e.mood)}` : ''}</p>
+					<p class="dream-entry-meta mb-3">${formatDate(e.date)}${e.mood ? `, ${escapeHtml(e.mood)}` : ''}</p>
 					<p class="text-[var(--page-muted)]">${escapeHtml(e.preview)}</p>
 					<button type="button" data-dream-open="${escapeAttr(e.id)}" class="mt-4 inline-block text-sm font-bold tracking-wide text-[var(--color-amber)] underline-offset-2 hover:underline">
 						Read full dream →
@@ -326,7 +326,7 @@ export function initDreamJournalGate(root: HTMLElement): () => void {
 				</p>
 				<article class="dream-realm-panel relative px-6 py-8 md:px-8 md:py-10">
 					<div class="dream-realm-article">
-						<p class="dream-entry-meta mb-5">${formatDate(entry.date)}${entry.mood ? ` · ${escapeHtml(entry.mood)}` : ''}</p>
+						<p class="dream-entry-meta mb-5">${formatDate(entry.date)}${entry.mood ? `, ${escapeHtml(entry.mood)}` : ''}</p>
 						<div class="dream-md space-y-4 text-lg leading-relaxed text-[var(--page-fg)] [&_p]:mb-4">${DOMPurify.sanitize(entry.html)}</div>
 					</div>
 				</article>`;

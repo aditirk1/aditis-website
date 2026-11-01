@@ -27,8 +27,6 @@ let heroDocumentBottom = 0;
 let framePending = false;
 let started = false;
 let measured = false;
-/** Set once Lenis drives updates, so the native listener stops duplicating work. */
-let externallyDriven = false;
 
 function measure(): void {
 	measured = true;
@@ -71,13 +69,6 @@ function schedule(): void {
 	requestAnimationFrame(flush);
 }
 
-/** Called by the Lenis scroll callback so smoothed position drives everything. */
-export function publishScroll(y: number): void {
-	externallyDriven = true;
-	recompute(y);
-	schedule();
-}
-
 export function subscribeScroll(listener: Listener): () => void {
 	ensureMeasured();
 	listeners.add(listener);
@@ -109,14 +100,13 @@ export function initScrollOrchestrator(): () => void {
 	schedule();
 
 	const onNativeScroll = () => {
-		if (externallyDriven) return;
 		recompute(window.scrollY);
 		schedule();
 	};
 
 	const onResize = () => {
 		measure();
-		recompute(externallyDriven ? state.y : window.scrollY);
+		recompute(window.scrollY);
 		schedule();
 	};
 
@@ -128,7 +118,6 @@ export function initScrollOrchestrator(): () => void {
 
 	return () => {
 		started = false;
-		externallyDriven = false;
 		listeners.clear();
 		window.removeEventListener('scroll', onNativeScroll);
 		window.removeEventListener('resize', onResize);

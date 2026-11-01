@@ -33,8 +33,14 @@ const ELBOW_GAP = 16;
 const TICK_LEN = 16;
 const LABEL_GAP = 5;
 
-function accentColor(): string {
-	const v = getComputedStyle(document.documentElement).getPropertyValue('--color-amber').trim();
+/** Camera height in globe radii; 1.45 leaves a hairline between the earth and the frame. */
+const DEFAULT_ALTITUDE = 1.45;
+
+/** A scroll that reaches the globe within this long of scrolling the page is still a page scroll. */
+const PAGE_SCROLL_GRACE_MS = 400;
+
+function pinColor(): string {
+	const v = getComputedStyle(document.documentElement).getPropertyValue('--globe-pin').trim();
 	return v || '#ffaa00';
 }
 
@@ -58,14 +64,13 @@ function clamp(v: number, lo: number, hi: number): number {
 }
 
 /**
- * Visitor globe (Universe + Beach).
+ * Visitor globe (Orbit + Flow).
  *
- * Mouse: hovering a pin draws a leader line out of the globe — slanted radial
- * segment, short horizontal tick, then the label — instead of a centred tooltip
- * that the round frame would clip.
- * Touch: there is no hover and no room beside the globe for a leader, so tapping
- * a pin writes its place into a line under the globe; tapping the globe clears it.
- * Pinch and the +/− buttons zoom so sparse, single-visit pins are big enough to hit.
+ * Clicking a pin draws a leader line out of the globe — slanted radial segment,
+ * short horizontal tick, then the label — instead of a centred tooltip that the
+ * round frame would clip. The label stays until another pin or anywhere else is
+ * clicked; hover alone moved too fast to read. Pinch zoom (touchscreen or trackpad) makes sparse,
+ * single-visit pins big enough to hit.
  */
 export function initVisitorGlobe(container: HTMLElement): {
 	setMarkers: (markers: GlobeMarker[]) => void;
@@ -76,9 +81,6 @@ export function initVisitorGlobe(container: HTMLElement): {
 	const callout = stage?.querySelector<HTMLElement>('[data-globe-callout]') ?? null;
 	const calloutPlace = stage?.querySelector<HTMLElement>('[data-globe-callout-place]') ?? null;
 	const calloutCount = stage?.querySelector<HTMLElement>('[data-globe-callout-count]') ?? null;
-	const picked = stage?.parentElement?.querySelector<HTMLElement>('[data-globe-picked]') ?? null;
-	const zoomButtons = stage?.querySelectorAll<HTMLButtonElement>('[data-globe-zoom]') ?? [];
-	const touchUi = window.matchMedia('(hover: none), (pointer: coarse)').matches;
 
 	const leaderPath = document.createElementNS(SVG_NS, 'polyline');
 	leaderPath.setAttribute('fill', 'none');
@@ -89,7 +91,8 @@ export function initVisitorGlobe(container: HTMLElement): {
 
 	const leaderDot = document.createElementNS(SVG_NS, 'circle');
 	leaderDot.setAttribute('r', '2.6');
-	leaderDot.setAttribute('fill', 'currentColor');
+	/* The dot sits on the globe with the pins, so it shares their colour. */
+	leaderDot.style.fill = 'var(--globe-pin, currentColor)';
 
 	leaderSvg?.appendChild(leaderPath);
 	leaderSvg?.appendChild(leaderDot);
@@ -107,21 +110,21 @@ export function initVisitorGlobe(container: HTMLElement): {
 		/* Built-in labels sit inside the clipped circle — we draw our own. */
 		.pointLabel(() => '');
 
+	/* Close enough that the earth nearly fills the round frame (camera fov is 50°). */
+	globe.pointOfView({ altitude: DEFAULT_ALTITUDE }, 0);
+
 	const ctrls = globe.controls();
 	ctrls.autoRotate = true;
 	ctrls.autoRotateSpeed = 0.35;
-	/*
-	 * Wheel zoom only after a deliberate pause over the globe, so scrolling the
-	 * page past this small widget doesn't get captured.
-	 */
+	/* Switched on per wheel or touch event, below. */
 	ctrls.enableZoom = false;
 
-	let hovered: PointDatum | null = null;
+	let selected: PointDatum | null = null;
 	let followRaf = 0;
-	let zoomArmTimer = 0;
 
 	function hideCallout() {
-		hovered = null;
+		selected = null;
+		ctrls.autoRotate = true;
 		cancelAnimationFrame(followRaf);
 		followRaf = 0;
 		if (callout) callout.hidden = true;
@@ -133,7 +136,7 @@ export function initVisitorGlobe(container: HTMLElement): {
 	 * A pin that has rotated behind the globe still projects inside the disc, but
 	 * the surface under that screen point is somewhere else entirely. Threshold is
 	 * deliberately loose — near the limb, parallax from the pin's altitude adds up,
-	 * and hiding a label the visitor is actually hovering is the worse failure.
+	 * and hiding a label the visitor is actually reading is the worse failure.
 	 */
 	function isFacingCamera(p: PointDatum, sx: number, sy: number): boolean {
 		const surface = globe.toGlobeCoords(sx, sy);
@@ -232,71 +235,97 @@ export function initVisitorGlobe(container: HTMLElement): {
 		leaderDot.setAttribute('r', '2.6');
 	}
 
-	function followHovered() {
-		if (!hovered) return;
-		drawCallout(hovered);
-		followRaf = requestAnimationFrame(followHovered);
+	function followSelected() {
+		if (!selected) return;
+		drawCallout(selected);
+		followRaf = requestAnimationFrame(followSelected);
 	}
 
-	function showPicked(p: PointDatum | null) {
-		ctrls.autoRotate = !p;
-		if (!picked) return;
-		picked.textContent = p ? `${p.placeLine} · ${p.count} ${p.count === 1 ? 'visit' : 'visits'}` : '';
-		picked.hidden = !p;
-	}
+	globe.onPointHover((point: object | null) => {
+		container.style.cursor = point ? 'var(--cursor-pointer, pointer)' : '';
+	});
 
-	if (touchUi) {
-		globe.onPointClick((point: object) => showPicked(point as PointDatum));
-		globe.onGlobeClick(() => showPicked(null));
-	} else {
-		globe.onPointHover((point: object | null) => {
-			const p = point as PointDatum | null;
-			ctrls.autoRotate = !p;
-			container.style.cursor = p ? 'pointer' : '';
-			if (!p) {
-				hideCallout();
-				return;
-			}
-			hovered = p;
-			drawCallout(p);
-			/* Keep the leader glued to the pin through drags and zooms. */
-			if (!followRaf) followRaf = requestAnimationFrame(followHovered);
-		});
-	}
-
-	/* OrbitControls sets touch-action: none; pan-y lets a vertical swipe still scroll the page. */
-	if (ctrls.domElement) ctrls.domElement.style.touchAction = 'pan-y';
-
-	const onZoomClick = (e: Event) => {
-		const factor = (e.currentTarget as HTMLElement).dataset.globeZoom === 'in' ? 0.7 : 1 / 0.7;
-		const pov = globe.pointOfView();
-		globe.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: clamp(pov.altitude * factor, 0.45, 4) }, 300);
-	};
-	for (const b of zoomButtons) b.addEventListener('click', onZoomClick);
+	let pinClicked = false;
+	globe.onPointClick((point: object) => {
+		pinClicked = true;
+		selected = point as PointDatum;
+		/* Holds the pin still so the label doesn't drift round to the far side. */
+		ctrls.autoRotate = false;
+		drawCallout(selected);
+		/* Keep the leader glued to the pin through drags and zooms. */
+		if (!followRaf) followRaf = requestAnimationFrame(followSelected);
+	});
 
 	/*
-	 * Trackpad two-finger scroll, mouse wheel and touch pinch all drive
-	 * OrbitControls zoom. It arms after a short pause so scrolling the page past
-	 * this small widget doesn't get swallowed, and immediately on touch since a
-	 * pinch is already deliberate.
+	 * Any click that isn't on a pin closes the label, except the click a drag
+	 * ends with: spinning the globe to look around shouldn't lose it. The globe's
+	 * own pin click can land either side of this one, hence the deferred check.
 	 */
-	const onPointerEnter = () => {
-		window.clearTimeout(zoomArmTimer);
-		zoomArmTimer = window.setTimeout(() => {
-			ctrls.enableZoom = true;
-		}, 260);
+	let downX = 0;
+	let downY = 0;
+	const onDownAnywhere = (e: PointerEvent) => {
+		pinClicked = false;
+		downX = e.clientX;
+		downY = e.clientY;
 	};
-	const onPointerDown = () => {
-		window.clearTimeout(zoomArmTimer);
-		ctrls.enableZoom = true;
+	const onDocumentClick = (e: MouseEvent) => {
+		if (Math.hypot(e.clientX - downX, e.clientY - downY) > 5) return;
+		if (callout?.contains(e.target as Node)) return;
+		setTimeout(() => {
+			if (!pinClicked && selected) hideCallout();
+			pinClicked = false;
+		}, 0);
+	};
+	document.addEventListener('pointerdown', onDownAnywhere);
+	document.addEventListener('click', onDocumentClick);
+
+	/*
+	 * Scrolling or pinching over the globe zooms it. OrbitControls ties wheel and
+	 * pinch to one switch, so it is flipped per event:
+	 * - Touch: on for the length of a touch.
+	 * - Wheel (mouse, trackpad scroll, and trackpad pinch in Chrome, Edge,
+	 *   Firefox, which arrives with ctrlKey set): captured on the container
+	 *   before OrbitControls sees it on the canvas. A page scroll that drifts
+	 *   onto the globe keeps scrolling the page until it pauses, so the globe
+	 *   never catches a scroll that was headed past it.
+	 * - Trackpad pinch (Safari): arrives as gesture events instead, handled
+	 *   below; left alone, Safari zooms the whole page.
+	 */
+	const onPointerDown = (e: PointerEvent) => {
+		ctrls.enableZoom = e.pointerType === 'touch';
 	};
 	const onPointerLeave = () => {
-		window.clearTimeout(zoomArmTimer);
 		ctrls.enableZoom = false;
 	};
-	container.addEventListener('pointerenter', onPointerEnter);
+	let pageWheelAt = -Infinity;
+	const onPageWheel = (e: WheelEvent) => {
+		if (!container.contains(e.target as Node)) pageWheelAt = e.timeStamp;
+	};
+	const onWheelCapture = (e: WheelEvent) => {
+		const midPageScroll = !e.ctrlKey && e.timeStamp - pageWheelAt < PAGE_SCROLL_GRACE_MS;
+		/* Extends the page scroll, so its momentum doesn't turn into a zoom. */
+		if (midPageScroll) pageWheelAt = e.timeStamp;
+		ctrls.enableZoom = !midPageScroll;
+	};
 	container.addEventListener('pointerdown', onPointerDown);
 	container.addEventListener('pointerleave', onPointerLeave);
+	container.addEventListener('wheel', onWheelCapture, { capture: true, passive: true });
+	window.addEventListener('wheel', onPageWheel, { passive: true });
+
+	type SafariGesture = Event & { scale: number };
+	let gestureStartAltitude = 0;
+	const onGestureStart = (e: Event) => {
+		e.preventDefault();
+		gestureStartAltitude = globe.pointOfView().altitude;
+	};
+	const onGestureChange = (e: Event) => {
+		e.preventDefault();
+		const scale = (e as SafariGesture).scale || 1;
+		const pov = globe.pointOfView();
+		globe.pointOfView({ ...pov, altitude: clamp(gestureStartAltitude / scale, 0.25, 6) }, 0);
+	};
+	container.addEventListener('gesturestart', onGestureStart);
+	container.addEventListener('gesturechange', onGestureChange);
 
 	const resize = () => {
 		const w = container.clientWidth || 200;
@@ -314,10 +343,10 @@ export function initVisitorGlobe(container: HTMLElement): {
 	if (stage) ro.observe(stage);
 
 	const onTheme = () => {
-		/* Refresh pin colour when amber ↔ beach blue swaps. */
+		/* Refresh pin colour when the theme swaps. */
 		const data = globe.pointsData() as PointDatum[];
 		if (!data.length) return;
-		const color = accentColor();
+		const color = pinColor();
 		globe.pointsData(data.map((d) => ({ ...d, color })));
 	};
 	const mo = new MutationObserver(onTheme);
@@ -325,18 +354,15 @@ export function initVisitorGlobe(container: HTMLElement): {
 
 	return {
 		setMarkers(markers: GlobeMarker[]) {
-			const color = accentColor();
-			/* Fingers need a bigger target than a cursor. */
-			const touchScale = touchUi ? 1.7 : 1;
+			const color = pinColor();
 			hideCallout();
-			showPicked(null);
 			globe.pointsData(
 				markers.map(
 					(m): PointDatum => ({
 						lat: m.lat,
 						lng: m.lng,
 						/* Floor the size so a 1-visit pin is still a real hit target. */
-						size: (0.7 + Math.min(1.3, (m.count ?? 1) * 0.09)) * touchScale,
+						size: 0.7 + Math.min(1.3, (m.count ?? 1) * 0.09),
 						color,
 						count: m.count ?? 1,
 						country: m.country,
@@ -350,12 +376,14 @@ export function initVisitorGlobe(container: HTMLElement): {
 			mo.disconnect();
 			ro.disconnect();
 			hideCallout();
-			window.clearTimeout(zoomArmTimer);
-			container.removeEventListener('pointerenter', onPointerEnter);
+			document.removeEventListener('pointerdown', onDownAnywhere);
+			document.removeEventListener('click', onDocumentClick);
 			container.removeEventListener('pointerdown', onPointerDown);
 			container.removeEventListener('pointerleave', onPointerLeave);
-			for (const b of zoomButtons) b.removeEventListener('click', onZoomClick);
-			showPicked(null);
+			container.removeEventListener('wheel', onWheelCapture, { capture: true });
+			window.removeEventListener('wheel', onPageWheel);
+			container.removeEventListener('gesturestart', onGestureStart);
+			container.removeEventListener('gesturechange', onGestureChange);
 			leaderPath.remove();
 			leaderDot.remove();
 			globe._destructor();

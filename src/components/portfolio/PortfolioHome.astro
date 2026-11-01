@@ -1,0 +1,193 @@
+---
+/**
+ * Portfolio homepage (the default theme): one sideways-scrolling row of
+ * panels inside a hairline frame. Vertical wheel and trackpad input moves it
+ * sideways (scripts/portfolio-home.ts); touch swipes natively. Shown only when
+ * html[data-theme='portfolio']; Orbit and Flow keep their own homepage.
+ *
+ * Every word comes from src/data/home.json (Decap: Site pages, Home page) or
+ * the projects and blog collections, so it is edited once for all themes.
+ */
+import '../../styles/portfolio-home.css';
+import { getCollection } from 'astro:content';
+import home from '../../data/home.json';
+import { loadBlogPosts } from '../../utils/blog.ts';
+
+const pf = home.portfolio;
+/* Previews only: the newest few, each section ending in a link to its full page. */
+const projects = (await getCollection('projects', ({ data }) => data.draft !== true))
+	.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+	.slice(0, 3);
+const posts = (await loadBlogPosts()).slice(0, 2);
+
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const pad = (n: number) => String(n).padStart(2, '0');
+const monthYear = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+/* "Biomedical / engineer, / researcher, / writer." from the shared taglines. */
+const taglines = (home.taglines ?? []).filter(Boolean) as string[];
+const [first = '', ...rest] = taglines;
+const last = rest.pop() ?? '';
+const firstWords = cap(first).split(' ');
+const lines = [...firstWords.slice(0, -1), `${firstWords.at(-1)},`, ...rest.map((t) => `${t},`)];
+
+const labels = [...pf.labels];
+
+const quoteWords = pf.about_quote.trim().split(' ');
+const quoteEnd = quoteWords.pop() ?? '';
+
+const sections = ['Index', pf.work_heading, pf.writing_heading, home.about_heading];
+---
+
+<section class="pfh" data-portfolio-home aria-label="Portfolio">
+	<div class="pfh-frame" aria-hidden="true">
+		<span class="pfh-cross pfh-cross--tl"></span>
+		<span class="pfh-cross pfh-cross--tr"></span>
+		<span class="pfh-cross pfh-cross--bl"></span>
+		<span class="pfh-cross pfh-cross--br"></span>
+		<span class="pfh-rail pfh-rail--left">aditirk.me</span>
+	</div>
+
+	<div class="pfh-scroller" data-pfh-scroller>
+		<div class="pfh-track">
+			<section class="pfh-panel pfh-hero" data-pfh-panel data-pfh-label={`01 ${sections[0]}`} aria-labelledby="pfh-title">
+				<div class="pfh-hero__labels">
+					{labels.map((l, i) => <p class="pfh-label pfh-fade" style={`--i: ${i}`}>{l}</p>)}
+					{
+						pf.location && (
+							<p class="pfh-label pfh-fade pfh-location" style={`--i: ${labels.length}`}>
+								<svg viewBox="0 0 12 16" aria-hidden="true">
+									<path d="M6 15s5-5.1 5-9A5 5 0 0 0 1 6c0 3.9 5 9 5 9Z" />
+									<circle cx="6" cy="6" r="1.8" />
+								</svg>
+								{pf.location}
+							</p>
+						)
+					}
+				</div>
+				<h1 id="pfh-title" class="pfh-display pfh-hero__title">
+					{lines.map((w, i) => <span class="pfh-hero__line pfh-rise" style={`--i: ${i}`}>{w}</span>)}
+					<span class="pfh-hero__line pfh-rise" style={`--i: ${lines.length}`}><em>{last}.</em></span>
+				</h1>
+				<div class="pfh-hero__aside pfh-fade" style="--i: 4">
+					<p class="pfh-hero__desc">{home.hero_description}</p>
+					<div class="pfh-actions">
+						<a class="pfh-button" href="#pfh-work">
+							{home.cta_primary_label}
+							<span class="pfh-arrow" aria-hidden="true">→</span>
+						</a>
+						<a class="pfh-link pfh-link--rest" href={home.cta_secondary_href}>{home.cta_secondary_label}</a>
+					</div>
+				</div>
+				<p class="pfh-hero__note pfh-annot pfh-fade" style="--i: 5">{pf.note}</p>
+			</section>
+
+			<section class="pfh-panel pfh-preview pfh-preview--work" id="pfh-work" data-pfh-panel data-pfh-label={`02 ${sections[1]}`} aria-labelledby="pfh-work-title">
+				<header class="pfh-preview__head">
+					<span class="pfh-label pfh-num">02</span>
+					<h2 id="pfh-work-title" class="pfh-display pfh-preview__title">{pf.work_heading}</h2>
+					<p class="pfh-preview__intro">{pf.work_intro}</p>
+				</header>
+				<ol class="pfh-list pfh-preview__list">
+					{projects.map((p, i) => (
+						<li>
+							<a class="pfh-item" href={`/projects/${p.id}`}>
+								<span class="pfh-label pfh-num">{pad(i + 1)}</span>
+								<span class="pfh-display pfh-item__title">{p.data.title}</span>
+								<span class="pfh-label pfh-item__meta">
+									{monthYear(p.data.date)}
+									{p.data.tags.length > 0 && <>, {p.data.tags.map(cap).join(', ')}</>}
+								</span>
+							</a>
+						</li>
+					))}
+				</ol>
+				<a class="pfh-more" href="/projects">
+					{pf.work_more} <span class="pfh-arrow" aria-hidden="true">→</span>
+				</a>
+			</section>
+
+			<section class="pfh-panel pfh-preview pfh-preview--blog" id="pfh-writing" data-pfh-panel data-pfh-label={`03 ${sections[2]}`} aria-labelledby="pfh-writing-title">
+				<header class="pfh-preview__head">
+					<span class="pfh-label pfh-num">03</span>
+					<h2 id="pfh-writing-title" class="pfh-display pfh-preview__title">{pf.writing_heading}</h2>
+					<p class="pfh-preview__intro">{pf.writing_intro}</p>
+				</header>
+				{
+					posts.length ? (
+						<ol class="pfh-list pfh-preview__list">
+							{posts.map((post, i) => (
+								<li>
+									<a class="pfh-item" href={post.href}>
+										<span class="pfh-label pfh-num">{pad(i + 1)}</span>
+										<span class="pfh-display pfh-item__title">{post.entry.data.title}</span>
+										<span class="pfh-label pfh-item__meta">
+											{monthYear(post.entry.data.date)}, {post.minutes} min read
+										</span>
+									</a>
+								</li>
+							))}
+						</ol>
+					) : (
+						<p class="pfh-annot pfh-preview__empty">{pf.writing_empty}</p>
+					)
+				}
+				<a class="pfh-more" href="/blog">
+					{pf.writing_more} <span class="pfh-arrow" aria-hidden="true">→</span>
+				</a>
+			</section>
+
+			<section class="pfh-panel pfh-about" id="pfh-about" data-pfh-panel data-pfh-label={`04 ${sections[3]}`} aria-labelledby="pfh-about-title">
+				<header class="pfh-preview__head pfh-about__head">
+					<span class="pfh-label pfh-num">04</span>
+					<h2 id="pfh-about-title" class="pfh-display pfh-preview__title">{home.about_heading}</h2>
+				</header>
+				{
+					pf.portrait && (
+						<figure class="pfh-portrait">
+							<div class="pfh-portrait__frame">
+								<img src={pf.portrait} alt={pf.portrait_alt} width="576" height="720" loading="lazy" decoding="async" />
+							</div>
+							{pf.portrait_caption && <figcaption class="pfh-label">{pf.portrait_caption}</figcaption>}
+						</figure>
+					)
+				}
+				<p class="pfh-display pfh-quote">
+					<span class="pfh-muted">…</span>{quoteWords.join(' ')} <em>{quoteEnd}</em>
+				</p>
+				<div class="pfh-about__body">
+					{home.about_paragraphs.map((para) => <p>{para}</p>)}
+					<dl class="pfh-facts">
+						{pf.facts.map((f) => (
+							<div>
+								<dt class="pfh-label">{f.label}</dt>
+								<dd class="pfh-annot">{f.value}</dd>
+							</div>
+						))}
+					</dl>
+					<div class="pfh-about__links">
+						<a class="pfh-more" href={home.resume_href}>
+							{home.resume_label} <span class="pfh-arrow" aria-hidden="true">→</span>
+						</a>
+						<p class="pfh-about__social">
+							<a class="pfh-link" href={home.cta_secondary_href}>{home.cta_secondary_label}</a>
+							<a class="pfh-link" href="https://www.linkedin.com/in/aditirk/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+							<a class="pfh-link" href="https://github.com/aditirk1" target="_blank" rel="noopener noreferrer">GitHub</a>
+						</p>
+					</div>
+				</div>
+			</section>
+		</div>
+	</div>
+
+	<div class="pfh-status" aria-hidden="true">
+		<span class="pfh-label" data-pfh-section>01 {sections[0]}</span>
+		<span class="pfh-progress"><span data-pfh-progress></span></span>
+		<span class="pfh-label pfh-status__hint" data-pfh-hint>Scroll <span class="pfh-arrow">→</span></span>
+	</div>
+</section>
+
+<script>
+	import { initPortfolioHome } from '../../scripts/portfolio-home.ts';
+	initPortfolioHome();
+</script>

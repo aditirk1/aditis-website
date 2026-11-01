@@ -58,7 +58,7 @@ aditis-website/
     │   ├── index.astro          # Homepage
     │   ├── blog/
     │   ├── projects/
-    │   ├── services/
+    │   ├── work-with-me/
     │   ├── dream-journal/
     │   ├── admin/visitors.astro # Private stats page
     │   └── …
@@ -88,8 +88,7 @@ aditis-website/
 | Site-wide colors, light/dark beach theme, prose panels, dream panel overrides | **`src/styles/global.css`** |
 | Fonts loaded from Google | **`src/layouts/Layout.astro`** (the `<link>` in `<head>`) |
 | Header / footer shell, theme toggle behavior | **`src/layouts/Layout.astro`** |
-| Beach scene (shoreline video loop) | **`src/components/BeachBackground.astro`**, **`src/scripts/beach-shore.ts`**, footage in **`public/beach/`** |
-| Title letters rippling on hover (Beach home) | **`src/scripts/hero-title-hover.ts`** |
+| Beach scene (waves, palm, starfish, shells) | **`src/components/BeachBackground.astro`** |
 | Universe starfield + Earth “portal” look | **`src/scripts/universe-star-field.ts`** (and canvas host **`src/components/StarFieldUniverse.astro`**) |
 | Visitor globe panel on the homepage | **`src/components/LiveVisitorMap.astro`**, **`src/scripts/visitor-globe.ts`** |
 | One specific page’s layout | **`src/pages/<route>/...`** |
@@ -102,6 +101,7 @@ aditis-website/
 | Homepage title / tagline motion | **`src/scripts/home-hero.ts`**, **`src/pages/index.astro`** |
 | First-visit splash / shooting star | **`src/components/SplashIntro.astro`**, **`src/scripts/splash-intro.ts`** |
 | Nav underline | **`src/components/SiteNav.astro`** (script block) |
+| Beach parallax / palm sway | **`src/components/BeachBackground.astro`** (script + GSAP) |
 | Smooth scrolling (Lenis) | **`src/layouts/Layout.astro`** |
 | Project dialogs opening | **`src/pages/projects/index.astro`** (inline script) |
 | Photo lightbox | **`src/scripts/photo-lightbox.ts`**, **`src/pages/photo-dump/index.astro`** |
@@ -112,7 +112,7 @@ aditis-website/
 |------|------------|
 | Top nav links (Projects, Blog, …) | **`src/components/SiteNav.astro`** |
 | Site title in header | **`src/layouts/Layout.astro`** |
-| Dream Journal is **not** in the nav; it’s reached via Earth (universe) or the pineapple next to Home (beach) | **`src/scripts/universe-star-field.ts`**, **`src/layouts/Layout.astro`** |
+| Dream Journal is **not** in the nav; it’s reached via Earth (universe) or starfish (beach) | **`src/scripts/universe-star-field.ts`**, **`src/components/BeachBackground.astro`** |
 
 ### Content (words, blog posts, projects)
 
@@ -130,7 +130,7 @@ aditis-website/
 | Component file | Typical use |
 |----------------|-------------|
 | **`src/components/SiteNav.astro`** | Main navigation |
-| **`src/components/ContactModal.astro`** | Contact / forms on services |
+| **`src/components/ContactModal.astro`** | Contact form on Work With Me |
 | **`src/components/LiveVisitorMap.astro`** | Globe + visit count block |
 | **`src/components/TextSizeControl.astro`** | Bottom-right reader text-size control |
 | **`src/components/BeachBackground.astro`** | Beach theme full-screen background |
@@ -201,12 +201,12 @@ These are **illustrative**—copy the idea, adjust values slowly.
 | Edit blog / projects / dreams content | **`src/content/.../*.md`** |
 | Change scroll animations | **`src/scripts/page-reveal.ts`** |
 | Change universe stars / Earth button | **`src/scripts/universe-star-field.ts`** |
-| Change beach footage | run **`scripts/beach-video.sh`** on a new clip (see **`public/beach/README.txt`**) |
+| Change beach look (waves, palm, starfish) | **`src/components/BeachBackground.astro`** |
 | Change splash / first visit effect | **`src/components/SplashIntro.astro`**, **`src/scripts/splash-intro.ts`** |
 | Change reader text-size control | **`src/components/TextSizeControl.astro`**, **`src/scripts/text-size-control.ts`** |
 | Change project cards / dialogs | **`src/pages/projects/index.astro`** |
 | Change visitor globe block | **`src/components/LiveVisitorMap.astro`**, **`src/scripts/live-visitor-map.ts`**, **`visitor-globe.ts`** |
-| Change contact / services modal | **`src/components/ContactModal.astro`**, **`src/pages/services/index.astro`** |
+| Change contact / Work With Me | **`src/components/ContactModal.astro`**, **`src/pages/work-with-me/index.astro`** |
 
 ---
 

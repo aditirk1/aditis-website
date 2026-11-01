@@ -22,6 +22,7 @@ import {
 	type PlanetSurfaceMaps,
 } from '../utils/planet-surface-texture.ts';
 import { getScrollState, subscribeScroll } from './scroll-orchestrator.ts';
+import { recordTransitionOrigin } from './vt-origin.ts';
 
 const CANVAS_ID = 'universe-star-field-canvas';
 
@@ -29,6 +30,10 @@ const MAX_DPR = 2;
 /* Phone screens are 3×; below 2× the planets and orbit lines visibly blur. */
 const MOBILE_MAX_DPR = 2;
 const REDUCED_MOTION_STAR_COUNT = 1400;
+/** Scroll distance, in viewport heights, over which the hero flies past (see global.css). */
+const SPATIAL_HERO_RANGE_VH = 0.7;
+/** How far the orrery travels toward the camera (at z 46) by the end of that range. */
+const SPATIAL_ORRERY_DOLLY = 30;
 const DEFAULT_STAR_COUNT = 5200;
 const MOBILE_STAR_COUNT = 3000;
 const INNER_PAGE_STAR_COUNT = 2400;
@@ -116,8 +121,8 @@ const PLANETS = [
 	},
 	{
 		id: 'services',
-		label: 'Services',
-		href: '/services',
+		label: "Let's Talk",
+		href: '/lets-talk',
 		color: 0xd09050,
 		radius: 1.72,
 		orbitR: 14,
@@ -229,9 +234,9 @@ type PlanetMeshUserData = PlanetConfig & {
 	baseMetalness: number;
 };
 
-function getTheme(): 'universe' | 'beach' {
+function getTheme(): 'universe' | 'beach' | 'portfolio' {
 	const t = document.documentElement.getAttribute('data-theme');
-	return t === 'beach' ? 'beach' : 'universe';
+	return t === 'beach' || t === 'portfolio' ? t : 'universe';
 }
 
 function isDreamRealmPage(): boolean {
@@ -294,8 +299,8 @@ function createStarfieldMaterial(): THREE.ShaderMaterial {
 
 				vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
 				/* Generous size: the halo needs pixels to read as glow instead of a dot. */
-				float baseSize = aSize * uPixelRatio * 260.0 / max(1.0, -mvPosition.z);
-				gl_PointSize = clamp(baseSize * (1.0 + wake * 0.85), 2.0, 16.0);
+				float baseSize = aSize * uPixelRatio * 380.0 / max(1.0, -mvPosition.z);
+				gl_PointSize = clamp(baseSize * (1.0 + wake * 0.85), 3.0, 22.0);
 				gl_Position = projectionMatrix * mvPosition;
 			}
 		`,
@@ -311,12 +316,16 @@ function createStarfieldMaterial(): THREE.ShaderMaterial {
 				 * Two gaussians: a tight core for the point of light and a wide, faint
 				 * halo around it. A single falloff just reads as a flat dot.
 				 */
-				float core = exp(-r2 * 44.0);
+				float core = exp(-r2 * 32.0);
 				float halo = exp(-r2 * 7.0) * 0.42;
 
-				/* Real starlight runs blue-white through warm; pure white looks synthetic. */
-				vec3 col = mix(vec3(0.76, 0.84, 1.0), vec3(1.0, 0.9, 0.72), vTint);
-				col = mix(col, vec3(1.0), core * 0.7);
+				/* A third each: light pink, light yellow, white. */
+				vec3 col = vTint < 0.34
+					? vec3(1.0, 0.8, 0.9)
+					: vTint < 0.67
+						? vec3(1.0, 0.94, 0.7)
+						: vec3(1.0);
+				col = mix(col, vec3(1.0), core * 0.4);
 
 				float alpha = clamp((core + halo) * vStrength, 0.0, 1.0);
 				gl_FragColor = vec4(col, alpha);
@@ -486,17 +495,26 @@ export function initUniverseStarField(): () => void {
 	/* RIGHT zone of the hero — the orrery is centred on this box, not the viewport. */
 	const heroSideZoneEl = document.querySelector<HTMLElement>('[data-hero-side-slot]');
 
-	/* Reads cached geometry from the scroll orchestrator — no layout during the frame. */
+	/**
+	 * Hero progress, 0 at the top to 1 once the hero has flown past. Must match
+	 * the `[data-spatial-hero]` animation-range in global.css (0 to 70vh) so the
+	 * orrery leaves with the title instead of lingering over the next section.
+	 * Reads cached geometry from the scroll orchestrator — no layout during the frame.
+	 */
+	function getHeroScrollProgress(): number {
+		const { y, viewportHeight } = getScrollState();
+		/* Missing metrics after a theme swap: keep the orrery on. */
+		if (viewportHeight < 1) return 0;
+		return Math.max(0, Math.min(1, y / (viewportHeight * SPATIAL_HERO_RANGE_VH)));
+	}
+
 	function getHeroScrollFade(): number {
-		const { y, heroBottom, viewportHeight } = getScrollState();
-		/* Near the top — or with missing metrics after a theme swap — keep the orrery on. */
-		if (y < 80 || viewportHeight < 1) return 1;
-		const vh = viewportHeight;
-		const fadeStart = vh * 0.72;
-		const fadeEnd = vh * 0.2;
-		if (heroBottom >= fadeStart) return 1;
-		if (heroBottom <= fadeEnd) return 0;
-		return (heroBottom - fadeEnd) / (fadeStart - fadeEnd);
+		return 1 - getHeroScrollProgress();
+	}
+
+	/** Orrery dolly toward the camera (world units) as the hero flies past. */
+	function applySolarZoom(progress: number) {
+		solarSystemGroup.position.z = reducedMotion ? 0 : Math.pow(progress, 1.6) * SPATIAL_ORRERY_DOLLY;
 	}
 
 	function applySolarFade(fade: number) {
@@ -811,11 +829,11 @@ export function initUniverseStarField(): () => void {
 		if (secretHover && labelEl) {
 			labelEl.textContent = '??';
 			labelEl.classList.add('active');
-			canvasEl.style.cursor = 'pointer';
+			canvasEl.style.cursor = 'var(--cursor-pointer, pointer)';
 			currentHoveredPlanet = null;
 		} else if (hitPlanet) {
 			const pd = hitPlanet.userData as PlanetConfig;
-			canvasEl.style.cursor = 'pointer';
+			canvasEl.style.cursor = 'var(--cursor-pointer, pointer)';
 			if (labelEl) {
 				labelEl.textContent = pd.label;
 				labelEl.classList.add('active');
@@ -840,7 +858,7 @@ export function initUniverseStarField(): () => void {
 	function isBlockingOverlay(el: Element | null): boolean {
 		if (!el || el === canvasEl || el.closest('[data-universe-canvas]')) return false;
 		const hit = el.closest(
-			'a, button, input, textarea, select, label, [role="button"], [data-theme-toggle], [data-contact-modal]',
+			'a, button, input, textarea, select, label, [role="button"], [data-theme-switch], [data-contact-modal]',
 		);
 		return !!hit && getComputedStyle(hit).pointerEvents !== 'none';
 	}
@@ -883,6 +901,24 @@ export function initUniverseStarField(): () => void {
 		navigationReleaseTimer = window.setTimeout(() => {
 			navigating = false;
 		}, 3000);
+	}
+
+	/** Screen circle of the clicked planet, for the transition lab's zoom-into-planet. */
+	function recordPlanetOrigin(mesh: THREE.Mesh) {
+		const i = planetMeshes.indexOf(mesh);
+		if (i < 0) return;
+		const h = window.innerHeight || 1;
+		const w = window.innerWidth || 1;
+		planetPivots[i]!.getWorldPosition(tmpWorld);
+		const ndc = tmpWorld.clone().project(camera);
+		const pd = mesh.userData as PlanetConfig;
+		const camDist = camera.position.distanceTo(tmpWorld);
+		recordTransitionOrigin({
+			kind: 'planet',
+			x: (ndc.x * 0.5 + 0.5) * w,
+			y: (-ndc.y * 0.5 + 0.5) * h,
+			r: Math.max(8, (pd.radius / camDist) * h * 0.55),
+		});
 	}
 
 	function goDreamJournal() {
@@ -929,6 +965,7 @@ export function initUniverseStarField(): () => void {
 			const pd = hitPlanet.userData as PlanetConfig;
 			if (!navigating) {
 				beginNavigation();
+				recordPlanetOrigin(hitPlanet);
 				window.location.assign(pd.href);
 			}
 		}
@@ -946,6 +983,10 @@ export function initUniverseStarField(): () => void {
 	const RIGHT_EDGE_GAP_PX = 32;
 	/** Grow past authored size. High enough that the fit box is what limits size. */
 	const MAX_ORRERY_SCALE = 5;
+	/** Same query as the stacked-hero block in global.css: title above, orrery below. */
+	const STACKED_HERO_QUERY = '(max-width: 767px), (max-width: 1023px) and (orientation: portrait)';
+	/** Stacked layouts: equal clearance from both screen edges. */
+	const STACKED_EDGE_GAP_PX = 20;
 
 	function getTitleBounds(): DOMRect | null {
 		if (!isHomePage) return null;
@@ -1024,7 +1065,7 @@ export function initUniverseStarField(): () => void {
 		const zoneRect = heroSideZoneEl?.getBoundingClientRect();
 		const title = getTitleBounds();
 
-		const isStacked = vw < 768;
+		const isStacked = window.matchMedia(STACKED_HERO_QUERY).matches;
 
 		/* On stacked (mobile) layouts the title sits above the orrery zone — fit the
 		 * zone only. Side-by-side desktop still avoids overlapping the title. */
@@ -1043,25 +1084,32 @@ export function initUniverseStarField(): () => void {
 		 * clientWidth so the gap is measured from the edge of the page, not from
 		 * under a classic scrollbar.
 		 */
-		const right = (document.documentElement.clientWidth || vw) - RIGHT_EDGE_GAP_PX;
+		let right = (document.documentElement.clientWidth || vw) - RIGHT_EDGE_GAP_PX;
 		let top = zoneRect && zoneRect.height > 1 ? zoneRect.top + 4 : vh * 0.06;
 		let bottom =
 			(zoneRect && zoneRect.height > 1 ? zoneRect.bottom - 4 : vh - 12) - CAPTION_RESERVE_PX;
 
 		if (isStacked) {
 			/* Prefer the measured side-slot; fall back to the lower half of the hero. */
-			if (!(zoneRect && zoneRect.height > 80)) {
+			if (zoneRect && zoneRect.height > 80) {
+				left = zoneRect.left + STACKED_EDGE_GAP_PX;
+				right = zoneRect.right - STACKED_EDGE_GAP_PX;
+			} else {
 				top = Math.max(top, vh * 0.38);
 				bottom = vh - 48 - CAPTION_RESERVE_PX;
-				left = 12;
+				left = STACKED_EDGE_GAP_PX;
+				right = vw - STACKED_EDGE_GAP_PX;
 			}
 		}
 
 		const targetW = Math.max(isStacked ? 160 : 200, right - left);
 		const targetH = Math.max(isStacked ? 160 : 200, bottom - top);
 		let targetCenterX = (left + right) / 2;
-		/* Screen Y grows downward — subtract to nudge the whole orrery upward. */
-		const targetCenterY = (top + bottom) / 2 - targetH * 0.1;
+		/*
+		 * Screen Y grows downward — subtract to nudge the whole orrery upward. Stacked
+		 * boxes are already sized to the orrery, so it centres in its own box there.
+		 */
+		const targetCenterY = (top + bottom) / 2 - (isStacked ? 0 : targetH * 0.1);
 
 		solarSystemGroup.scale.setScalar(1);
 		solarSystemGroup.position.set(0, 0, 0);
@@ -1220,6 +1268,7 @@ export function initUniverseStarField(): () => void {
 				solarFadeLerp += (solarFade - solarFadeLerp) * 0.14;
 			}
 			applySolarFade(solarFadeLerp);
+			applySolarZoom(1 - solarFadeLerp);
 
 			const tNow = reducedMotion ? 0 : performance.now();
 			const spinStep = reducedMotion ? 0 : delta * PLANET_SPIN_SPEED;
@@ -1344,7 +1393,7 @@ export function initUniverseStarField(): () => void {
 		window.cancelAnimationFrame(showRaf);
 		window.cancelAnimationFrame(showRaf2);
 
-		if (theme === 'beach') {
+		if (theme !== 'universe') {
 			stop();
 			/* opacity (not visibility:hidden) — Safari is less eager to drop the GL layer. */
 			if (root) {
@@ -1358,6 +1407,10 @@ export function initUniverseStarField(): () => void {
 		}
 
 		showUniverseCanvas();
+	}
+
+	function onBeachGlReleased() {
+		if (getTheme() === 'universe') showUniverseCanvas();
 	}
 
 	function resetInteractionState() {
@@ -1383,6 +1436,7 @@ export function initUniverseStarField(): () => void {
 		if (getTheme() === 'universe') applyVisibility();
 	};
 	window.addEventListener('aditi:theme-layout', onThemeLayout);
+	window.addEventListener('aditi:beach-gl-released', onBeachGlReleased);
 
 	const onResize = () => {
 		syncCoarsePointerAttribute();
@@ -1441,6 +1495,7 @@ export function initUniverseStarField(): () => void {
 		mo.disconnect();
 		titleObserver?.disconnect();
 		window.removeEventListener('aditi:theme-layout', onThemeLayout);
+		window.removeEventListener('aditi:beach-gl-released', onBeachGlReleased);
 		cancelSurfaceGeneration?.();
 		window.clearTimeout(navigationReleaseTimer);
 		window.removeEventListener('pagehide', onPageHide);

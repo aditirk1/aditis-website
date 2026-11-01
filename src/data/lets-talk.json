@@ -1,0 +1,23 @@
+{
+  "page_title": "Let's Talk",
+  "intro": "I'm always up for a good conversation, whether it's about research, biotech, engineering, applications, or something you're building. Send me a note and I'll get back to you.",
+  "chat_label": "Say hello",
+  "email": "ar4997@columbia.edu",
+  "links": [
+    {
+      "label": "Email",
+      "text": "ar4997@columbia.edu",
+      "url": "mailto:ar4997@columbia.edu"
+    },
+    {
+      "label": "LinkedIn",
+      "text": "linkedin.com/in/aditirk",
+      "url": "https://www.linkedin.com/in/aditirk/"
+    },
+    {
+      "label": "GitHub",
+      "text": "github.com/aditirk1",
+      "url": "https://github.com/aditirk1"
+    }
+  ]
+}

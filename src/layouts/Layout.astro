@@ -1,6 +1,6 @@
 ---
 /**
- * Global shell: theme, fonts, Lenis + ScrollTrigger, backgrounds, navigation.
+ * Global shell: theme, fonts, native scroll + ScrollTrigger, backgrounds, navigation.
  * Standard full-page loads only — stable and predictable (no client router).
  */
 import '../styles/global.css';
@@ -9,6 +9,9 @@ import BeachBackground from '../components/BeachBackground.astro';
 import SiteNav from '../components/SiteNav.astro';
 import TextSizeControl from '../components/TextSizeControl.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import ThemeSwitch from '../components/ThemeSwitch.astro';
+import ThemeLoader from '../components/ThemeLoader.astro';
+import ViewTransitionExperiment from '../components/ViewTransitionExperiment.astro';
 
 interface Props {
 	title?: string;
@@ -41,23 +44,46 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 ---
 
 <!doctype html>
-<html lang="en" data-layout={layoutVariant} data-dream-realm={dreamRealm ? '1' : undefined}>
+<html
+	lang="en"
+	data-layout={layoutVariant}
+	data-dream-realm={dreamRealm ? '1' : undefined}
+	data-home={isHome ? '' : undefined}
+>
 	<head>
 		<meta charset="utf-8" />
 		<meta name="theme-color" content="#05030c" data-theme-color />
 		<script is:inline>
 			(function () {
+				/* Mirrors utils/theme-preference.ts: Portfolio unless "bored?" chose a playful theme this session. */
 				try {
-					var KEY = 'aditi-theme';
-					var t = localStorage.getItem(KEY);
-					if (t !== 'beach' && t !== 'universe') {
-						t = Math.random() < 0.6 ? 'universe' : 'beach';
-						localStorage.setItem(KEY, t);
+					var html = document.documentElement;
+					var t = sessionStorage.getItem('aditi-theme');
+					if (t !== 'portfolio' && t !== 'universe' && t !== 'beach') t = 'portfolio';
+					/* Photo Dump, Thoughts and the dream journal are playful-only: Portfolio goes home. */
+					if (t === 'portfolio' && /^\/(photo-dump|thoughts|dream-journal)(\/|$)/.test(location.pathname)) {
+						html.style.visibility = 'hidden';
+						location.replace('/');
+						/* Leave the loading-screen flags for the homepage this is heading to. */
+						return;
 					}
-					document.documentElement.setAttribute('data-theme', t);
+					html.setAttribute('data-theme', t);
+
+					/*
+					 * Loading screen (components/ThemeLoader.astro): when the site is opened
+					 * afresh, and on the page after a theme switch. The playful homepage's
+					 * own intro (SplashIntro) plays instead whenever it is due.
+					 */
+					var fresh = !sessionStorage.getItem('aditi-session');
+					var switched = sessionStorage.getItem('aditi-theme-switched') === '1';
+					var introDue =
+						t !== 'portfolio' && location.pathname === '/' && sessionStorage.getItem('aditi-splash-seen') !== '1';
+					if ((fresh || switched) && !introDue) html.setAttribute('data-loading', '');
+					sessionStorage.setItem('aditi-session', '1');
+					sessionStorage.removeItem('aditi-theme-switched');
 					var tc = document.querySelector('meta[data-theme-color]');
-					if (tc) tc.setAttribute('content', t === 'beach' ? '#eaf6ff' : '#05030c');
-					var pref = t === 'beach' ? '/brand/logo-beach' : '/brand/logo-universe';
+					if (tc) tc.setAttribute('content', t === 'beach' ? '#0c2f55' : t === 'portfolio' ? '#fbfaf6' : '#05030c');
+					var pref = t === 'beach' ? '/brand/logo-flow' : '/brand/logo-universe';
 					var f16 = document.querySelector('link[data-favicon-16]');
 					var f32 = document.querySelector('link[data-favicon-32]');
 					var apple = document.querySelector('link[data-apple-touch-icon]');
@@ -65,7 +91,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 					if (f32) f32.setAttribute('href', pref + '-32.png');
 					if (apple) apple.setAttribute('href', pref + '-180.png');
 				} catch (e) {
-					document.documentElement.setAttribute('data-theme', 'universe');
+					document.documentElement.setAttribute('data-theme', 'portfolio');
 				}
 				try {
 					if (
@@ -79,6 +105,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 				} catch (e) {}
 			})();
 		</script>
+		<ViewTransitionExperiment />
 		<script is:inline>
 			(function () {
 				try {
@@ -90,17 +117,6 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 					document.documentElement.style.setProperty('--reader-text-scale', String(s));
 				} catch (e) {
 					document.documentElement.style.setProperty('--reader-text-scale', '1.1');
-				}
-			})();
-		</script>
-		<script is:inline>
-			(function () {
-				var reduce =
-					typeof window !== 'undefined' &&
-					window.matchMedia &&
-					window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-				if (!reduce) {
-					document.documentElement.setAttribute('data-reveal-bootstrap', '1');
 				}
 			})();
 		</script>
@@ -128,7 +144,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 		<link
 			rel="alternate"
 			type="application/rss+xml"
-			title="aditi's universe · blog"
+			title="aditi's universe | blog"
 			href="/rss.xml"
 		/>
 		<meta name="generator" content={Astro.generator} />
@@ -139,7 +155,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
-			href="https://fonts.googleapis.com/css2?family=Castoro:ital@0;1&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@200;300;400;500;600;700;800&family=Bangers&family=IBM+Plex+Mono:wght@400;500&display=swap"
+			href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,200..600;1,6..72,200..600&family=Hanken+Grotesk:wght@300..600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@200;400;500;600&family=Bangers&family=IBM+Plex+Mono:wght@400;500&display=swap"
 			rel="stylesheet"
 		/>
 
@@ -147,38 +163,30 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 
 		<style is:global>
 			:root {
-				--font-display: 'Inter', system-ui, sans-serif;
-				--font-title: 'Inter', system-ui, sans-serif;
-				--font-body: 'EB Garamond', 'Georgia', serif;
+				/* Headings: Instrument Serif. Body: EB Garamond. Loading screen and small controls: Inter. */
+				--font-display: 'Instrument Serif', Georgia, serif;
+				--font-title: 'Instrument Serif', Georgia, serif;
+				--font-body: 'EB Garamond', Georgia, serif;
+				--font-sans: 'Inter', system-ui, sans-serif;
 				--font-dream-comic: 'Bangers', 'Inter', cursive;
 				--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 			}
 
-			html[data-reveal-bootstrap='1'] [data-reveal-stagger] [data-reveal-child] {
-				opacity: 0;
-				transform: translate3d(0, 0.75rem, 0);
-				will-change: transform, opacity;
+			/* Portfolio: Newsreader headings, Hanken Grotesk text and interface. */
+			html[data-theme='portfolio'] {
+				--font-display: 'Newsreader', Georgia, serif;
+				--font-title: 'Newsreader', Georgia, serif;
+				--font-body: 'Hanken Grotesk', system-ui, sans-serif;
+				--font-sans: 'Hanken Grotesk', system-ui, sans-serif;
 			}
 		</style>
 	</head>
 	<body class="relative antialiased">
-		<!-- If GSAP fails, force content visible after a short delay -->
-		<script is:inline>
-			(function () {
-				function clearReveal() {
-					try {
-						document.documentElement.removeAttribute('data-reveal-bootstrap');
-					} catch (e) {}
-				}
-				window.addEventListener('load', function () {
-					setTimeout(clearReveal, 2800);
-				});
-			})();
-		</script>
-
+		<ThemeLoader />
 		<div class="dream-realm-tint" aria-hidden="true"></div>
 
-		<BeachBackground home={isHome} />
+		<!-- Beach before universe so its theme observer can release WebGL first. -->
+		<BeachBackground />
 		<StarFieldUniverse />
 
 		<div id="site-shell" class="relative z-10 flex min-h-dvh flex-col pointer-events-none">
@@ -208,14 +216,18 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 						style="font-family: var(--font-display)"
 					>
 						<img
-							src="/brand/logo-universe-32.png"
+							src="/brand/logo-universe-48.png"
+							srcset="/brand/logo-universe-48.png 1x, /brand/logo-universe-96.png 2x, /brand/logo-universe-144.png 3x"
+							width="36"
+							height="36"
 							alt=""
 							class="h-8 w-8 select-none md:h-9 md:w-9"
 							decoding="async"
 							loading="eager"
 							data-site-logo
 						/>
-						Home
+						<span class="brand-playful">Home</span>
+						<span class="brand-portfolio">Aditi</span>
 					</a>
 				</div>
 
@@ -226,14 +238,7 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 					<div class="min-w-0 flex-1 md:flex-none md:w-auto">
 						<SiteNav />
 					</div>
-					<button
-						type="button"
-						class="theme-toggle-btn shrink-0 rounded-full border border-[color-mix(in_srgb,var(--color-amber)_35%,transparent)] bg-[color-mix(in_srgb,var(--page-bg)_75%,transparent)] px-2.5 py-1 text-[0.7rem] font-medium leading-none text-[var(--page-fg)] backdrop-blur-sm transition fine-hover:border-[var(--color-amber)] fine-hover:text-[var(--color-amber)] md:px-4 md:py-2 md:text-sm md:font-semibold"
-						data-theme-toggle
-						aria-label="Toggle Universe and Beach theme"
-					>
-						<span data-theme-toggle-label>Universe</span>
-					</button>
+					<ThemeSwitch />
 				</div>
 			</header>
 
@@ -256,30 +261,30 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 		</div>
 
 		<script>
-			import Lenis from 'lenis';
-			import 'lenis/dist/lenis.css';
 			import { gsap } from 'gsap';
 			import { ScrollTrigger } from 'gsap/ScrollTrigger';
 			import { initPageRevealAnimations } from '../scripts/page-reveal.ts';
 			import { syncSiteNavChrome } from '../scripts/site-nav.ts';
+			import { initNavIndicators } from '../scripts/nav-indicators.ts';
+			import { initTransitionExperiment } from '../scripts/vt-experiment.ts';
 			import { syncHeroLayout } from '../scripts/hero-layout.ts';
 			import {
 				initScrollOrchestrator,
-				publishScroll,
 				refreshScrollMetrics,
 				subscribeScroll,
 			} from '../scripts/scroll-orchestrator.ts';
 			import { initTextSizeControl } from '../scripts/text-size-control.ts';
 			import { initHomeHero } from '../scripts/home-hero.ts';
 			import { syncCoarsePointerAttribute } from '../utils/input-capabilities.ts';
-			import { readStoredTheme, resolveTheme, THEME_KEY } from '../utils/theme-preference.ts';
+			import { readStoredTheme, storeTheme, type PlayfulTheme, type SiteTheme } from '../utils/theme-preference.ts';
+			import { initThemeSwitch } from '../scripts/theme-switch.ts';
 
 			gsap.registerPlugin(ScrollTrigger);
 
 			const html = document.documentElement;
 
-			function syncBrandAssets(theme: 'universe' | 'beach') {
-				const pref = theme === 'beach' ? '/brand/logo-beach' : '/brand/logo-universe';
+			function syncBrandAssets(theme: SiteTheme) {
+				const pref = theme === 'beach' ? '/brand/logo-flow' : '/brand/logo-universe';
 
 				const link16 = document.querySelector('link[data-favicon-16]') as HTMLLinkElement | null;
 				const link32 = document.querySelector('link[data-favicon-32]') as HTMLLinkElement | null;
@@ -289,49 +294,46 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 				if (apple) apple.href = `${pref}-180.png`;
 
 				const logo = document.querySelector('[data-site-logo]') as HTMLImageElement | null;
-				if (logo) logo.src = `${pref}-32.png`;
+				if (logo) {
+					logo.srcset = `${pref}-48.png 1x, ${pref}-96.png 2x, ${pref}-144.png 3x`;
+					logo.src = `${pref}-48.png`;
+				}
 
 				document
 					.querySelector('meta[data-theme-color]')
-					?.setAttribute('content', theme === 'beach' ? '#eaf6ff' : '#05030c');
+					?.setAttribute('content', theme === 'beach' ? '#0c2f55' : theme === 'portfolio' ? '#fbfaf6' : '#05030c');
 			}
 
-			function getStoredTheme(): 'universe' | 'beach' {
-				return readStoredTheme() ?? resolveTheme();
+			/* The head script already chose; this only re-reads its decision (dream pages force Orbit). */
+			function initialTheme(): SiteTheme {
+				const t = html.getAttribute('data-theme');
+				return t === 'universe' || t === 'beach' || t === 'portfolio' ? t : (readStoredTheme() ?? 'portfolio');
 			}
 
-			function applyTheme(theme: 'universe' | 'beach') {
+			function applyTheme(theme: SiteTheme) {
 				html.setAttribute('data-theme', theme);
 				syncBrandAssets(theme);
-				syncHeroLayout(theme);
+				if (theme !== 'portfolio') syncHeroLayout(theme);
 				/* Sync now so the orrery fade doesn't read a stale heroBottom=0. */
 				refreshScrollMetrics();
-				try {
-					localStorage.setItem(THEME_KEY, theme);
-				} catch {
-					/* ignore */
-				}
-				const label = document.querySelector('[data-theme-toggle-label]');
-				if (label) label.textContent = theme === 'universe' ? 'Universe' : 'Beach';
 				/* Second pass after layout/fonts settle. */
 				requestAnimationFrame(() => {
 					refreshScrollMetrics();
 					ScrollTrigger.refresh();
-					lenis?.resize();
 				});
 			}
 
-			function onThemeToggleClick(e: MouseEvent) {
-				const btn = (e.target as HTMLElement).closest('[data-theme-toggle]');
-				if (!btn) return;
-				const next = html.getAttribute('data-theme') === 'universe' ? 'beach' : 'universe';
-				applyTheme(next);
+			function applyPlayfulTheme(theme: PlayfulTheme) {
+				storeTheme(theme);
+				applyTheme(theme);
 			}
 
-			applyTheme(getStoredTheme());
+			applyTheme(initialTheme());
 			syncCoarsePointerAttribute();
 			syncSiteNavChrome();
-			document.addEventListener('click', onThemeToggleClick);
+			initTransitionExperiment();
+			initNavIndicators();
+			const stopThemeSwitch = initThemeSwitch(applyPlayfulTheme);
 			const stopTextSizeControl = initTextSizeControl();
 
 			/* Reader text size changes document height — trigger positions must follow. */
@@ -340,7 +342,6 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 				requestAnimationFrame(() => {
 					refreshScrollMetrics();
 					ScrollTrigger.refresh();
-					lenis?.resize();
 				});
 			}
 			document.addEventListener('click', onTextSizeChange);
@@ -349,69 +350,33 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 				window.location.href = '/dream-journal';
 			});
 
-			const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-			let lenis: Lenis | null = null;
-			let lenisTick: ((t: number) => void) | null = null;
-
+			/*
+			 * Native browser scrolling. The orchestrator's own scroll listener feeds the
+			 * header, the hero chevron, and the orrery fade; ScrollTrigger reads the
+			 * window directly, so no scroller proxy is needed.
+			 */
 			const stopScrollOrchestrator = initScrollOrchestrator();
 
-			if (!reduceMotion) {
-				lenis = new Lenis({
-					duration: 1.15,
-					/* Long, flat-tailed ease — glides to rest instead of stopping dead. */
-					easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-					smoothWheel: true,
-					touchMultiplier: 1.35,
-				});
-
-				ScrollTrigger.scrollerProxy(document.body, {
-					scrollTop(value) {
-						if (arguments.length && typeof value === 'number' && lenis) {
-							lenis.scrollTo(value, { immediate: true });
-						}
-						return lenis ? lenis.scroll : 0;
-					},
-					getBoundingClientRect() {
-						return {
-							top: 0,
-							left: 0,
-							width: window.innerWidth,
-							height: window.innerHeight,
-						};
-					},
-				});
-
-				/* Lenis is the visual scroll position, so it drives every subscriber. */
-				lenis.on('scroll', (e: { scroll: number }) => {
-					publishScroll(e.scroll);
-					ScrollTrigger.update();
-				});
-
-				lenisTick = (time: number) => {
-					if (lenis) lenis.raf(time * 1000);
-				};
-				gsap.ticker.add(lenisTick);
-				gsap.ticker.lagSmoothing(0);
-			}
-
-			let stopReveal = initPageRevealAnimations();
-
 			const path = window.location.pathname.replace(/\/$/, '') || '/';
+			const onHome = path === '' || path === '/';
+			const playful = html.getAttribute('data-theme') !== 'portfolio';
+			/* Editorial pages render settled; only the playful homepage's lower sections reveal. */
+			const stopReveal = onHome && playful ? initPageRevealAnimations() : () => {};
 			let stopHome = () => {};
-			if (path === '' || path === '/') {
+			if (onHome && playful) {
 				stopHome = initHomeHero();
 			}
 
 			/* Reveal/GSAP may have just zeroed the Beach hero copy — re-sync layout
 			 * and scroll metrics so planets + Beach text are visible without a refresh. */
-			syncHeroLayout(getStoredTheme());
+			const startTheme = initialTheme();
+			if (startTheme !== 'portfolio') syncHeroLayout(startTheme);
 			refreshScrollMetrics();
 			requestAnimationFrame(() => {
 				refreshScrollMetrics();
 				ScrollTrigger.refresh();
 				window.dispatchEvent(
-					new CustomEvent('aditi:theme-layout', { detail: { theme: getStoredTheme() } }),
+					new CustomEvent('aditi:theme-layout', { detail: { theme: startTheme } }),
 				);
 			});
 
@@ -459,11 +424,9 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 					unsubscribeHeader();
 					headerResize?.disconnect();
 					stopScrollOrchestrator();
-					document.removeEventListener('click', onThemeToggleClick);
+					stopThemeSwitch();
 					document.removeEventListener('click', onTextSizeChange);
 					window.removeEventListener('resize', onResizeNav);
-					if (lenisTick) gsap.ticker.remove(lenisTick);
-					if (lenis) lenis.destroy();
 					ScrollTrigger.getAll().forEach((t) => t.kill());
 				});
 			}
