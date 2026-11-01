@@ -15,27 +15,30 @@ import {
 import { recordTransitionOrigin } from './vt-origin.ts';
 
 /* Pages that exist only in Orbit and Flow; the head script in Layout.astro mirrors this. */
-const PLAYFUL_ONLY = /^\/(photo-dump|thoughts|dream-journal)(\/|$)/;
+const PLAYFUL_ONLY = /^\/(photo-dump|thoughts|lets-talk|dream-journal)(\/|$)/;
 
 const BORED_SEEN = 'aditi-bored-seen';
 
-/* The first "bored?" of a visit lands on the playful homepage, so the intro is seen once. */
-function boredTarget(): string | undefined {
+/*
+ * The first "bored?" of a visit lands on the playful homepage and plays its
+ * intro (logo and title). Every later switch just shows the theme's loader.
+ */
+function firstBored(): boolean {
 	try {
-		if (sessionStorage.getItem(BORED_SEEN)) return undefined;
+		if (sessionStorage.getItem(BORED_SEEN)) return false;
 		sessionStorage.setItem(BORED_SEEN, '1');
+		return true;
 	} catch {
-		return undefined;
+		return false;
 	}
-	return location.pathname === '/' ? undefined : '/';
 }
 
-function reloadInto(theme: SiteTheme, from?: Element | null, to?: string) {
+function reloadInto(theme: SiteTheme, from?: Element | null, to?: string, replayIntro = false) {
 	storeTheme(theme);
 	try {
-		/* The next page shows its theme's loading screen; a playful homepage replays its intro. */
+		/* The next page shows its theme's loading screen, unless the playful intro is due. */
 		sessionStorage.setItem('aditi-theme-switched', '1');
-		if (theme !== 'portfolio') sessionStorage.removeItem('aditi-splash-seen');
+		if (replayIntro) sessionStorage.removeItem('aditi-splash-seen');
 	} catch {
 		/* Storage blocked: the switch still happens, without the loading screen. */
 	}
@@ -109,7 +112,10 @@ export function initThemeSwitch(applyPlayful: (theme: PlayfulTheme) => void): ()
 		if (open && focusFirst) items()[0]?.focus();
 	}
 
-	const onBored = () => reloadInto(pickPlayfulTheme(), bored, boredTarget());
+	const onBored = () => {
+		const first = firstBored();
+		reloadInto(pickPlayfulTheme(), bored, first && location.pathname !== '/' ? '/' : undefined, first);
+	};
 	const onButton = () => setOpen(list?.hidden === true);
 	const onOther = () => {
 		const t = current();

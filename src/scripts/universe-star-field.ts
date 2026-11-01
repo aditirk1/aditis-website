@@ -1047,6 +1047,15 @@ export function initUniverseStarField(): () => void {
 		return { minX, maxX, minY, maxY };
 	}
 
+	/** Where the orrery's box sits on the unscrolled page, to tell when it has moved. */
+	let fittedZoneKey = '';
+	function heroZoneKey(): string {
+		const r = heroSideZoneEl?.getBoundingClientRect();
+		if (!r) return '';
+		const y = window.scrollY || 0;
+		return [r.left, r.top + y, r.width, r.height].map(Math.round).join(',');
+	}
+
 	/**
 	 * Fill the RIGHT zone. If the result collides with the title, shift right and
 	 * shrink — never move the title.
@@ -1062,8 +1071,18 @@ export function initUniverseStarField(): () => void {
 		const halfFov = ((camera.fov * Math.PI) / 180) / 2;
 		const worldPerPx = (Math.tan(halfFov) * camera.position.z * 2) / vh;
 
-		const zoneRect = heroSideZoneEl?.getBoundingClientRect();
-		const title = getTitleBounds();
+		/*
+		 * The canvas is fixed but the hero scrolls, and the orrery belongs to the hero
+		 * at the top of the page. Measure as if unscrolled: phones resize mid-scroll
+		 * whenever the browser bars collapse, and fitting to the scrolled-up hero left
+		 * the orrery sitting on the title once the page came back to the top.
+		 */
+		const scrollY = window.scrollY || 0;
+		const zoneLive = heroSideZoneEl?.getBoundingClientRect();
+		const zoneRect = zoneLive && new DOMRect(zoneLive.left, zoneLive.top + scrollY, zoneLive.width, zoneLive.height);
+		fittedZoneKey = heroZoneKey();
+		const titleLive = getTitleBounds();
+		const title = titleLive && new DOMRect(titleLive.left, titleLive.top + scrollY, titleLive.width, titleLive.height);
 
 		const isStacked = window.matchMedia(STACKED_HERO_QUERY).matches;
 
@@ -1145,7 +1164,7 @@ export function initUniverseStarField(): () => void {
 			}
 		}
 
-		positionPlanetLabel(bounds.maxY);
+		positionPlanetLabel(bounds.maxY - scrollY);
 	}
 
 	function setSize() {
@@ -1178,6 +1197,17 @@ export function initUniverseStarField(): () => void {
 		if (heroTitleEl) titleObserver.observe(heroTitleEl);
 		if (heroSideZoneEl) titleObserver.observe(heroSideZoneEl);
 	}
+
+	/*
+	 * The box can also move without changing size: the header settling, fonts
+	 * landing, or a phone's browser bars changing the hero's height. Nothing fires
+	 * for those, so check now and then and re-fit if it has moved.
+	 */
+	const heroDriftTimer = isHomePage
+		? window.setInterval(() => {
+				if (document.visibilityState === 'visible' && heroZoneKey() !== fittedZoneKey) fitSolarSystemToViewport();
+			}, 400)
+		: 0;
 
 	let raf = 0;
 	let running = false;
@@ -1494,6 +1524,7 @@ export function initUniverseStarField(): () => void {
 		window.cancelAnimationFrame(showRaf2);
 		mo.disconnect();
 		titleObserver?.disconnect();
+		window.clearInterval(heroDriftTimer);
 		window.removeEventListener('aditi:theme-layout', onThemeLayout);
 		window.removeEventListener('aditi:beach-gl-released', onBeachGlReleased);
 		cancelSurfaceGeneration?.();

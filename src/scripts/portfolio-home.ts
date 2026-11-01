@@ -166,9 +166,16 @@ export function initPortfolioHome(): () => void {
 		if (!frame) frame = requestAnimationFrame(sync);
 	};
 
-	/* Keep the same section in view when the window resizes. */
+	/*
+	 * Keep the same section in view when the window resizes. Width only: phones
+	 * report a resize whenever the browser bars or keyboard change the height, and
+	 * re-pinning the row then cut swipes off mid-glide.
+	 */
 	let ratio = 0;
+	let lastWidth = window.innerWidth;
 	const onResize = () => {
+		if (window.innerWidth === lastWidth) return;
+		lastWidth = window.innerWidth;
 		stopGlide();
 		const m = max();
 		scroller.scrollLeft = ratio * m;

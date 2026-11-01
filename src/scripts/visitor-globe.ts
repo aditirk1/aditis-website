@@ -36,6 +36,14 @@ const LABEL_GAP = 5;
 /** Camera height in globe radii; 1.45 leaves a hairline between the earth and the frame. */
 const DEFAULT_ALTITUDE = 1.45;
 
+/** How long a pin's label stays up after the pointer leaves the pin. */
+const LABEL_LINGER_MS = 2500;
+
+/** A tap this close to a pin counts as tapping it; pins are far smaller than a fingertip. */
+const TAP_RADIUS_PX = 24;
+/** Movement allowed between finger-down and finger-up before it counts as a drag. */
+const TAP_SLOP_PX = 8;
+
 /** A scroll that reaches the globe within this long of scrolling the page is still a page scroll. */
 const PAGE_SCROLL_GRACE_MS = 400;
 
@@ -66,10 +74,10 @@ function clamp(v: number, lo: number, hi: number): number {
 /**
  * Visitor globe (Orbit + Flow).
  *
- * Clicking a pin draws a leader line out of the globe — slanted radial segment,
+ * Hovering a pin draws a leader line out of the globe — slanted radial segment,
  * short horizontal tick, then the label — instead of a centred tooltip that the
- * round frame would clip. The label stays until another pin or anywhere else is
- * clicked; hover alone moved too fast to read. Pinch zoom (touchscreen or trackpad) makes sparse,
+ * round frame would clip. The label lingers for a moment after the pointer
+ * leaves, since the pins are small and easy to slip off. Pinch zoom (touchscreen or trackpad) makes sparse,
  * single-visit pins big enough to hit.
  */
 export function initVisitorGlobe(container: HTMLElement): {
@@ -124,7 +132,6 @@ export function initVisitorGlobe(container: HTMLElement): {
 
 	function hideCallout() {
 		selected = null;
-		ctrls.autoRotate = true;
 		cancelAnimationFrame(followRaf);
 		followRaf = 0;
 		if (callout) callout.hidden = true;
@@ -241,43 +248,63 @@ export function initVisitorGlobe(container: HTMLElement): {
 		followRaf = requestAnimationFrame(followSelected);
 	}
 
+	let lingerTimer = 0;
+	function showCallout(p: PointDatum) {
+		window.clearTimeout(lingerTimer);
+		selected = p;
+		drawCallout(p);
+		/* Keep the leader glued to the pin as the globe spins, drags and zooms. */
+		if (!followRaf) followRaf = requestAnimationFrame(followSelected);
+	}
+
 	globe.onPointHover((point: object | null) => {
 		container.style.cursor = point ? 'var(--cursor-pointer, pointer)' : '';
+		if (point) {
+			showCallout(point as PointDatum);
+			return;
+		}
+		/* Pins are small, so the pointer slips off them fast; give the label time to be read. */
+		window.clearTimeout(lingerTimer);
+		lingerTimer = window.setTimeout(hideCallout, LABEL_LINGER_MS);
 	});
-
-	let pinClicked = false;
-	globe.onPointClick((point: object) => {
-		pinClicked = true;
-		selected = point as PointDatum;
-		/* Holds the pin still so the label doesn't drift round to the far side. */
-		ctrls.autoRotate = false;
-		drawCallout(selected);
-		/* Keep the leader glued to the pin through drags and zooms. */
-		if (!followRaf) followRaf = requestAnimationFrame(followSelected);
-	});
+	function showBriefly(p: PointDatum) {
+		showCallout(p);
+		window.clearTimeout(lingerTimer);
+		lingerTimer = window.setTimeout(hideCallout, LABEL_LINGER_MS);
+	}
+	globe.onPointClick((point: object) => showBriefly(point as PointDatum));
 
 	/*
-	 * Any click that isn't on a pin closes the label, except the click a drag
-	 * ends with: spinning the globe to look around shouldn't lose it. The globe's
-	 * own pin click can land either side of this one, hence the deferred check.
+	 * Touch screens have no hover, and the globe's own click only finds a pin if
+	 * its throttled raycast happens to land between finger-down and finger-up, so
+	 * quick taps mostly missed. Pick the nearest front-facing pin to the tap
+	 * instead, with a finger-sized radius.
 	 */
-	let downX = 0;
-	let downY = 0;
-	const onDownAnywhere = (e: PointerEvent) => {
-		pinClicked = false;
-		downX = e.clientX;
-		downY = e.clientY;
+	let tapStart: { x: number; y: number } | null = null;
+	const onTapDown = (e: PointerEvent) => {
+		tapStart = e.pointerType === 'mouse' ? null : { x: e.clientX, y: e.clientY };
 	};
-	const onDocumentClick = (e: MouseEvent) => {
-		if (Math.hypot(e.clientX - downX, e.clientY - downY) > 5) return;
-		if (callout?.contains(e.target as Node)) return;
-		setTimeout(() => {
-			if (!pinClicked && selected) hideCallout();
-			pinClicked = false;
-		}, 0);
+	const onTapUp = (e: PointerEvent) => {
+		if (!tapStart || Math.hypot(e.clientX - tapStart.x, e.clientY - tapStart.y) > TAP_SLOP_PX) return;
+		tapStart = null;
+		const rect = container.getBoundingClientRect();
+		const tx = e.clientX - rect.left;
+		const ty = e.clientY - rect.top;
+		let best: PointDatum | null = null;
+		let bestDist = TAP_RADIUS_PX;
+		for (const p of globe.pointsData() as PointDatum[]) {
+			const s = globe.getScreenCoords(p.lat, p.lng, 0.012);
+			if (!s || !Number.isFinite(s.x) || !Number.isFinite(s.y)) continue;
+			const d = Math.hypot(s.x - tx, s.y - ty);
+			if (d < bestDist && isFacingCamera(p, s.x, s.y)) {
+				best = p;
+				bestDist = d;
+			}
+		}
+		if (best) showBriefly(best);
 	};
-	document.addEventListener('pointerdown', onDownAnywhere);
-	document.addEventListener('click', onDocumentClick);
+	container.addEventListener('pointerdown', onTapDown);
+	container.addEventListener('pointerup', onTapUp);
 
 	/*
 	 * Scrolling or pinching over the globe zooms it. OrbitControls ties wheel and
@@ -376,9 +403,10 @@ export function initVisitorGlobe(container: HTMLElement): {
 			mo.disconnect();
 			ro.disconnect();
 			hideCallout();
-			document.removeEventListener('pointerdown', onDownAnywhere);
-			document.removeEventListener('click', onDocumentClick);
+			window.clearTimeout(lingerTimer);
 			container.removeEventListener('pointerdown', onPointerDown);
+			container.removeEventListener('pointerdown', onTapDown);
+			container.removeEventListener('pointerup', onTapUp);
 			container.removeEventListener('pointerleave', onPointerLeave);
 			container.removeEventListener('wheel', onWheelCapture, { capture: true });
 			window.removeEventListener('wheel', onPageWheel);
