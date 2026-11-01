@@ -8,7 +8,12 @@
  */
 import home from '../data/home.json';
 
-const chars = home.hero_title.replace(/\.$/, '').split('');
+/* Words, not one run of characters: phones stack them, and the gap between them is margin, not a lone &nbsp;. */
+const words = home.hero_title
+	.replace(/\.$/, '')
+	.split(/\s+/)
+	.filter(Boolean)
+	.map((w) => w.split(''));
 ---
 
 <!-- Runs before first paint when splash already completed this session -->
@@ -61,13 +66,15 @@ const chars = home.hero_title.replace(/\.$/, '').split('');
 		</div>
 
 		<p
-			class="splash-title pointer-events-none m-0 mt-5 select-none whitespace-nowrap text-center text-[clamp(1.15rem,5.2vw,1.65rem)] font-extralight tracking-[0.12em] text-[var(--page-fg)] md:mt-6 md:text-6xl md:tracking-[0.28em] lg:text-7xl"
+			class="splash-title pointer-events-none m-0 select-none text-center font-extralight text-[var(--page-fg)]"
 			style="font-family: 'Inter', system-ui, sans-serif; font-weight: 200; visibility: hidden"
 			data-splash-title
 		>
-			{chars.map((ch) => (
-				<span class="splash-char inline-block will-change-transform">
-					{ch === ' ' ? '\u00a0' : ch}
+			{words.map((word) => (
+				<span class="splash-word">
+					{word.map((ch) => (
+						<span class="splash-char inline-block will-change-transform">{ch}</span>
+					))}
 				</span>
 			))}
 		</p>
@@ -92,9 +99,52 @@ const chars = home.hero_title.replace(/\.$/, '').split('');
 		border-radius: 50%;
 	}
 
-	/* Nudged right so the wordmark sits under the logo's visual centre, not its box's. */
+	/*
+	 * Phones: one word per line, sized to the screen with room at the sides.
+	 * Desktop: one line, words spaced by margin. Nudged right so the wordmark
+	 * sits under the logo's visual centre, not its box's.
+	 */
 	.splash-title {
-		translate: 0.15em 0;
+		box-sizing: border-box;
+		max-width: 100vw;
+		margin-top: 1.75rem;
+		padding-inline: 1.5rem;
+		font-size: clamp(2.5rem, 13.5vw, 4rem);
+		line-height: 1.12;
+		letter-spacing: 0.16em;
+		translate: 0.08em 0;
+	}
+
+	.splash-word {
+		display: block;
+		white-space: nowrap;
+	}
+
+	@media (min-width: 768px) {
+		.splash-title {
+			margin-top: 1.5rem;
+			padding-inline: 0;
+			font-size: 3.75rem;
+			line-height: 1;
+			letter-spacing: 0.28em;
+			white-space: nowrap;
+			translate: 0.15em 0;
+		}
+
+		.splash-word {
+			display: inline-block;
+		}
+
+		/* Matches the old tracked &nbsp; gap: trailing tracking + space + tracking. */
+		.splash-word + .splash-word {
+			margin-left: 0.8em;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.splash-title {
+			font-size: 4.5rem;
+		}
 	}
 
 	.splash-logo-shimmer {
