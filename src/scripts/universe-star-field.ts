@@ -120,8 +120,8 @@ const PLANETS = [
 	},
 	{
 		id: 'services',
-		label: 'Services',
-		href: '/services',
+		label: "Let's Talk",
+		href: '/lets-talk',
 		color: 0xd09050,
 		radius: 1.72,
 		orbitR: 14,

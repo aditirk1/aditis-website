@@ -43,7 +43,7 @@ output:
   omit_empty_optional_fields: true
 
 collections:
-  # Single-file pages (homepage, services copy) — edit here, not in Astro.
+  # Single-file pages (homepage, Work With Me copy) — edit here, not in Astro.
   - name: pages
     label: Site pages
     files:
@@ -109,15 +109,32 @@ collections:
               - { label: Portrait, name: portrait, widget: image, hint: Shown in the About section, cropped to a 4:5 portrait around the centre. }
               - { label: Portrait description, name: portrait_alt, widget: string, hint: For screen readers. }
               - { label: Portrait caption, name: portrait_caption, widget: string, required: false, hint: Small line under the portrait. Leave empty for none. }
-      - name: services
-        label: Services page
-        file: src/data/services.json
+      - name: lets_talk
+        label: Let's Talk page
+        file: src/data/lets-talk.json
         fields:
           - { label: Page title, name: page_title, widget: string }
           - { label: Intro, name: intro, widget: text }
-          - label: Service offerings
-            name: services
+          - { label: Chat button label, name: chat_label, widget: string, hint: Small text under the 💬 button. }
+          - { label: Chat button email, name: email, widget: string, hint: The 💬 button opens an email to this address. }
+          - label: Contact links
+            name: links
             widget: list
+            fields:
+              - { label: Label, name: label, widget: string }
+              - { label: Text, name: text, widget: string }
+              - { label: URL, name: url, widget: string, hint: 'https://… or mailto:you@example.com' }
+      - name: work_with_me
+        label: Work With Me page (hidden)
+        file: src/data/work-with-me.json
+        hint: Not linked anywhere on the site yet and hidden from search engines; reachable only at /work-with-me.
+        fields:
+          - { label: Page title, name: page_title, widget: string }
+          - { label: Intro, name: intro, widget: text }
+          - label: Offerings
+            name: offerings
+            widget: list
+            hint: Each one is a heading on the left; hovering it shows its box on the right.
             fields:
               - { label: Title, name: title, widget: string }
               - { label: Teaser, name: teaser, widget: text }
@@ -125,7 +142,17 @@ collections:
               - label: Includes
                 name: includes
                 widget: list
+                required: false
                 field: { label: Item, name: item, widget: string }
+              - label: Links
+                name: links
+                widget: list
+                required: false
+                hint: 'Booking links (Cal.com) or an email link (mailto:you@example.com). A link with no URL shows as plain text.'
+                fields:
+                  - { label: Label, name: label, widget: string }
+                  - { label: Price, name: price, widget: string, required: false, hint: 'Shown as typed, e.g. "$40". Leave empty to hide.' }
+                  - { label: URL, name: url, widget: string, required: false }
           - { label: Process heading, name: process_heading, widget: string }
           - label: Process steps
             name: process
@@ -134,10 +161,8 @@ collections:
               - { label: Step number, name: step, widget: string }
               - { label: Title, name: title, widget: string }
               - { label: Body, name: body, widget: text }
-          - { label: CTA heading, name: cta_heading, widget: string }
-          - { label: CTA body (contact form on), name: cta_body_contact, widget: text }
-          - { label: CTA body (Stripe on), name: cta_body_stripe, widget: text }
-          - { label: CTA body (LinkedIn only), name: cta_body_linkedin, widget: text }
+          - { label: Bottom box heading, name: cta_heading, widget: string }
+          - { label: Bottom box text, name: cta_body, widget: text, hint: Sits above the Message on LinkedIn button. }
 
   - name: projects
     label: Projects

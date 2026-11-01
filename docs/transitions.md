@@ -51,7 +51,6 @@ The head script opts the page in only if **all** of these hold:
   opt-in, so pages load plainly. The CSS also strips every transition
   animation under reduced motion.
 - **The page is not excluded.** Excluded paths:
-  - `/services/success`, the payment result (Services itself only links out to Stripe checkout)
   - `/admin/*`
   - `/quick/*`
   - `/dream-journal/*`

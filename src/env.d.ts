@@ -7,8 +7,6 @@ interface ImportMetaEnv {
 	readonly PUBLIC_UMAMI_WEBSITE_ID?: string;
 	/** Optional origin for visitor APIs if not same-origin (default: relative /api/*) */
 	readonly PUBLIC_VISITOR_API_BASE?: string;
-	/** When `"true"`, Services shows a Stripe Checkout button (requires server-side Stripe env on deploy). */
-	readonly PUBLIC_STRIPE_CHECKOUT?: string;
 }
 
 interface ImportMeta {

@@ -41,11 +41,13 @@ export function initServicesExplorer(): () => void {
 		}
 
 		const rootTop = root.getBoundingClientRect().top;
-		/* The list starts below the hint line; the box should never float above it. */
-		const firstTop = triggers[0]!.getBoundingClientRect().top - rootTop;
-		const listHeight = triggers[triggers.length - 1]!.getBoundingClientRect().bottom - rootTop;
+		/* The box should never float above the first heading. */
+		const firstTop = (triggers[0]!.parentElement ?? triggers[0]!).getBoundingClientRect().top - rootTop;
+		/* Button heights, not row heights: the rows stretch to fill the stage, so
+		   measuring them would only ever let the stage grow. */
+		const listHeight = triggers.reduce((sum, trigger) => sum + trigger.offsetHeight, 0);
 		const tallest = panels.reduce((max, panel) => Math.max(max, panel.offsetHeight), 0);
-		const stageHeight = Math.max(listHeight, firstTop + tallest);
+		const stageHeight = firstTop + Math.max(listHeight, tallest);
 
 		/* The boxes are out of flow, so the section needs to be told to make room. */
 		root.style.setProperty('--stage-min', `${Math.ceil(stageHeight)}px`);

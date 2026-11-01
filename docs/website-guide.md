@@ -27,7 +27,7 @@ This project is a **static Astro site**: pages compile to HTML in `dist/`. Inter
 
 **Goals encoded in the codebase:**
 
-- Readable, portfolio-adjacent pages (projects, blog, services, photos, thoughts).
+- Readable, portfolio-adjacent pages (projects, blog, Work With Me, photos, thoughts).
 - Strong visual identity: **Universe** vs **Beach** themes, starfield / beach backgrounds, dream-journal styling.
 - **Privacy-conscious public stats**: globe pins only at **country centroids**; city-level detail is limited to an **authenticated admin view**.
 
@@ -49,7 +49,6 @@ aditis-website/
 ├── functions/                # Cloudflare Pages Functions (edge)
 │   ├── global.d.ts           # Workers types reference
 │   ├── api/
-│   │   ├── checkout.ts       # POST — create Stripe Checkout Session
 │   │   ├── visit.ts          # POST — record visit from cf.* geo
 │   │   ├── stats.ts          # GET — public totals + globe markers
 │   │   └── admin/
@@ -161,7 +160,8 @@ Draft fields exist on several schemas; pages should filter `draft: true` from pr
 | Page reveal / scroll | `page-reveal.ts`, `Layout.astro` |
 | Reader text size | `TextSizeControl.astro`, `text-size-control.ts` |
 | Photo lightbox | `photo-lightbox.ts`, photo-dump page |
-| Contact / services | `ContactModal.astro`, services page (Web3Forms when key set) |
+| Let's Talk | `src/pages/lets-talk/index.astro`, copy in `src/data/lets-talk.json` (the page the site links to) |
+| Work With Me (hidden) | `src/pages/work-with-me/index.astro`, copy in `src/data/work-with-me.json` (Cal.com booking links + mailto); not linked anywhere, not indexed |
 | Live visitor map | `LiveVisitorMap.astro`, `live-visitor-map.ts`, `visitor-globe.ts` |
 | Private visitor geography | `src/pages/admin/visitors.astro` |
 
@@ -193,14 +193,11 @@ All **`PUBLIC_*`** variables are exposed to the browser. Never put secrets in `P
 | `PUBLIC_UMAMI_SCRIPT_URL` | Umami analytics script URL |
 | `PUBLIC_UMAMI_WEBSITE_ID` | Umami site id |
 | `PUBLIC_VISITOR_API_BASE` | Optional absolute origin for `/api/*` if not same-origin |
-| `PUBLIC_STRIPE_CHECKOUT` | Set to `true` to show **Pay securely (Stripe)** on `/services` |
 
 **Cloudflare-only (not `PUBLIC_*`):**
 
 - **`VISITOR_KV`** — KV namespace binding (see `wrangler.toml`).
 - **`ADMIN_STATS_SECRET`** — Bearer token for `/api/admin/stats`.
-- **`STRIPE_SECRET_KEY`** — Stripe secret API key for **`POST /api/checkout`** (Checkout Sessions).
-- **`STRIPE_PRICE_ID`** — Default [Price](https://stripe.com/docs/api/prices) id (`price_…`) for that checkout button.
 
 Define **`PUBLIC_*`** in `.env` locally and in **Cloudflare Pages → Settings → Environment variables** for production/preview.
 
@@ -232,7 +229,7 @@ Define **`PUBLIC_*`** in `.env` locally and in **Cloudflare Pages → Settings �
 3. **KV:** Create a namespace, note its id, put it in **`wrangler.toml`** under `[[kv_namespaces]]` → `binding = "VISITOR_KV"`.
 4. **Dashboard:** In the Pages project, bind the same KV to **`VISITOR_KV`** for **Production** and **Preview** if you edit bindings in the UI instead of only via `wrangler.toml`.
 5. **Secret:** Add **`ADMIN_STATS_SECRET`** as an encrypted secret in Pages (not a plain `PUBLIC_` var).
-6. **Optional:** Set **`PUBLIC_*`** analytics and Stripe keys per environment.
+6. **Optional:** Set **`PUBLIC_*`** analytics keys per environment.
 
 After deploy, verify **`POST /api/visit`** and **`GET /api/stats`** from the live origin; then open **`/admin/visitors`** with the secret to confirm city/country rows.
 
@@ -244,7 +241,7 @@ After deploy, verify **`POST /api/visit`** and **`GET /api/stats`** from the liv
 | ----------- | ------- |
 | **Umami** | Privacy-friendly analytics; script injected from `Layout.astro` when `PUBLIC_UMAMI_*` is set |
 | **Web3Forms** | Serverless form handling when access key is present |
-| **Stripe** | Hosted Checkout button on `/services` when `PUBLIC_STRIPE_CHECKOUT=true` and `STRIPE_SECRET_KEY` + `STRIPE_PRICE_ID` are set |
+| **Cal.com** | Booking + payment (through Cal.com's Stripe app) for the hidden Work With Me page; links set in `/admin` |
 
 Umami and the **custom visitor KV counters** are independent; you may run both, but be mindful of **double-counting** conceptually if you treat both as “visits.”
 

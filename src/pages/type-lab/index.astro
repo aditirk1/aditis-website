@@ -120,7 +120,7 @@ const pairings: Array<{ id: string; name: string; display: Face; text: Face; ui:
 	},
 ];
 
-const navLabels = ['Home', 'Projects', 'Blog', 'Photo Dump', 'Thoughts', 'Services'];
+const navLabels = ['Home', 'Projects', 'Blog', 'Photo Dump', 'Thoughts', "Let's Talk"];
 
 const projects = (await getCollection('projects', ({ data }) => data.draft !== true))
 	.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())

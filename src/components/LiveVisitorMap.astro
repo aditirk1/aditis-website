@@ -49,7 +49,10 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 			</div>
 		</div>
 
-		<p class="visitor-reach__hint">Hover over a pin &amp; pinch to zoom</p>
+		<p class="visitor-reach__hint">
+			<span class="visitor-reach__hint-fine">Click a pin to see the place, scroll or pinch to zoom</span>
+			<span class="visitor-reach__hint-touch">Tap a pin to see the place, pinch to zoom</span>
+		</p>
 		<p class="visitor-reach__note" data-visitor-note></p>
 	</div>
 </aside>
@@ -136,6 +139,20 @@ const apiBase = (import.meta.env.PUBLIC_VISITOR_API_BASE ?? '').replace(/\/$/, '
 
 	.visitor-reach__note:empty {
 		display: none;
+	}
+
+	.visitor-reach__hint-fine {
+		display: none;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.visitor-reach__hint-fine {
+			display: inline;
+		}
+
+		.visitor-reach__hint-touch {
+			display: none;
+		}
 	}
 
 	/*

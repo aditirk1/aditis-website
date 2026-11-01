@@ -7,7 +7,7 @@ const FLOW_EASE = 0.22;
 
 /**
  * Follows the chosen mode, not whether this page plays transitions: pages
- * excluded from transitions (Services, checkout) still get the hover feedback.
+ * excluded from transitions (admin, private notes) still get the hover feedback.
  * Same lookup as the head script in ViewTransitionExperiment.astro.
  */
 function themedModeChosen(): boolean {

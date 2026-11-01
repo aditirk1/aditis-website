@@ -10,14 +10,14 @@
   "cta_primary_label": "See my work",
   "cta_primary_href": "/projects",
   "cta_secondary_label": "Let's talk",
-  "cta_secondary_href": "/services",
+  "cta_secondary_href": "/lets-talk",
   "about_heading": "About me",
   "about_paragraphs": [
     "I'm a biomedical engineering graduate student at Columbia. My background spans automated genomic pipelines and molecular dynamics, large-scale CMS Medicare analysis, EEG signal processing, and building things that move — quadruped robots, nanobot navigation concepts, and the occasional walking pipeline debug at 2 a.m.",
     "Outside the lab I'm a lead at Nucleate New York and care about the gap between a promising innovation and one that actually reaches patients. This site is projects, writing, and the occasional dream journal — navigate with the tabs, the planets, or scroll."
   ],
-  "resume_label": "Download résumé (PDF)",
-  "resume_href": "/resume.pdf",
+  "resume_label": "Ask me for my CV",
+  "resume_href": "mailto:ar4997@columbia.edu?subject=CV%20request",
   "explore_heading": "Explore",
   "explore_cards": [
     {
@@ -41,9 +41,9 @@
       "desc": "Visual snapshots from life and work."
     },
     {
-      "href": "/services",
-      "title": "Services",
-      "desc": "Research consulting, writing, and design."
+      "href": "/lets-talk",
+      "title": "Let's Talk",
+      "desc": "Say hello about research, biotech, or anything interesting."
     }
   ],
   "portfolio": {

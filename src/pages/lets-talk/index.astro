@@ -1,0 +1,185 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import page from '../../data/lets-talk.json';
+---
+
+<Layout title={`${page.page_title} | aditi's universe`}>
+	<div class="page-list-shell">
+		<div data-reveal-stagger class="page-list-header">
+			<h1
+				class="text-4xl font-semibold tracking-tight md:text-5xl"
+				style="font-family: var(--font-display)"
+				data-reveal-child
+			>
+				{page.page_title}
+			</h1>
+			<div class="mt-2 h-0.5 w-12 rounded-full bg-[var(--color-amber)]" data-reveal-child></div>
+		</div>
+
+		<section class="lt" data-reveal-stagger>
+			<a class="lt-chat" href={`mailto:${page.email}`} data-reveal-child>
+				<span class="lt-chat__bubble" aria-hidden="true">💬</span>
+				<span class="lt-chat__label">{page.chat_label}</span>
+			</a>
+
+			<div class="lt-body">
+				<p class="lt-intro" data-reveal-child>{page.intro}</p>
+				<ul class="lt-links" data-reveal-child>
+					{
+						page.links.map((link) => (
+							<li>
+								<span class="lt-links__label">{link.label}</span>
+								<a
+									class="lt-links__value"
+									href={link.url}
+									{...(link.url.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+								>
+									{link.text}
+									<span aria-hidden="true">→</span>
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</div>
+		</section>
+	</div>
+</Layout>
+
+<style>
+	.lt {
+		display: grid;
+		gap: clamp(2rem, 5vw, 3rem);
+		margin-top: clamp(1.5rem, 4vw, 2.75rem);
+	}
+
+	@media (min-width: 52rem) {
+		.lt {
+			grid-template-columns: auto minmax(0, 1fr);
+			align-items: start;
+			column-gap: clamp(3rem, 7vw, 6rem);
+			padding-inline-start: clamp(1rem, 5vw, 4.5rem);
+		}
+	}
+
+	.lt-chat {
+		display: inline-flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.75rem;
+		justify-self: start;
+		text-decoration: none;
+	}
+
+	.lt-chat__bubble {
+		display: grid;
+		place-items: center;
+		width: clamp(6rem, 18vw, 8rem);
+		aspect-ratio: 1;
+		border: 1px solid color-mix(in srgb, var(--color-amber) 45%, transparent);
+		border-radius: 9999px;
+		background: color-mix(in srgb, var(--color-amber) 8%, transparent);
+		font-size: clamp(2.8rem, 8vw, 3.75rem);
+		line-height: 1;
+		box-shadow: 0 24px 60px -34px color-mix(in srgb, var(--color-amber) 60%, transparent);
+		transition:
+			transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1),
+			background-color 0.3s ease,
+			border-color 0.3s ease;
+	}
+
+	.lt-chat__label {
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: var(--color-amber);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.lt-chat:hover .lt-chat__bubble {
+			transform: translateY(-4px) rotate(-6deg);
+			border-color: var(--color-amber);
+			background: color-mix(in srgb, var(--color-amber) 16%, transparent);
+		}
+	}
+
+	.lt-chat:focus-visible {
+		outline: none;
+	}
+
+	.lt-chat:focus-visible .lt-chat__bubble {
+		outline: 2px solid var(--color-amber);
+		outline-offset: 4px;
+	}
+
+	.lt-intro {
+		max-width: 38rem;
+		margin: 0;
+		font-size: clamp(1.1rem, 2.4vw, 1.3rem);
+		line-height: 1.6;
+		color: var(--page-muted);
+	}
+
+	.lt-links {
+		display: grid;
+		max-width: 38rem;
+		margin: clamp(1.5rem, 4vw, 2.25rem) 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.lt-links li {
+		display: grid;
+		grid-template-columns: 6.5rem minmax(0, 1fr);
+		align-items: baseline;
+		gap: 1rem;
+		padding: 0.95rem 0;
+		border-top: 1px solid color-mix(in srgb, var(--page-fg) 10%, transparent);
+	}
+
+	.lt-links li:last-child {
+		border-bottom: 1px solid color-mix(in srgb, var(--page-fg) 10%, transparent);
+	}
+
+	.lt-links__label {
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: var(--page-muted);
+	}
+
+	.lt-links__value {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 0.45rem;
+		min-width: 0;
+		overflow-wrap: anywhere;
+		font-size: clamp(1.02rem, 2.2vw, 1.15rem);
+		font-weight: 600;
+		color: var(--color-amber);
+		text-decoration: underline;
+		text-decoration-color: color-mix(in srgb, var(--color-amber) 40%, transparent);
+		text-underline-offset: 3px;
+		transition: text-decoration-color 0.2s ease;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.lt-links__value:hover {
+			text-decoration-color: var(--color-amber);
+		}
+	}
+
+	.lt-links__value:focus-visible {
+		outline: 2px solid var(--color-amber);
+		outline-offset: 3px;
+		border-radius: 0.2rem;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.lt-chat__bubble {
+			transition: none;
+		}
+	}
+</style>

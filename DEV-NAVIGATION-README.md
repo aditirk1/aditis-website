@@ -58,7 +58,7 @@ aditis-website/
     │   ├── index.astro          # Homepage
     │   ├── blog/
     │   ├── projects/
-    │   ├── services/
+    │   ├── work-with-me/
     │   ├── dream-journal/
     │   ├── admin/visitors.astro # Private stats page
     │   └── …
@@ -130,7 +130,7 @@ aditis-website/
 | Component file | Typical use |
 |----------------|-------------|
 | **`src/components/SiteNav.astro`** | Main navigation |
-| **`src/components/ContactModal.astro`** | Contact / forms on services |
+| **`src/components/ContactModal.astro`** | Contact form on Work With Me |
 | **`src/components/LiveVisitorMap.astro`** | Globe + visit count block |
 | **`src/components/TextSizeControl.astro`** | Bottom-right reader text-size control |
 | **`src/components/BeachBackground.astro`** | Beach theme full-screen background |
@@ -206,7 +206,7 @@ These are **illustrative**—copy the idea, adjust values slowly.
 | Change reader text-size control | **`src/components/TextSizeControl.astro`**, **`src/scripts/text-size-control.ts`** |
 | Change project cards / dialogs | **`src/pages/projects/index.astro`** |
 | Change visitor globe block | **`src/components/LiveVisitorMap.astro`**, **`src/scripts/live-visitor-map.ts`**, **`visitor-globe.ts`** |
-| Change contact / services modal | **`src/components/ContactModal.astro`**, **`src/pages/services/index.astro`** |
+| Change contact / Work With Me | **`src/components/ContactModal.astro`**, **`src/pages/work-with-me/index.astro`** |
 
 ---
 

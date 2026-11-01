@@ -70,9 +70,10 @@ html[data-theme='beach'] {
 }
 
 /*
- * Themed cursors (Sweezy Cursors, credited in the footer). Hotspots are the
- * packs' own, taken from their .cur files at 32px. If a browser can't parse
- * image-set() here, the whole value is dropped and the system cursor shows.
+ * Themed cursors (Sweezy Cursors, credited in the footer), drawn at 29px, a
+ * notch under the packs' 32px. Hotspots are the packs' own from their .cur
+ * files, scaled to match. If a browser can't parse image-set() here, the whole
+ * value is dropped and the system cursor shows.
  */
 :root {
 	--cursor-default: auto;
@@ -80,14 +81,15 @@ html[data-theme='beach'] {
 }
 
 html[data-theme='universe'] {
-	--cursor-default: image-set(url('/cursors/orbit-default-32.png') 1x, url('/cursors/orbit-default-64.png') 2x) 6 1, auto;
-	--cursor-pointer: image-set(url('/cursors/orbit-pointer-32.png') 1x, url('/cursors/orbit-pointer-64.png') 2x) 13 0, pointer;
+	/* Apple Morty arrow, and the classic Windows pixel hand for links. */
+	--cursor-default: image-set(url('/cursors/orbit-default-29.png') 1x, url('/cursors/orbit-default-58.png') 2x) 5 1, auto;
+	--cursor-pointer: image-set(url('/cursors/orbit-pointer-29.png') 1x, url('/cursors/orbit-pointer-58.png') 2x) 11 1, pointer;
 }
 
 html[data-theme='beach'] {
-	/* SpongeBob sponge arrow and hand; hotspots from the pack's .cur files (arrow tip, fingertip). */
-	--cursor-default: image-set(url('/cursors/flow-default-32.png?v=2') 1x, url('/cursors/flow-default-64.png?v=2') 2x) 8 0, auto;
-	--cursor-pointer: image-set(url('/cursors/flow-pointer-32.png?v=2') 1x, url('/cursors/flow-pointer-64.png?v=2') 2x) 13 1, pointer;
+	/* SpongeBob sponge arrow and hand (arrow tip, fingertip). */
+	--cursor-default: image-set(url('/cursors/flow-default-29.png') 1x, url('/cursors/flow-default-58.png') 2x) 7 1, auto;
+	--cursor-pointer: image-set(url('/cursors/flow-pointer-29.png') 1x, url('/cursors/flow-pointer-58.png') 2x) 12 1, pointer;
 }
 
 html {

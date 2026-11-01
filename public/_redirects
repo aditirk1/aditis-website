@@ -1,2 +1,5 @@
 # The CMS looks for config.yml relative to the URL; /admin (no slash) breaks it.
 /admin  /admin/  301
+
+/services    /lets-talk   301
+/services/*  /lets-talk   301
