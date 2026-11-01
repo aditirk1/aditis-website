@@ -986,7 +986,7 @@ export function initUniverseStarField(): () => void {
 	/** Same query as the stacked-hero block in global.css: title above, orrery below. */
 	const STACKED_HERO_QUERY = '(max-width: 767px), (max-width: 1023px) and (orientation: portrait)';
 	/** Stacked layouts: equal clearance from both screen edges. */
-	const STACKED_EDGE_GAP_PX = 20;
+	const STACKED_EDGE_GAP_PX = 10;
 
 	function getTitleBounds(): DOMRect | null {
 		if (!isHomePage) return null;
@@ -1117,8 +1117,9 @@ export function initUniverseStarField(): () => void {
 		if (isStacked) {
 			/* Prefer the measured side-slot; fall back to the lower half of the hero. */
 			if (zoneRect && zoneRect.height > 80 && zoneRect.width > vw * 0.5) {
-				left = zoneRect.left + STACKED_EDGE_GAP_PX;
-				right = zoneRect.right - STACKED_EDGE_GAP_PX;
+				/* Full screen width: the column's own inset was costing ~50px of diameter. */
+				left = STACKED_EDGE_GAP_PX;
+				right = (document.documentElement.clientWidth || vw) - STACKED_EDGE_GAP_PX;
 			} else {
 				/* No usable zone: keep below the title rather than a fixed band that can land on it. */
 				top = Math.max(top, vh * 0.38, title ? title.bottom + 16 : 0);
@@ -1150,6 +1151,18 @@ export function initUniverseStarField(): () => void {
 			solarSystemGroup.position.x += (targetCenterX - (bounds.minX + bounds.maxX) / 2) * worldPerPx;
 			solarSystemGroup.position.y += ((bounds.minY + bounds.maxY) / 2 - targetCenterY) * worldPerPx;
 			bounds = projectedOrreryBounds(vw, vh);
+		}
+
+		/*
+		 * Stacked: the zone is usually taller than a width-limited orrery needs.
+		 * Sit it at the top, just under the title, and leave the spare height below.
+		 */
+		if (isStacked) {
+			const spare = bottom - top - (bounds.maxY - bounds.minY);
+			if (spare > 1) {
+				solarSystemGroup.position.y += (bounds.minY - top) * worldPerPx;
+				bounds = projectedOrreryBounds(vw, vh);
+			}
 		}
 
 		if (title && !isStacked) {
