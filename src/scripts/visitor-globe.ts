@@ -39,6 +39,11 @@ const DEFAULT_ALTITUDE = 1.45;
 /** How long a pin's label stays up after the pointer leaves the pin. */
 const LABEL_LINGER_MS = 2500;
 
+/** A tap this close to a pin counts as tapping it; pins are far smaller than a fingertip. */
+const TAP_RADIUS_PX = 24;
+/** Movement allowed between finger-down and finger-up before it counts as a drag. */
+const TAP_SLOP_PX = 8;
+
 /** A scroll that reaches the globe within this long of scrolling the page is still a page scroll. */
 const PAGE_SCROLL_GRACE_MS = 400;
 
@@ -262,12 +267,44 @@ export function initVisitorGlobe(container: HTMLElement): {
 		window.clearTimeout(lingerTimer);
 		lingerTimer = window.setTimeout(hideCallout, LABEL_LINGER_MS);
 	});
-	/* Touch screens have no hover; a tap shows the label instead. */
-	globe.onPointClick((point: object) => {
-		showCallout(point as PointDatum);
+	function showBriefly(p: PointDatum) {
+		showCallout(p);
 		window.clearTimeout(lingerTimer);
 		lingerTimer = window.setTimeout(hideCallout, LABEL_LINGER_MS);
-	});
+	}
+	globe.onPointClick((point: object) => showBriefly(point as PointDatum));
+
+	/*
+	 * Touch screens have no hover, and the globe's own click only finds a pin if
+	 * its throttled raycast happens to land between finger-down and finger-up, so
+	 * quick taps mostly missed. Pick the nearest front-facing pin to the tap
+	 * instead, with a finger-sized radius.
+	 */
+	let tapStart: { x: number; y: number } | null = null;
+	const onTapDown = (e: PointerEvent) => {
+		tapStart = e.pointerType === 'mouse' ? null : { x: e.clientX, y: e.clientY };
+	};
+	const onTapUp = (e: PointerEvent) => {
+		if (!tapStart || Math.hypot(e.clientX - tapStart.x, e.clientY - tapStart.y) > TAP_SLOP_PX) return;
+		tapStart = null;
+		const rect = container.getBoundingClientRect();
+		const tx = e.clientX - rect.left;
+		const ty = e.clientY - rect.top;
+		let best: PointDatum | null = null;
+		let bestDist = TAP_RADIUS_PX;
+		for (const p of globe.pointsData() as PointDatum[]) {
+			const s = globe.getScreenCoords(p.lat, p.lng, 0.012);
+			if (!s || !Number.isFinite(s.x) || !Number.isFinite(s.y)) continue;
+			const d = Math.hypot(s.x - tx, s.y - ty);
+			if (d < bestDist && isFacingCamera(p, s.x, s.y)) {
+				best = p;
+				bestDist = d;
+			}
+		}
+		if (best) showBriefly(best);
+	};
+	container.addEventListener('pointerdown', onTapDown);
+	container.addEventListener('pointerup', onTapUp);
 
 	/*
 	 * Scrolling or pinching over the globe zooms it. OrbitControls ties wheel and
@@ -368,6 +405,8 @@ export function initVisitorGlobe(container: HTMLElement): {
 			hideCallout();
 			window.clearTimeout(lingerTimer);
 			container.removeEventListener('pointerdown', onPointerDown);
+			container.removeEventListener('pointerdown', onTapDown);
+			container.removeEventListener('pointerup', onTapUp);
 			container.removeEventListener('pointerleave', onPointerLeave);
 			container.removeEventListener('wheel', onWheelCapture, { capture: true });
 			window.removeEventListener('wheel', onPageWheel);

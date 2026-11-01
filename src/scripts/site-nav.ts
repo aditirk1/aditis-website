@@ -38,6 +38,30 @@ export function syncSiteNavActiveClasses(): void {
 	});
 }
 
+/*
+ * On phones the tabs are a sideways-scrolling row. Bring the current page's tab
+ * into view, and mark the row while more tabs sit past its right edge so the
+ * CSS can fade that edge as a hint.
+ */
+function syncNavRow(): void {
+	const row = document.querySelector<HTMLElement>('[data-site-nav]');
+	if (!row) return;
+	const update = () => {
+		row.toggleAttribute('data-more', row.scrollLeft + row.clientWidth < row.scrollWidth - 2);
+	};
+	const active = row.querySelector<HTMLElement>('.nav-tab[data-active="true"]');
+	if (active && row.scrollWidth > row.clientWidth) {
+		const end = active.offsetLeft + active.offsetWidth;
+		if (end > row.scrollLeft + row.clientWidth) row.scrollLeft = end - row.clientWidth + 16;
+	}
+	update();
+	if (row.dataset.navRowWatched) return;
+	row.dataset.navRowWatched = '1';
+	row.addEventListener('scroll', update, { passive: true });
+	window.addEventListener('resize', update, { passive: true });
+}
+
 export function syncSiteNavChrome(): void {
 	syncSiteNavActiveClasses();
+	syncNavRow();
 }

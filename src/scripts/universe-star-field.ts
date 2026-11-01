@@ -1061,8 +1061,17 @@ export function initUniverseStarField(): () => void {
 		const halfFov = ((camera.fov * Math.PI) / 180) / 2;
 		const worldPerPx = (Math.tan(halfFov) * camera.position.z * 2) / vh;
 
-		const zoneRect = heroSideZoneEl?.getBoundingClientRect();
-		const title = getTitleBounds();
+		/*
+		 * The canvas is fixed but the hero scrolls, and the orrery belongs to the hero
+		 * at the top of the page. Measure as if unscrolled: phones resize mid-scroll
+		 * whenever the browser bars collapse, and fitting to the scrolled-up hero left
+		 * the orrery sitting on the title once the page came back to the top.
+		 */
+		const scrollY = window.scrollY || 0;
+		const zoneLive = heroSideZoneEl?.getBoundingClientRect();
+		const zoneRect = zoneLive && new DOMRect(zoneLive.left, zoneLive.top + scrollY, zoneLive.width, zoneLive.height);
+		const titleLive = getTitleBounds();
+		const title = titleLive && new DOMRect(titleLive.left, titleLive.top + scrollY, titleLive.width, titleLive.height);
 
 		const isStacked = window.matchMedia(STACKED_HERO_QUERY).matches;
 
@@ -1144,7 +1153,7 @@ export function initUniverseStarField(): () => void {
 			}
 		}
 
-		positionPlanetLabel(bounds.maxY);
+		positionPlanetLabel(bounds.maxY - scrollY);
 	}
 
 	function setSize() {

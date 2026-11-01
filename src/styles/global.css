@@ -832,6 +832,29 @@ nav[aria-label='Primary'] .nav-tab[data-active='true'] {
 		display: none;
 	}
 
+	/* More tabs past the right edge (site-nav.ts): fade it so the row reads as scrollable. */
+	.site-nav-links[data-more] {
+		mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+	}
+
+	/*
+	 * Orbit and Flow: the theme menu moves up beside "Home" so the tab row gets the
+	 * full width. It used to sit at the row's end and hid the last tabs.
+	 */
+	html:not([data-theme='portfolio']) [data-site-nav-slot] > .theme-switch {
+		position: absolute;
+		top: max(0.55rem, env(safe-area-inset-top, 0px));
+		right: 1rem;
+		height: 2rem;
+	}
+
+	@media (min-width: 640px) {
+		html:not([data-theme='portfolio']) [data-site-nav-slot] > .theme-switch {
+			right: 1.5rem;
+			top: max(1rem, env(safe-area-inset-top, 0px));
+		}
+	}
+
 	[data-site-header] {
 		gap: 0.45rem;
 		padding-top: max(0.55rem, env(safe-area-inset-top, 0px));
@@ -1174,8 +1197,10 @@ html[data-theme='beach'] #planet-label {
 		min-height: 0;
 	}
 
+	/* Same inset as the copy column below, so the title lines up with the tagline. */
 	html[data-theme='beach'] .home-hero-title-col {
 		padding-block: 1.25rem;
+		padding-inline: 0.75rem;
 	}
 }
 
@@ -2260,11 +2285,13 @@ html:not([data-theme='portfolio']) [data-portfolio-home] {
 	display: none;
 }
 
-html[data-theme='portfolio'][data-home],
-html[data-theme='portfolio'][data-home] body {
-	height: 100%;
-	overflow: hidden;
-	overscroll-behavior: none;
+@media (min-width: 760px) {
+	html[data-theme='portfolio'][data-home],
+	html[data-theme='portfolio'][data-home] body {
+		height: 100%;
+		overflow: hidden;
+		overscroll-behavior: none;
+	}
 }
 
 html[data-theme='portfolio'][data-home] :is([data-site-footer], [data-reader-tools]) {
