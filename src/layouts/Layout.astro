@@ -60,8 +60,8 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 					var html = document.documentElement;
 					var t = sessionStorage.getItem('aditi-theme');
 					if (t !== 'portfolio' && t !== 'universe' && t !== 'beach') t = 'portfolio';
-					/* Photo Dump, Thoughts and the dream journal are playful-only: Portfolio goes home. */
-					if (t === 'portfolio' && /^\/(photo-dump|thoughts|dream-journal)(\/|$)/.test(location.pathname)) {
+					/* Photo Dump, Thoughts, Let's Talk and the dream journal are playful-only: Portfolio goes home. */
+					if (t === 'portfolio' && /^\/(photo-dump|thoughts|lets-talk|dream-journal)(\/|$)/.test(location.pathname)) {
 						html.style.visibility = 'hidden';
 						location.replace('/');
 						/* Leave the loading-screen flags for the homepage this is heading to. */

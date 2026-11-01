@@ -183,11 +183,6 @@
 		color 200ms ease;
 }
 
-.pfh-link--rest {
-	background-image: linear-gradient(var(--pf-line), var(--pf-line));
-	background-size: 100% 1px;
-}
-
 .pfh-link:is(:hover, :focus-visible) {
 	color: var(--pf-accent);
 	background-image: linear-gradient(currentColor, currentColor);

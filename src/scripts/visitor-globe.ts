@@ -36,6 +36,9 @@ const LABEL_GAP = 5;
 /** Camera height in globe radii; 1.45 leaves a hairline between the earth and the frame. */
 const DEFAULT_ALTITUDE = 1.45;
 
+/** How long a pin's label stays up after the pointer leaves the pin. */
+const LABEL_LINGER_MS = 2500;
+
 /** A scroll that reaches the globe within this long of scrolling the page is still a page scroll. */
 const PAGE_SCROLL_GRACE_MS = 400;
 
@@ -66,10 +69,10 @@ function clamp(v: number, lo: number, hi: number): number {
 /**
  * Visitor globe (Orbit + Flow).
  *
- * Clicking a pin draws a leader line out of the globe — slanted radial segment,
+ * Hovering a pin draws a leader line out of the globe — slanted radial segment,
  * short horizontal tick, then the label — instead of a centred tooltip that the
- * round frame would clip. The label stays until another pin or anywhere else is
- * clicked; hover alone moved too fast to read. Pinch zoom (touchscreen or trackpad) makes sparse,
+ * round frame would clip. The label lingers for a moment after the pointer
+ * leaves, since the pins are small and easy to slip off. Pinch zoom (touchscreen or trackpad) makes sparse,
  * single-visit pins big enough to hit.
  */
 export function initVisitorGlobe(container: HTMLElement): {
@@ -241,43 +244,33 @@ export function initVisitorGlobe(container: HTMLElement): {
 		followRaf = requestAnimationFrame(followSelected);
 	}
 
-	globe.onPointHover((point: object | null) => {
-		container.style.cursor = point ? 'var(--cursor-pointer, pointer)' : '';
-	});
-
-	let pinClicked = false;
-	globe.onPointClick((point: object) => {
-		pinClicked = true;
-		selected = point as PointDatum;
+	let lingerTimer = 0;
+	function showCallout(p: PointDatum) {
+		window.clearTimeout(lingerTimer);
+		selected = p;
 		/* Holds the pin still so the label doesn't drift round to the far side. */
 		ctrls.autoRotate = false;
-		drawCallout(selected);
+		drawCallout(p);
 		/* Keep the leader glued to the pin through drags and zooms. */
 		if (!followRaf) followRaf = requestAnimationFrame(followSelected);
-	});
+	}
 
-	/*
-	 * Any click that isn't on a pin closes the label, except the click a drag
-	 * ends with: spinning the globe to look around shouldn't lose it. The globe's
-	 * own pin click can land either side of this one, hence the deferred check.
-	 */
-	let downX = 0;
-	let downY = 0;
-	const onDownAnywhere = (e: PointerEvent) => {
-		pinClicked = false;
-		downX = e.clientX;
-		downY = e.clientY;
-	};
-	const onDocumentClick = (e: MouseEvent) => {
-		if (Math.hypot(e.clientX - downX, e.clientY - downY) > 5) return;
-		if (callout?.contains(e.target as Node)) return;
-		setTimeout(() => {
-			if (!pinClicked && selected) hideCallout();
-			pinClicked = false;
-		}, 0);
-	};
-	document.addEventListener('pointerdown', onDownAnywhere);
-	document.addEventListener('click', onDocumentClick);
+	globe.onPointHover((point: object | null) => {
+		container.style.cursor = point ? 'var(--cursor-pointer, pointer)' : '';
+		if (point) {
+			showCallout(point as PointDatum);
+			return;
+		}
+		/* Pins are small, so the pointer slips off them fast; give the label time to be read. */
+		window.clearTimeout(lingerTimer);
+		lingerTimer = window.setTimeout(hideCallout, LABEL_LINGER_MS);
+	});
+	/* Touch screens have no hover; a tap shows the label instead. */
+	globe.onPointClick((point: object) => {
+		showCallout(point as PointDatum);
+		window.clearTimeout(lingerTimer);
+		lingerTimer = window.setTimeout(hideCallout, LABEL_LINGER_MS);
+	});
 
 	/*
 	 * Scrolling or pinching over the globe zooms it. OrbitControls ties wheel and
@@ -376,8 +369,7 @@ export function initVisitorGlobe(container: HTMLElement): {
 			mo.disconnect();
 			ro.disconnect();
 			hideCallout();
-			document.removeEventListener('pointerdown', onDownAnywhere);
-			document.removeEventListener('click', onDocumentClick);
+			window.clearTimeout(lingerTimer);
 			container.removeEventListener('pointerdown', onPointerDown);
 			container.removeEventListener('pointerleave', onPointerLeave);
 			container.removeEventListener('wheel', onWheelCapture, { capture: true });

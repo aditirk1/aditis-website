@@ -15,7 +15,7 @@ import {
 import { recordTransitionOrigin } from './vt-origin.ts';
 
 /* Pages that exist only in Orbit and Flow; the head script in Layout.astro mirrors this. */
-const PLAYFUL_ONLY = /^\/(photo-dump|thoughts|dream-journal)(\/|$)/;
+const PLAYFUL_ONLY = /^\/(photo-dump|thoughts|lets-talk|dream-journal)(\/|$)/;
 
 const BORED_SEEN = 'aditi-bored-seen';
 
