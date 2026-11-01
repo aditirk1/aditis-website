@@ -15,7 +15,12 @@ const LOGO_HOLD_S = 1.5;
 const TITLE_FADE_S = 0.6;
 const TITLE_HOLD_S = 1.0;
 
+/* GSAP's default: after a stall over 500ms, pretend only 33ms passed. */
+const DEFAULT_LAG_THRESHOLD = 500;
+const DEFAULT_LAG_FRAME = 33;
+
 function finish(overlay: HTMLElement) {
+	gsap.ticker.lagSmoothing(DEFAULT_LAG_THRESHOLD, DEFAULT_LAG_FRAME);
 	sessionStorage.setItem(SPLASH_KEY, '1');
 	document.documentElement.removeAttribute('data-splash-skip');
 	overlay.remove();
@@ -65,7 +70,15 @@ export function initSplashIntro(): void {
 
 	setSplashLogoSrc(logo);
 
-	const logoLift = window.matchMedia('(min-width: 768px)').matches ? -88 : -64;
+	const isPhone = !window.matchMedia('(min-width: 768px)').matches;
+	const logoLift = isPhone ? -40 : -88;
+
+	/*
+	 * Phones are busy building the star field and video while this plays. Any
+	 * frame slower than ~80ms is treated as one 16ms step, so the letters slow
+	 * down for a moment instead of jumping straight to the end of the scatter.
+	 */
+	gsap.ticker.lagSmoothing(80, 16);
 
 	gsap.set(logoWrap, { y: 0 });
 	gsap.set(logo, { opacity: 0 });
@@ -109,20 +122,51 @@ export function initSplashIntro(): void {
 		ease: 'power2.in',
 	});
 
-	tl.to(
-		chars,
-		{
-			x: () => (Math.random() - 0.5) * window.innerWidth * 1.2,
-			y: () => (Math.random() - 0.5) * window.innerHeight * 1.2,
-			rotation: () => (Math.random() - 0.5) * 360,
-			scale: 0,
-			opacity: 0,
-			duration: 0.8,
-			stagger: 0.025,
-			ease: 'power2.in',
-		},
-		'<',
-	);
+	if (isPhone) {
+		/*
+		 * A narrow screen gives the desktop scatter only a few hundred px to travel,
+		 * and shrinking to nothing hides what little movement there is. Burst each
+		 * letter out radially past the screen edge, tumbling, staying readable
+		 * until it leaves.
+		 */
+		const reach = Math.hypot(window.innerWidth, window.innerHeight) * 0.75;
+		const scatterAt = tl.duration() - 0.35; // with the logo fade, as on desktop
+		const order = Array.from(chars, (_, i) => i).sort(() => Math.random() - 0.5);
+		order.forEach((charIndex, slot) => {
+			const ch = chars[charIndex]!;
+			const angle = Math.random() * Math.PI * 2;
+			const dist = reach * (0.7 + Math.random() * 0.5);
+			const at = scatterAt + slot * 0.035;
+			tl.to(
+				ch,
+				{
+					x: Math.cos(angle) * dist,
+					y: Math.sin(angle) * dist,
+					rotation: (Math.random() < 0.5 ? -1 : 1) * (180 + Math.random() * 360),
+					scale: 1.4 + Math.random() * 0.8,
+					duration: 1.05,
+					ease: 'power3.in',
+				},
+				at,
+			);
+			tl.to(ch, { opacity: 0, duration: 0.3, ease: 'power1.in' }, at + 0.75);
+		});
+	} else {
+		tl.to(
+			chars,
+			{
+				x: () => (Math.random() - 0.5) * window.innerWidth * 1.2,
+				y: () => (Math.random() - 0.5) * window.innerHeight * 1.2,
+				rotation: () => (Math.random() - 0.5) * 360,
+				scale: 0,
+				opacity: 0,
+				duration: 0.8,
+				stagger: 0.025,
+				ease: 'power2.in',
+			},
+			'<',
+		);
+	}
 
 	tl.to(
 		overlay,

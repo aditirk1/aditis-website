@@ -27,7 +27,8 @@ import { recordTransitionOrigin } from './vt-origin.ts';
 const CANVAS_ID = 'universe-star-field-canvas';
 
 const MAX_DPR = 2;
-const MOBILE_MAX_DPR = 1.25;
+/* Phone screens are 3×; below 2× the planets and orbit lines visibly blur. */
+const MOBILE_MAX_DPR = 2;
 const REDUCED_MOTION_STAR_COUNT = 1400;
 /** Scroll distance, in viewport heights, over which the hero flies past (see global.css). */
 const SPATIAL_HERO_RANGE_VH = 0.7;
@@ -985,7 +986,7 @@ export function initUniverseStarField(): () => void {
 	/** Same query as the stacked-hero block in global.css: title above, orrery below. */
 	const STACKED_HERO_QUERY = '(max-width: 767px), (max-width: 1023px) and (orientation: portrait)';
 	/** Stacked layouts: equal clearance from both screen edges. */
-	const STACKED_EDGE_GAP_PX = 20;
+	const STACKED_EDGE_GAP_PX = 10;
 
 	function getTitleBounds(): DOMRect | null {
 		if (!isHomePage) return null;
@@ -1014,11 +1015,17 @@ export function initUniverseStarField(): () => void {
 		return !(a.maxX < b.left - pad || a.minX > b.right + pad || a.maxY < b.top - pad || a.minY > b.bottom + pad);
 	}
 
-	function positionPlanetLabel(widgetBottom: number): void {
+	function positionPlanetLabel(widgetBottom: number, centerX: number | null): void {
 		if (!planetLabelEl) return;
 		const zone = planetLabelEl.offsetParent as HTMLElement | null;
 		if (!zone) return;
-		planetLabelEl.style.top = `${Math.round(widgetBottom - zone.getBoundingClientRect().top + 8)}px`;
+		const zoneBox = zone.getBoundingClientRect();
+		planetLabelEl.style.top = `${Math.round(widgetBottom - zoneBox.top + 8)}px`;
+		/*
+		 * Stacked: centre under the orrery itself, not the column. If Safari collapses
+		 * the column to a sliver, 50% of it is the screen edge and the label gets cut off.
+		 */
+		planetLabelEl.style.left = centerX === null ? '' : `${Math.round(centerX - zoneBox.left)}px`;
 	}
 
 	const FIT_SAMPLES: THREE.Vector3[] = [];
@@ -1109,12 +1116,14 @@ export function initUniverseStarField(): () => void {
 
 		if (isStacked) {
 			/* Prefer the measured side-slot; fall back to the lower half of the hero. */
-			if (zoneRect && zoneRect.height > 80) {
-				left = zoneRect.left + STACKED_EDGE_GAP_PX;
-				right = zoneRect.right - STACKED_EDGE_GAP_PX;
+			if (zoneRect && zoneRect.height > 80 && zoneRect.width > vw * 0.5) {
+				/* Full screen width: the column's own inset was costing ~50px of diameter. */
+				left = STACKED_EDGE_GAP_PX;
+				right = (document.documentElement.clientWidth || vw) - STACKED_EDGE_GAP_PX;
 			} else {
-				top = Math.max(top, vh * 0.38);
-				bottom = vh - 48 - CAPTION_RESERVE_PX;
+				/* No usable zone: keep below the title rather than a fixed band that can land on it. */
+				top = Math.max(top, vh * 0.38, title ? title.bottom + 16 : 0);
+				bottom = Math.max(top + 160, vh - 48 - CAPTION_RESERVE_PX);
 				left = STACKED_EDGE_GAP_PX;
 				right = vw - STACKED_EDGE_GAP_PX;
 			}
@@ -1144,6 +1153,18 @@ export function initUniverseStarField(): () => void {
 			bounds = projectedOrreryBounds(vw, vh);
 		}
 
+		/*
+		 * Stacked: the zone is usually taller than a width-limited orrery needs.
+		 * Sit it at the top, just under the title, and leave the spare height below.
+		 */
+		if (isStacked) {
+			const spare = bottom - top - (bounds.maxY - bounds.minY);
+			if (spare > 1) {
+				solarSystemGroup.position.y += (bounds.minY - top) * worldPerPx;
+				bounds = projectedOrreryBounds(vw, vh);
+			}
+		}
+
 		if (title && !isStacked) {
 			for (let guard = 0; guard < 10 && aabbsOverlap(bounds, title, TITLE_CLEARANCE_PX); guard++) {
 				const push = title.right + TITLE_CLEARANCE_PX - bounds.minX;
@@ -1163,7 +1184,7 @@ export function initUniverseStarField(): () => void {
 			}
 		}
 
-		positionPlanetLabel(bounds.maxY - scrollY);
+		positionPlanetLabel(bounds.maxY - scrollY, isStacked ? (bounds.minX + bounds.maxX) / 2 : null);
 	}
 
 	function setSize() {

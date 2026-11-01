@@ -1259,18 +1259,20 @@ html[data-theme='beach'] #planet-label {
 }
 
 /*
- * Universe, stacked (phones, and tablets held upright): the title sits directly on
- * top of the orrery and the pair is centred in the hero. The orrery's zone is a
- * fixed-ratio box rather than "the rest of the screen", so the system is sized by
- * the width it has and no longer floats in a tall empty band below the title.
+ * Universe, stacked (phones, and tablets held upright): the title sits near the
+ * top and the orrery's zone takes the rest of the hero, down to just above the
+ * scroll cue. The zone is capped (max-height) so on tall screens the system
+ * doesn't float in an empty band; the spare height falls below it instead.
  * universe-star-field.ts fits the orrery to this box — keep STACKED_HERO_QUERY
  * there in step with this media query.
  */
 @media (max-width: 767px), (max-width: 1023px) and (orientation: portrait) {
 	html[data-theme='universe'] .home-hero-grid {
 		grid-template-columns: 1fr;
-		grid-template-rows: auto auto;
-		align-content: center;
+		grid-template-rows: auto minmax(0, 1fr);
+		align-content: stretch;
+		padding-block: clamp(0.5rem, 10vh - 1rem, 5rem) 3.25rem;
+		box-sizing: border-box;
 	}
 
 	html[data-theme='universe'] .home-hero-title-col {
@@ -1278,9 +1280,17 @@ html[data-theme='beach'] #planet-label {
 		padding: 0 1.5rem 0.25rem 2.75rem;
 	}
 
+	/*
+	 * Explicit width: Safari sizes some grid items from their content, and the only
+	 * child here (#planet-label) is absolutely positioned, so the zone once
+	 * collapsed to a sliver at the left edge. The label then hung off-screen and
+	 * the orrery fell back onto the title. min-height is a floor if that recurs.
+	 */
 	html[data-theme='universe'] .home-hero-side-col {
-		min-height: 0;
-		aspect-ratio: 7 / 5;
+		width: 100%;
+		min-height: 60vw;
+		max-height: 115vw;
+		align-self: stretch;
 		padding-inline: 0;
 	}
 }
