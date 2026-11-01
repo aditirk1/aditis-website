@@ -22,9 +22,10 @@
 	(function () {
 		var html = document.documentElement;
 		if (!html.hasAttribute('data-loading')) return;
-		/* Counted from when the loader appears, so a slow page never skips it. */
-		var MIN_MS = matchMedia('(prefers-reduced-motion: reduce)').matches ? 400 : 900;
-		var MAX_MS = 3500;
+		/* Counted from when the loader appears, so a slow page never skips it. Portfolio's is a brief beat. */
+		var portfolio = html.getAttribute('data-theme') === 'portfolio';
+		var MIN_MS = matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : portfolio ? 400 : 900;
+		var MAX_MS = portfolio ? 1500 : 3500;
 		var shownAt = performance.now();
 		var done = false;
 		function finish() {
