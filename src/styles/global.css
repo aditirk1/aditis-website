@@ -1278,8 +1278,15 @@ html[data-theme='beach'] #planet-label {
 		padding: 0 1.5rem 0.25rem 2.75rem;
 	}
 
+	/*
+	 * Explicit width: Safari sizes an aspect-ratio grid item from its content, and
+	 * the only child here (#planet-label) is absolutely positioned, so the zone
+	 * collapsed to a sliver at the left edge. The label then hung off-screen and
+	 * the orrery fell back onto the title. min-height is a floor if that recurs.
+	 */
 	html[data-theme='universe'] .home-hero-side-col {
-		min-height: 0;
+		width: 100%;
+		min-height: 50vw;
 		aspect-ratio: 7 / 5;
 		padding-inline: 0;
 	}

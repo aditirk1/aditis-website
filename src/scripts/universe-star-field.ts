@@ -1015,11 +1015,17 @@ export function initUniverseStarField(): () => void {
 		return !(a.maxX < b.left - pad || a.minX > b.right + pad || a.maxY < b.top - pad || a.minY > b.bottom + pad);
 	}
 
-	function positionPlanetLabel(widgetBottom: number): void {
+	function positionPlanetLabel(widgetBottom: number, centerX: number | null): void {
 		if (!planetLabelEl) return;
 		const zone = planetLabelEl.offsetParent as HTMLElement | null;
 		if (!zone) return;
-		planetLabelEl.style.top = `${Math.round(widgetBottom - zone.getBoundingClientRect().top + 8)}px`;
+		const zoneBox = zone.getBoundingClientRect();
+		planetLabelEl.style.top = `${Math.round(widgetBottom - zoneBox.top + 8)}px`;
+		/*
+		 * Stacked: centre under the orrery itself, not the column. If Safari collapses
+		 * the column to a sliver, 50% of it is the screen edge and the label gets cut off.
+		 */
+		planetLabelEl.style.left = centerX === null ? '' : `${Math.round(centerX - zoneBox.left)}px`;
 	}
 
 	const FIT_SAMPLES: THREE.Vector3[] = [];
@@ -1110,12 +1116,13 @@ export function initUniverseStarField(): () => void {
 
 		if (isStacked) {
 			/* Prefer the measured side-slot; fall back to the lower half of the hero. */
-			if (zoneRect && zoneRect.height > 80) {
+			if (zoneRect && zoneRect.height > 80 && zoneRect.width > vw * 0.5) {
 				left = zoneRect.left + STACKED_EDGE_GAP_PX;
 				right = zoneRect.right - STACKED_EDGE_GAP_PX;
 			} else {
-				top = Math.max(top, vh * 0.38);
-				bottom = vh - 48 - CAPTION_RESERVE_PX;
+				/* No usable zone: keep below the title rather than a fixed band that can land on it. */
+				top = Math.max(top, vh * 0.38, title ? title.bottom + 16 : 0);
+				bottom = Math.max(top + 160, vh - 48 - CAPTION_RESERVE_PX);
 				left = STACKED_EDGE_GAP_PX;
 				right = vw - STACKED_EDGE_GAP_PX;
 			}
@@ -1164,7 +1171,7 @@ export function initUniverseStarField(): () => void {
 			}
 		}
 
-		positionPlanetLabel(bounds.maxY - scrollY);
+		positionPlanetLabel(bounds.maxY - scrollY, isStacked ? (bounds.minX + bounds.maxX) / 2 : null);
 	}
 
 	function setSize() {

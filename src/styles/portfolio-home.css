@@ -644,13 +644,9 @@ a:is(:hover, :focus-visible) .pfh-arrow {
 		font-size: 14.5cqw;
 	}
 
+	/* One clean left edge on phones; the stepped lines only read as a layout at desktop width. */
 	.pfh-hero__line:nth-child(n) {
 		padding-left: 0;
-	}
-
-	.pfh-hero__line:nth-child(2),
-	.pfh-hero__line:nth-child(4) {
-		padding-left: 25%;
 	}
 
 	.pfh-hero__aside {
