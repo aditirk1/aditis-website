@@ -70,14 +70,15 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 					html.setAttribute('data-theme', t);
 
 					/*
-					 * Loading screen (components/ThemeLoader.astro): only on the page after a
-					 * theme switch, never on first open. The playful homepage's own intro
-					 * (SplashIntro) plays instead whenever it is due.
+					 * Loading screen (components/ThemeLoader.astro): when the site is opened
+					 * afresh, and on the page after a theme switch. The playful homepage's
+					 * own intro (SplashIntro) plays instead whenever it is due.
 					 */
+					var fresh = !sessionStorage.getItem('aditi-session');
 					var switched = sessionStorage.getItem('aditi-theme-switched') === '1';
 					var introDue =
 						t !== 'portfolio' && location.pathname === '/' && sessionStorage.getItem('aditi-splash-seen') !== '1';
-					if (switched && !introDue) html.setAttribute('data-loading', '');
+					if ((fresh || switched) && !introDue) html.setAttribute('data-loading', '');
 					sessionStorage.setItem('aditi-session', '1');
 					sessionStorage.removeItem('aditi-theme-switched');
 					var tc = document.querySelector('meta[data-theme-color]');
