@@ -127,7 +127,6 @@ export function initVisitorGlobe(container: HTMLElement): {
 
 	function hideCallout() {
 		selected = null;
-		ctrls.autoRotate = true;
 		cancelAnimationFrame(followRaf);
 		followRaf = 0;
 		if (callout) callout.hidden = true;
@@ -248,10 +247,8 @@ export function initVisitorGlobe(container: HTMLElement): {
 	function showCallout(p: PointDatum) {
 		window.clearTimeout(lingerTimer);
 		selected = p;
-		/* Holds the pin still so the label doesn't drift round to the far side. */
-		ctrls.autoRotate = false;
 		drawCallout(p);
-		/* Keep the leader glued to the pin through drags and zooms. */
+		/* Keep the leader glued to the pin as the globe spins, drags and zooms. */
 		if (!followRaf) followRaf = requestAnimationFrame(followSelected);
 	}
 
