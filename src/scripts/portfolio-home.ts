@@ -1,8 +1,6 @@
 /**
  * Portfolio homepage: one sideways row of full-screen sections
- * (components/portfolio/PortfolioHome.astro), scrolled continuously. On
- * phones the sections stack into an ordinary page instead, and the row has
- * nothing to scroll, so everything here stands aside.
+ * (components/portfolio/PortfolioHome.astro), scrolled continuously.
  *
  * The row is a native horizontal scroller, so touch swipes, focus and
  * find-in-page work as normal. This adds what browsers don't do for a
@@ -80,7 +78,7 @@ export function initPortfolioHome(): () => void {
 	}
 
 	const onWheel = (e: WheelEvent) => {
-		if (e.ctrlKey || e.defaultPrevented || !max()) return;
+		if (e.ctrlKey || e.defaultPrevented) return;
 		const sideways = Math.abs(e.deltaX) > Math.abs(e.deltaY);
 		if (!sideways && innerCanScroll(e)) return;
 		let d = sideways ? e.deltaX : e.deltaY;
@@ -98,7 +96,7 @@ export function initPortfolioHome(): () => void {
 	};
 
 	const onKey = (e: KeyboardEvent) => {
-		if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || !max()) return;
+		if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
 		const t = e.target as HTMLElement | null;
 		if (t?.closest('input, textarea, select, [contenteditable], [role="menu"], [data-theme-switch]')) return;
 		const now = raf ? target : scroller.scrollLeft;
@@ -142,11 +140,7 @@ export function initPortfolioHome(): () => void {
 		const i = panel ? panels.indexOf(panel) : -1;
 		if (i < 0) return;
 		e.preventDefault();
-		if (!max()) {
-			panel!.scrollIntoView({ behavior: reduce.matches ? 'auto' : 'smooth' });
-		} else {
-			glideTo(starts()[i]!);
-		}
+		glideTo(starts()[i]!);
 		panel!.querySelector<HTMLElement>('a, h2')?.focus({ preventScroll: true });
 	};
 
@@ -172,9 +166,16 @@ export function initPortfolioHome(): () => void {
 		if (!frame) frame = requestAnimationFrame(sync);
 	};
 
-	/* Keep the same section in view when the window resizes. */
+	/*
+	 * Keep the same section in view when the window resizes. Width only: phones
+	 * report a resize whenever the browser bars or keyboard change the height, and
+	 * re-pinning the row then cut swipes off mid-glide.
+	 */
 	let ratio = 0;
+	let lastWidth = window.innerWidth;
 	const onResize = () => {
+		if (window.innerWidth === lastWidth) return;
+		lastWidth = window.innerWidth;
 		stopGlide();
 		const m = max();
 		scroller.scrollLeft = ratio * m;

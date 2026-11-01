@@ -2285,13 +2285,11 @@ html:not([data-theme='portfolio']) [data-portfolio-home] {
 	display: none;
 }
 
-@media (min-width: 760px) {
-	html[data-theme='portfolio'][data-home],
-	html[data-theme='portfolio'][data-home] body {
-		height: 100%;
-		overflow: hidden;
-		overscroll-behavior: none;
-	}
+html[data-theme='portfolio'][data-home],
+html[data-theme='portfolio'][data-home] body {
+	height: 100%;
+	overflow: hidden;
+	overscroll-behavior: none;
 }
 
 html[data-theme='portfolio'][data-home] :is([data-site-footer], [data-reader-tools]) {

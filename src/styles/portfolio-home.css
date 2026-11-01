@@ -609,49 +609,12 @@ a:is(:hover, :focus-visible) .pfh-arrow {
 	opacity: 0;
 }
 
-/*
- * --- Phones: the sections stack into an ordinary page ---
- * A sideways row on a phone fought every slightly diagonal swipe between the
- * row and each section's own vertical scroll, so here the page just scrolls down.
- */
+/* --- Phones: the same row, panels sized to the screen --- */
 @media (max-width: 759px) {
 	.pfh {
+		--status-h: 2.4rem;
 		--pad-x: 1.1rem;
-		--pad-y: 1.6rem;
-		height: auto;
-		display: block;
-	}
-
-	.pfh-frame {
-		bottom: 0;
-	}
-
-	.pfh-scroller {
-		overflow: visible;
-		container-type: inline-size;
-	}
-
-	.pfh-track {
-		flex-direction: column;
-		width: auto;
-		height: auto;
-	}
-
-	.pfh-track::after,
-	.pfh-status {
-		display: none;
-	}
-
-	.pfh-panel {
-		height: auto;
-		overflow: visible;
-		border-left: 0;
-		border-top: 1px solid var(--pf-line);
-	}
-
-	.pfh-panel:first-child {
-		border-top: 0;
-		min-height: calc(100svh - var(--site-header-h, 4.5rem));
+		--pad-y: 1.1rem;
 	}
 
 	.pfh-rail {
@@ -697,6 +660,14 @@ a:is(:hover, :focus-visible) .pfh-arrow {
 	.pfh-hero__note {
 		align-self: flex-start;
 		margin-top: auto;
+	}
+
+	.pfh-status {
+		grid-template-columns: auto minmax(3rem, 1fr) auto;
+	}
+
+	.pfh-status .pfh-label {
+		font-size: 0.6rem;
 	}
 
 	.pfh-preview,

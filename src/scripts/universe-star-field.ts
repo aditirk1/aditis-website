@@ -1046,6 +1046,15 @@ export function initUniverseStarField(): () => void {
 		return { minX, maxX, minY, maxY };
 	}
 
+	/** Where the orrery's box sits on the unscrolled page, to tell when it has moved. */
+	let fittedZoneKey = '';
+	function heroZoneKey(): string {
+		const r = heroSideZoneEl?.getBoundingClientRect();
+		if (!r) return '';
+		const y = window.scrollY || 0;
+		return [r.left, r.top + y, r.width, r.height].map(Math.round).join(',');
+	}
+
 	/**
 	 * Fill the RIGHT zone. If the result collides with the title, shift right and
 	 * shrink — never move the title.
@@ -1070,6 +1079,7 @@ export function initUniverseStarField(): () => void {
 		const scrollY = window.scrollY || 0;
 		const zoneLive = heroSideZoneEl?.getBoundingClientRect();
 		const zoneRect = zoneLive && new DOMRect(zoneLive.left, zoneLive.top + scrollY, zoneLive.width, zoneLive.height);
+		fittedZoneKey = heroZoneKey();
 		const titleLive = getTitleBounds();
 		const title = titleLive && new DOMRect(titleLive.left, titleLive.top + scrollY, titleLive.width, titleLive.height);
 
@@ -1186,6 +1196,17 @@ export function initUniverseStarField(): () => void {
 		if (heroTitleEl) titleObserver.observe(heroTitleEl);
 		if (heroSideZoneEl) titleObserver.observe(heroSideZoneEl);
 	}
+
+	/*
+	 * The box can also move without changing size: the header settling, fonts
+	 * landing, or a phone's browser bars changing the hero's height. Nothing fires
+	 * for those, so check now and then and re-fit if it has moved.
+	 */
+	const heroDriftTimer = isHomePage
+		? window.setInterval(() => {
+				if (document.visibilityState === 'visible' && heroZoneKey() !== fittedZoneKey) fitSolarSystemToViewport();
+			}, 400)
+		: 0;
 
 	let raf = 0;
 	let running = false;
@@ -1502,6 +1523,7 @@ export function initUniverseStarField(): () => void {
 		window.cancelAnimationFrame(showRaf2);
 		mo.disconnect();
 		titleObserver?.disconnect();
+		window.clearInterval(heroDriftTimer);
 		window.removeEventListener('aditi:theme-layout', onThemeLayout);
 		window.removeEventListener('aditi:beach-gl-released', onBeachGlReleased);
 		cancelSurfaceGeneration?.();
