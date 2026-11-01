@@ -1958,8 +1958,8 @@ html[data-theme='portfolio'] :is(.footer-cursor-credit, .empty-state__icon) {
 	display: none;
 }
 
-/* Only Projects and Blog belong to the professional front. */
-html[data-theme='portfolio'] .nav-tab:not([data-nav-href='/projects'], [data-nav-href='/blog']) {
+/* Only Projects, Blog and Let's Talk belong to the professional front. */
+html[data-theme='portfolio'] .nav-tab:not([data-nav-href='/projects'], [data-nav-href='/blog'], [data-nav-href='/lets-talk']) {
 	display: none;
 }
 

@@ -13,7 +13,7 @@ import Layout from '../layouts/Layout.astro';
 		<nav class="not-found__links" aria-label="Suggested pages">
 			<a href="/">Home</a>
 			<a href="/blog">Blog</a>
-			<a href="/thoughts">Thoughts</a>
+			<a href="/thoughts" data-playful-only>Thoughts</a>
 			<a href="/projects">Projects</a>
 		</nav>
 	</div>
@@ -61,5 +61,10 @@ import Layout from '../layouts/Layout.astro';
 
 	.not-found__links a:hover {
 		text-decoration: underline;
+	}
+
+	/* Thoughts is playful-only; the professional theme sends it back home. */
+	:global(html[data-theme='portfolio']) .not-found__links [data-playful-only] {
+		display: none;
 	}
 </style>
