@@ -80,6 +80,13 @@ export function subscribeScroll(listener: Listener): () => void {
 
 export function getScrollState(): Readonly<ScrollState> {
 	ensureMeasured();
+	/*
+	 * Always refresh y from the window. Astro can ship this module in more than
+	 * one client bundle; only the Layout copy runs initScrollOrchestrator(), so
+	 * other copies would otherwise keep a stale y forever.
+	 */
+	const y = window.scrollY || 0;
+	if (y !== state.y) recompute(y);
 	return state;
 }
 

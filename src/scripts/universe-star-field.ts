@@ -21,7 +21,7 @@ import {
 	generatePlanetSurfacesDeferred,
 	type PlanetSurfaceMaps,
 } from '../utils/planet-surface-texture.ts';
-import { getScrollState, subscribeScroll } from './scroll-orchestrator.ts';
+import { subscribeScroll } from './scroll-orchestrator.ts';
 import { recordTransitionOrigin } from './vt-origin.ts';
 
 const CANVAS_ID = 'universe-star-field-canvas';
@@ -489,6 +489,8 @@ export function initUniverseStarField(): () => void {
 	const orbitRings: THREE.Mesh[] = [];
 	let solarFade = 1;
 	let solarFadeLerp = 1;
+	/** After beach→universe, ignore stale scroll fade so planets don't stay hidden. */
+	let forceOrreryVisibleUntil = 0;
 
 	const planetLabelEl = document.getElementById('planet-label');
 	/* RIGHT zone of the hero — the orrery is centred on this box, not the viewport. */
@@ -498,12 +500,14 @@ export function initUniverseStarField(): () => void {
 	 * Hero progress, 0 at the top to 1 once the hero has flown past. Must match
 	 * the `[data-spatial-hero]` animation-range in global.css (0 to 70vh) so the
 	 * orrery leaves with the title instead of lingering over the next section.
-	 * Reads cached geometry from the scroll orchestrator — no layout during the frame.
+	 *
+	 * Read window.scrollY directly — Astro loads this file in a separate client
+	 * bundle from Layout, so a duplicated scroll-orchestrator module never gets
+	 * initScrollOrchestrator() and would leave y stuck at 0 (orrery never fades).
 	 */
 	function getHeroScrollProgress(): number {
-		const { y, viewportHeight } = getScrollState();
-		/* Missing metrics after a theme swap: keep the orrery on. */
-		if (viewportHeight < 1) return 0;
+		const y = window.scrollY || 0;
+		const viewportHeight = window.innerHeight || 1;
 		return Math.max(0, Math.min(1, y / (viewportHeight * SPATIAL_HERO_RANGE_VH)));
 	}
 
@@ -694,10 +698,17 @@ export function initUniverseStarField(): () => void {
 	let lastScroll = typeof window !== 'undefined' ? window.scrollY : 0;
 	let secretHover = false;
 
-	const unsubscribeScroll = subscribeScroll(({ y }) => {
-		lastScroll = y;
+	const syncFadeFromWindowScroll = () => {
+		lastScroll = window.scrollY || 0;
+		/* Don't let the post-theme "force visible" window win once the user has scrolled. */
+		if ((window.scrollY || 0) > 12) forceOrreryVisibleUntil = 0;
 		solarFade = getHeroScrollFade();
+	};
+
+	const unsubscribeScroll = subscribeScroll(() => {
+		syncFadeFromWindowScroll();
 	});
+	window.addEventListener('scroll', syncFadeFromWindowScroll, { passive: true });
 
 	function placeSecretStar(tNow: number) {
 		if (!isHomePage) return;
@@ -989,7 +1000,10 @@ export function initUniverseStarField(): () => void {
 
 	function getTitleBounds(): DOMRect | null {
 		if (!isHomePage) return null;
-		const words = document.querySelectorAll<HTMLElement>('#sun-text .hero-word');
+		/* Prefer the solid stereo layer so ghost clones don't inflate the box. */
+		const words = document.querySelectorAll<HTMLElement>(
+			'#sun-text [data-hero-measure] .hero-word, #sun-text > .hero-word',
+		);
 		if (!words.length) return null;
 		let left = Infinity;
 		let right = -Infinity;
@@ -1057,7 +1071,8 @@ export function initUniverseStarField(): () => void {
 
 	/**
 	 * Fill the RIGHT zone. If the result collides with the title, shift right and
-	 * shrink — never move the title.
+	 * shrink gently — never move the title. (Title size is capped in CSS so this
+	 * path should rarely fire; keep production behaviour as a safety net.)
 	 */
 	function fitSolarSystemToViewport() {
 		if (!isHomePage) {
@@ -1289,12 +1304,17 @@ export function initUniverseStarField(): () => void {
 		}
 
 		if (isHomePage) {
-			if (performance.now() < forceOrreryVisibleUntil) {
+			const scrolledAway = (window.scrollY || 0) > 12;
+			if (scrolledAway) forceOrreryVisibleUntil = 0;
+			if (!scrolledAway && performance.now() < forceOrreryVisibleUntil) {
 				solarFade = 1;
 				solarFadeLerp = 1;
 			} else {
 				solarFade = getHeroScrollFade();
-				solarFadeLerp += (solarFade - solarFadeLerp) * 0.14;
+				/* Snap out faster than in — lingering planets over About is the failure mode. */
+				const fadeOut = solarFade < solarFadeLerp;
+				solarFadeLerp += (solarFade - solarFadeLerp) * (fadeOut ? 0.28 : 0.14);
+				if (fadeOut && solarFadeLerp < 0.03) solarFadeLerp = 0;
 			}
 			applySolarFade(solarFadeLerp);
 			applySolarZoom(1 - solarFadeLerp);
@@ -1367,8 +1387,6 @@ export function initUniverseStarField(): () => void {
 	let showRaf = 0;
 	let showRaf2 = 0;
 	let warmTimer = 0;
-	/** After beach→universe, ignore stale scroll fade so planets don't stay hidden. */
-	let forceOrreryVisibleUntil = 0;
 
 	function clearWarmTimer() {
 		window.clearTimeout(warmTimer);
@@ -1532,6 +1550,7 @@ export function initUniverseStarField(): () => void {
 		window.removeEventListener('pageshow', onPageShow);
 		document.removeEventListener('visibilitychange', onVisibilityChange);
 		unsubscribeScroll();
+		window.removeEventListener('scroll', syncFadeFromWindowScroll);
 		window.removeEventListener('resize', onResize);
 		window.removeEventListener('pointermove', onPointerMove);
 		document.documentElement.removeEventListener('mouseleave', onPointerLeave);
