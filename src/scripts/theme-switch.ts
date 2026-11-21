@@ -51,11 +51,19 @@ function reloadInto(theme: SiteTheme, from?: Element | null, to?: string, replay
 			r: Math.min(r.width, r.height) / 2,
 		});
 	}
-	if (to) {
-		location.assign(to);
+	/*
+	 * Same-URL location.replace/assign is a no-op in Mobile Safari (and sometimes
+	 * Chrome): sessionStorage updates but the document never reloads, so the theme
+	 * looks stuck. Always reload when staying on this path; assign only when the
+	 * path actually changes.
+	 */
+	const dest =
+		to ?? (theme === 'portfolio' && PLAYFUL_ONLY.test(location.pathname) ? '/' : null);
+	if (dest && dest !== location.pathname) {
+		location.assign(dest);
 		return;
 	}
-	location.replace(theme === 'portfolio' && PLAYFUL_ONLY.test(location.pathname) ? '/' : location.href);
+	location.reload();
 }
 
 /* Orbit and Flow swap without a reload, so show the new theme's loader here. */
