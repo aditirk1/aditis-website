@@ -847,11 +847,25 @@ nav[aria-label='Primary'] .nav-tab[data-active='true'] {
 	 * Orbit and Flow: the theme menu moves up beside "Home" so the tab row gets the
 	 * full width. It used to sit at the row's end and hid the last tabs.
 	 */
+	[data-site-header] {
+		gap: 0.45rem;
+		padding-top: max(0.55rem, env(safe-area-inset-top, 0px));
+	}
+
+	[data-site-header] > [data-site-nav-slot] {
+		position: relative;
+		width: 100%;
+		min-width: 0;
+	}
+
 	html:not([data-theme='portfolio']) [data-site-nav-slot] > .theme-switch {
 		position: absolute;
 		top: max(0.55rem, env(safe-area-inset-top, 0px));
 		right: 1rem;
-		height: 2rem;
+		z-index: 5;
+		min-height: 2.75rem;
+		display: flex;
+		align-items: center;
 	}
 
 	@media (min-width: 640px) {
@@ -859,16 +873,6 @@ nav[aria-label='Primary'] .nav-tab[data-active='true'] {
 			right: 1.5rem;
 			top: max(1rem, env(safe-area-inset-top, 0px));
 		}
-	}
-
-	[data-site-header] {
-		gap: 0.45rem;
-		padding-top: max(0.55rem, env(safe-area-inset-top, 0px));
-	}
-
-	[data-site-header] > [data-site-nav-slot] {
-		width: 100%;
-		min-width: 0;
 	}
 
 	nav[aria-label='Primary'] {
@@ -2104,7 +2108,17 @@ html[data-theme='portfolio'] .theme-bored {
 	font-size: 1.02rem;
 	line-height: inherit;
 	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
 	transition: background-size 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@media (max-width: 767px) {
+	html[data-theme='portfolio'] .theme-bored {
+		/* Comfortable thumb target without shifting the nav baseline. */
+		min-height: 2.75rem;
+		padding-inline: 0.35rem;
+	}
 }
 
 html[data-theme='portfolio'] .theme-bored:is(:hover, :focus-visible) {

@@ -685,7 +685,14 @@ a:is(:hover, :focus-visible) .pfh-arrow {
 	}
 
 	.pfh-portrait {
-		width: 58%;
+		/* Desktop uses align-self:end (grid); in this column flex that pins right — force left. */
+		align-self: flex-start;
+		width: min(58%, 15rem);
+		margin-inline: 0;
+	}
+
+	.pfh-portrait figcaption {
+		text-align: left;
 	}
 
 	.pfh-about__body {
