@@ -24,6 +24,7 @@ pnpm-debug.log*
 
 # environment variables
 .env
+.env.local
 .env.production
 # wrangler's local secrets for `wrangler pages dev`
 .dev.vars

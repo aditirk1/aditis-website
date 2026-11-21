@@ -10,6 +10,8 @@
  * forbids converting the .otf desktop fonts. Argesta Hairline is therefore
  * read with local() from the font installed on the viewing computer: nothing
  * is copied or served, and anyone without it installed sees Argesta Display.
+ * Old Town is self-hosted as the original .ttf (1001Fonts free commercial
+ * licence in docs/licenses); the licence forbids modifying the font files.
  */
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
@@ -52,6 +54,8 @@ const face = (
 });
 
 const instrumentSerif = face('Instrument Serif', 'serif', [400, 400], true);
+const OLD_TOWN = '1001Fonts free commercial licence, self-hosted';
+const oldTown = face('Old Town', 'serif', [400, 400], false, OLD_TOWN, { selfHosted: true });
 /*
  * Atipo's free Argesta style is Display Regular. Hairline, Headline and the
  * italics are in the paid family; swap one in here once its webfont kit is in
@@ -68,6 +72,20 @@ const argesta = face(
 const libreBaskerville = face('Libre Baskerville', 'serif', [400, 700], true);
 
 const pairings: Array<{ id: string; name: string; display: Face; text: Face; ui: 'display' | 'text' }> = [
+	{
+		id: 'old-town-garamond',
+		name: 'Old Town + EB Garamond',
+		display: oldTown,
+		text: face('EB Garamond', 'serif', [400, 800], true),
+		ui: 'text',
+	},
+	{
+		id: 'old-town-instrument',
+		name: 'Old Town + Instrument Sans',
+		display: oldTown,
+		text: face('Instrument Sans', 'sans-serif', [400, 700], true),
+		ui: 'text',
+	},
 	{
 		id: 'instrument',
 		name: 'Instrument Serif + Instrument Sans',
@@ -152,7 +170,7 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 		<header class="lab-intro">
 			<h1 class="lab-intro__title">Type lab</h1>
 			<p class="lab-intro__text">
-				Seven pairings on the site's own words. Headings use the first face, body text the second. Controls apply
+				Nine pairings on the site's own words. Headings use the first face, body text the second. Controls apply
 				to every card at once, so each pairing is judged on the same settings.
 			</p>
 		</header>
@@ -427,6 +445,15 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 		src:
 			local('Argesta Hairline'),
 			local('ArgestaHairline');
+		font-weight: 400;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	/* Original .ttf — licence forbids modifying the font files. */
+	@font-face {
+		font-family: 'Old Town';
+		src: url('/fonts/old-town/OldTown.ttf') format('truetype');
 		font-weight: 400;
 		font-style: normal;
 		font-display: swap;

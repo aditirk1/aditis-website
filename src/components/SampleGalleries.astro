@@ -1,0 +1,438 @@
+---
+/**
+ * Homepage gallery section (coverflow overlay). Hidden until photo-dump albums
+ * are wired in; copy is ready: heading "Gallery", lede from sample-galleries.json.
+ */
+import galleries from '../data/sample-galleries.json';
+
+const { heading, lede, albums } = galleries;
+---
+
+<section
+	class="sample-galleries pointer-events-auto relative mx-auto max-w-5xl px-8 py-12 md:px-16 md:py-20"
+	data-sample-galleries
+	data-reveal-stagger
+	data-spatial-section
+>
+	<div data-reveal-child>
+		<h2 class="sample-galleries__title" style="font-family: var(--font-display)">{heading}</h2>
+		<div class="mt-1 h-0.5 w-12 rounded-full bg-[var(--color-amber)]"></div>
+		<p class="sample-galleries__lede">{lede}</p>
+	</div>
+
+	<ul class="sample-galleries__folders" data-reveal-child>
+		{
+			albums.map((album, albumIndex) => (
+				<li>
+					<button
+						type="button"
+						class="sg-folder"
+						data-sg-open={album.id}
+						aria-haspopup="dialog"
+						aria-controls="sg-overlay"
+					>
+						<span class="sg-folder__stack" aria-hidden="true">
+							{album.images.slice(0, 3).map((img, i) => (
+								<span class={`sg-folder__shot sg-folder__shot--${i}`}>
+									<img src={img.src} alt="" loading="lazy" decoding="async" width="480" height="640" />
+								</span>
+							))}
+						</span>
+						<span class="sg-folder__meta">
+							<span class="sg-folder__title" style="font-family: var(--font-display)">
+								{album.title}
+							</span>
+							<span class="sg-folder__blurb">{album.blurb}</span>
+							<span class="sg-folder__count">{album.images.length} photos</span>
+						</span>
+					</button>
+					<script type="application/json" data-sg-album={album.id} set:html={JSON.stringify({ ...album, index: albumIndex })} />
+				</li>
+			))
+		}
+	</ul>
+</section>
+
+<dialog class="sg-overlay pointer-events-auto" id="sg-overlay" data-sg-overlay aria-label="Photo gallery">
+	<div class="sg-overlay__chrome">
+		<button type="button" class="sg-overlay__close" data-sg-close aria-label="Close gallery">
+			Close
+		</button>
+		<p class="sg-overlay__label" data-sg-label></p>
+		<div class="sg-overlay__nav">
+			<button type="button" data-sg-prev aria-label="Previous photo">←</button>
+			<button type="button" data-sg-next aria-label="Next photo">→</button>
+		</div>
+	</div>
+	<div class="sg-stage" data-sg-stage>
+		<ul class="sg-coverflow" data-sg-coverflow></ul>
+	</div>
+</dialog>
+
+<style is:global>
+	.sample-galleries__kicker {
+		margin: 0 0 0.35rem;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 0.72rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--color-amber);
+	}
+
+	.sample-galleries__title {
+		margin: 0;
+		font-size: clamp(1.75rem, 4vw, 2.35rem);
+		font-weight: 400;
+		letter-spacing: -0.02em;
+		color: var(--page-fg);
+	}
+
+	.sample-galleries__lede {
+		margin: 1rem 0 0;
+		max-width: 36rem;
+		color: var(--page-muted);
+		line-height: 1.55;
+		font-size: 0.95rem;
+	}
+
+	.sample-galleries__folders {
+		list-style: none;
+		margin: 2.25rem 0 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1.5rem;
+	}
+
+	@media (min-width: 520px) {
+		.sample-galleries__folders {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 1.25rem 1.5rem;
+		}
+	}
+
+	@media (min-width: 900px) {
+		.sample-galleries__folders {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+		}
+	}
+
+	.sg-folder {
+		appearance: none;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: 0.85rem;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		color: inherit;
+		text-align: left;
+		cursor: pointer;
+		pointer-events: auto;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.sg-folder:focus,
+	.sg-folder:focus-visible {
+		outline: none;
+	}
+
+	.sg-folder__title,
+	.sg-folder__meta {
+		text-shadow: none;
+	}
+
+	.sg-folder__stack {
+		position: relative;
+		display: block;
+		aspect-ratio: 4 / 5;
+		border-radius: 0.85rem;
+		isolation: isolate;
+	}
+
+	.sg-folder__shot {
+		position: absolute;
+		inset: 8% 10%;
+		overflow: hidden;
+		border-radius: 0.65rem;
+		border: 1px solid color-mix(in srgb, var(--page-fg) 14%, transparent);
+		box-shadow: 0 14px 28px color-mix(in srgb, black 35%, transparent);
+		background: color-mix(in srgb, var(--page-bg) 70%, #111);
+		transform-origin: 50% 100%;
+		transition:
+			transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+			filter 320ms ease;
+	}
+
+	.sg-folder__shot img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.sg-folder__shot--0 {
+		z-index: 3;
+		transform: rotate(-2.5deg) translateY(0);
+	}
+	.sg-folder__shot--1 {
+		z-index: 2;
+		transform: rotate(3.5deg) translate(6%, -2%);
+		filter: brightness(0.88);
+	}
+	.sg-folder__shot--2 {
+		z-index: 1;
+		transform: rotate(-6deg) translate(-5%, -5%) scale(0.96);
+		filter: brightness(0.75);
+	}
+
+	.sg-folder:is(:hover, :focus-visible) .sg-folder__shot--0 {
+		transform: rotate(-1deg) translateY(-6%);
+	}
+	.sg-folder:is(:hover, :focus-visible) .sg-folder__shot--1 {
+		transform: rotate(5deg) translate(10%, -8%);
+		filter: brightness(0.95);
+	}
+	.sg-folder:is(:hover, :focus-visible) .sg-folder__shot--2 {
+		transform: rotate(-8deg) translate(-9%, -10%) scale(0.98);
+		filter: brightness(0.85);
+	}
+
+	.sg-folder__meta {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+		padding-inline: 0.15rem;
+	}
+
+	.sg-folder__title {
+		font-size: 1.15rem;
+		font-weight: 400;
+		letter-spacing: -0.02em;
+		color: var(--page-fg);
+	}
+
+	.sg-folder__blurb {
+		font-size: 0.88rem;
+		color: var(--page-muted);
+		line-height: 1.4;
+	}
+
+	.sg-folder__count {
+		margin-top: 0.2rem;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 0.68rem;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-amber);
+	}
+
+	/* —— Overlay / coverflow —— */
+	/* Must beat #main-content.pointer-events-none (dialogs live inside main). */
+	.sg-overlay,
+	.sg-overlay * {
+		pointer-events: auto;
+	}
+
+	.sg-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: 80;
+		width: 100%;
+		max-width: none;
+		height: 100%;
+		max-height: none;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		background: color-mix(in srgb, var(--page-bg, #05030c) 88%, black);
+		color: var(--page-fg, #f4f6ff);
+		overflow: hidden;
+	}
+
+	/* Flow: light blue behind the coverflow; drop body text-shadow on titles */
+	html[data-theme='beach'] .sg-overlay {
+		background: #cfe6ff;
+		color: #0a2744;
+		text-shadow: none;
+	}
+
+	.sg-overlay::backdrop {
+		background: color-mix(in srgb, black 72%, transparent);
+		backdrop-filter: blur(10px);
+	}
+
+	html[data-theme='beach'] .sg-overlay::backdrop {
+		background: color-mix(in srgb, #7eb8e8 55%, transparent);
+		backdrop-filter: blur(12px);
+	}
+
+	.sg-overlay[open] {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.sg-overlay__chrome {
+		position: relative;
+		z-index: 2;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.65rem;
+		padding: 0.75rem 0.85rem;
+		pointer-events: none;
+		text-shadow: none;
+	}
+
+	@media (min-width: 640px) {
+		.sg-overlay__chrome {
+			gap: 1rem;
+			padding: 1rem 1.25rem;
+		}
+	}
+
+	.sg-overlay__chrome > * {
+		pointer-events: auto;
+	}
+
+	.sg-overlay__close,
+	.sg-overlay__nav button {
+		appearance: none;
+		border: 1px solid color-mix(in srgb, var(--color-amber) 40%, transparent);
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--page-bg, #05030c) 70%, transparent);
+		color: var(--page-fg, #f4f6ff);
+		font-size: 0.8rem;
+		padding: 0.5rem 0.95rem;
+		min-height: 2.5rem;
+		min-width: 2.5rem;
+		cursor: pointer;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	html[data-theme='beach'] .sg-overlay__close,
+	html[data-theme='beach'] .sg-overlay__nav button {
+		border-color: color-mix(in srgb, #0a2744 28%, transparent);
+		background: color-mix(in srgb, white 55%, transparent);
+		color: #0a2744;
+	}
+
+	.sg-overlay__nav {
+		display: flex;
+		gap: 0.4rem;
+	}
+
+	.sg-overlay__label {
+		margin: 0;
+		font-family: var(--font-display, Georgia, serif);
+		font-size: clamp(1rem, 3.5vw, 1.45rem);
+		font-weight: 400;
+		letter-spacing: -0.02em;
+		text-align: center;
+		text-shadow: none;
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	html[data-theme='beach'] .sg-overlay__label {
+		color: #0a2744;
+	}
+
+	.sg-stage {
+		position: relative;
+		flex: 1 1 auto;
+		min-height: 0;
+		perspective: 1400px;
+		touch-action: none;
+		overscroll-behavior: contain;
+	}
+
+	.sg-coverflow {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		transform-style: preserve-3d;
+	}
+
+	.sg-coverflow__item {
+		position: absolute;
+		width: min(72vw, 240px);
+		aspect-ratio: 3 / 4;
+		margin: 0;
+		border: 0;
+		padding: 0;
+		background: transparent;
+		border-radius: 0.75rem;
+		overflow: hidden;
+		cursor: pointer;
+		transform-style: preserve-3d;
+		box-shadow: 0 22px 50px color-mix(in srgb, black 45%, transparent);
+		will-change: transform, opacity, filter;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	@media (min-width: 640px) {
+		.sg-coverflow__item {
+			width: min(48vw, 300px);
+			border-radius: 0.85rem;
+		}
+	}
+
+	@media (min-width: 900px) {
+		.sg-coverflow__item {
+			width: min(36vw, 340px);
+		}
+	}
+
+	.sg-coverflow__item img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		pointer-events: none; /* clicks go to the button */
+		user-select: none;
+	}
+
+	.sg-coverflow__item.is-active {
+		box-shadow:
+			0 0 0 1px color-mix(in srgb, var(--color-amber) 55%, transparent),
+			0 28px 60px color-mix(in srgb, black 50%, transparent);
+	}
+
+	.sg-coverflow__item.is-detail {
+		cursor: zoom-out;
+		z-index: 20 !important;
+		border-radius: 0.5rem;
+	}
+
+	html[data-theme='beach'] .sg-coverflow__item.is-active {
+		box-shadow:
+			0 0 0 1px color-mix(in srgb, #0a2744 35%, transparent),
+			0 28px 60px color-mix(in srgb, #0a2744 28%, transparent);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.sg-folder__shot {
+			transition: none;
+		}
+	}
+
+	/* Hidden on the homepage until real photo-dump albums replace the stock demo. */
+	.sample-galleries {
+		display: none;
+	}
+</style>
+
+<script>
+	import { initSampleGalleries } from '../scripts/sample-gallery.ts';
+
+	const stop = initSampleGalleries();
+	if (import.meta.hot) {
+		import.meta.hot.dispose(() => stop());
+	}
+</script>

@@ -1,0 +1,130 @@
+{
+	"heading": "Gallery",
+	"lede": "What existence looks like for me.",
+	"albums": [
+		{
+			"id": "lab-bench",
+			"title": "Lab bench",
+			"blurb": "Pipettes, gels, late nights.",
+			"images": [
+				{
+					"src": "https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Scientist working at a laboratory bench"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Close-up of a pipette and sample tubes"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Microscope and glassware on a lab table"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1581093588401-fbb62a02f120?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Gloved hands handling a petri dish"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Rack of colorful sample vials"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Researcher reviewing data on a screen"
+				}
+			]
+		},
+		{
+			"id": "city-nights",
+			"title": "City nights",
+			"blurb": "Neon, rain, and long walks.",
+			"images": [
+				{
+					"src": "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1200&q=80",
+					"alt": "City skyline at night with light trails"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=1200&q=80",
+					"alt": "New York street with yellow cabs"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Rain-soaked city street reflections"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Downtown towers lit after dark"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Urban night photography from a bridge"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1200&q=80",
+					"alt": "City lights from a high vantage point"
+				}
+			]
+		},
+		{
+			"id": "field-notes",
+			"title": "Field notes",
+			"blurb": "Trails, water, quiet frames.",
+			"images": [
+				{
+					"src": "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Mountain lake at sunrise"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Sunlight through a mountain landscape"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Forest path with dappled light"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Fog rolling over green hills"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Turquoise ocean meeting a sandy beach"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Ocean waves under a clear sky"
+				}
+			]
+		},
+		{
+			"id": "hardware",
+			"title": "Hardware",
+			"blurb": "Boards, bots, and builds.",
+			"images": [
+				{
+					"src": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Close-up of a circuit board"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Engineer soldering electronics"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1200&q=80",
+					"alt": "White robot arm in a workshop"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1555255707-c07966088b7b?auto=format&fit=crop&w=1200&q=80",
+					"alt": "3D printer depositing filament"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Hands assembling a mechanical prototype"
+				},
+				{
+					"src": "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?auto=format&fit=crop&w=1200&q=80",
+					"alt": "Tools and components on a workbench"
+				}
+			]
+		}
+	]
+}

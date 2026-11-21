@@ -155,24 +155,39 @@ const ogImageURL = new URL('/brand/og-card.png', Astro.site ?? Astro.url);
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
-			href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,200..600;1,6..72,200..600&family=Hanken+Grotesk:wght@300..600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@200;400;500;600&family=Bangers&family=IBM+Plex+Mono:wght@400;500&display=swap"
+			href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Hanken+Grotesk:wght@300..600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@200;400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..600;1,6..72,200..600&family=Bangers&display=swap"
 			rel="stylesheet"
 		/>
 
 		{umamiId && umamiSrc && <script defer src={umamiSrc} data-website-id={umamiId} />}
 
 		<style is:global>
+			/* Orbit + Flow headings: ZT Otez (1001Fonts free commercial). Portfolio stays Newsreader. */
+			@font-face {
+				font-family: 'ZT Otez';
+				src: url('/fonts/zt-otez/ZTOtez-Regular.otf') format('opentype');
+				font-weight: 400;
+				font-style: normal;
+				font-display: swap;
+			}
+			@font-face {
+				font-family: 'ZT Otez';
+				src: url('/fonts/zt-otez/ZTOtez-Italic.otf') format('opentype');
+				font-weight: 400;
+				font-style: italic;
+				font-display: swap;
+			}
+
 			:root {
-				/* Headings: Instrument Serif. Body: EB Garamond. Loading screen and small controls: Inter. */
-				--font-display: 'Instrument Serif', Georgia, serif;
-				--font-title: 'Instrument Serif', Georgia, serif;
+				--font-display: 'ZT Otez', Georgia, serif;
+				--font-title: 'ZT Otez', Georgia, serif;
 				--font-body: 'EB Garamond', Georgia, serif;
 				--font-sans: 'Inter', system-ui, sans-serif;
 				--font-dream-comic: 'Bangers', 'Inter', cursive;
 				--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 			}
 
-			/* Portfolio: Newsreader headings, Hanken Grotesk text and interface. */
+			/* Portfolio unchanged: Newsreader headings, Hanken Grotesk text and interface. */
 			html[data-theme='portfolio'] {
 				--font-display: 'Newsreader', Georgia, serif;
 				--font-title: 'Newsreader', Georgia, serif;

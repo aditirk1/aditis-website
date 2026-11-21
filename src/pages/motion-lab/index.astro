@@ -1,0 +1,930 @@
+---
+/**
+ * Motion lab — original scroll + hero demos tied to Orbit / Flow / research,
+ * not the usual fade-up / blur / wipe set. Demo only; noindex.
+ */
+import Layout from '../../layouts/Layout.astro';
+
+const scrollDemos = [
+	{
+		id: 'gravity',
+		name: 'Gravity well',
+		blurb:
+			'Copy swings on an orbital arc as you scroll, then drops into the well when it hits center. Motion lives in the path — not opacity tricks.',
+		why: 'Orbit theme · orbital mechanics',
+	},
+	{
+		id: 'tide',
+		name: 'Tide line',
+		blurb:
+			'A waterline climbs the block. Dry type sits above; wet type fills below. Scroll owns the shoreline.',
+		why: 'Flow theme · tide / shoreline',
+	},
+	{
+		id: 'constellation',
+		name: 'Constellation',
+		blurb:
+			'Nodes bloom, then edges draw between them and lock the headline into a star map. Scrub reconnects the graph.',
+		why: 'Starfield · connect-the-dots',
+	},
+	{
+		id: 'shear',
+		name: 'Shear plane',
+		blurb:
+			'The whole card rides a tilted 3D plane — foreshorten in, flatten at rest, foreshorten out. Depth without camera zoom.',
+		why: 'Spatial scroll · perspective only',
+	},
+];
+
+const heroDemos = [
+	{
+		id: 'dock',
+		name: 'Orbital dock',
+		blurb:
+			'Each letter arrives on its own ellipse and docks into the lockup. One arrival, then stillness.',
+		why: 'Orbit · planets docking',
+	},
+	{
+		id: 'stereo',
+		name: 'Stereo lock',
+		blurb:
+			'Two ghost channels (amber + cyan) start offset and slam into register — like focusing a stereo pair.',
+		why: 'Vision / imaging · channel merge',
+	},
+	{
+		id: 'signal',
+		name: 'Signal settle',
+		blurb:
+			'Letters ride an EEG-style wave, then damp into the baseline title. Research energy without a scramble.',
+		why: 'EEG / BCI · waveform → type',
+	},
+	{
+		id: 'ink',
+		name: 'Capillary fill',
+		blurb:
+			'Ink climbs each glyph from the baseline up — capillary action through the letterforms, not a left wipe.',
+		why: 'Lab / wet chemistry metaphor',
+	},
+];
+
+const line1 = "aditi's";
+const line2 = 'universe.';
+---
+
+<Layout title="Motion lab" description="Original scroll and hero motion experiments." noindex>
+	<div class="mlab pointer-events-auto" data-motion-lab>
+		<header class="mlab-intro">
+			<p class="mlab-kicker">Lab · not live on the homepage</p>
+			<h1 class="mlab-intro__title">Motion lab</h1>
+			<p class="mlab-intro__text">
+				Built for this site’s vocabulary — gravity, tide, constellations, signal — not the generic
+				fade / blur / wipe kit. Pick a scroll + a hero; nothing here is wired to production yet.
+			</p>
+		</header>
+
+		<section class="mlab-section" aria-labelledby="mlab-scroll-h">
+			<div class="mlab-section__head">
+				<h2 id="mlab-scroll-h">Scroll</h2>
+				<p>Scroll inside the framed track — the cue stays sticky at the top.</p>
+			</div>
+
+			<div class="mlab-tabs" role="tablist" aria-label="Scroll demos" data-scroll-tabs>
+				{
+					scrollDemos.map((d, i) => (
+						<button
+							type="button"
+							role="tab"
+							id={`scroll-tab-${d.id}`}
+							aria-selected={i === 0 ? 'true' : 'false'}
+							aria-controls={`scroll-panel-${d.id}`}
+							data-scroll-tab={d.id}
+						>
+							{d.name}
+						</button>
+					))
+				}
+			</div>
+
+			{
+				scrollDemos.map((d, i) => (
+					<div
+						class="mlab-scroll-panel"
+						id={`scroll-panel-${d.id}`}
+						role="tabpanel"
+						aria-labelledby={`scroll-tab-${d.id}`}
+						hidden={i !== 0}
+						data-scroll-panel={d.id}
+					>
+						<p class="mlab-blurb">{d.blurb}</p>
+						<p class="mlab-ref">Why · {d.why}</p>
+						<div class="mlab-scroll-track" data-scroll-track={d.id}>
+							<div class="mlab-scroll-spacer" aria-hidden="true" />
+							<article class="mlab-scroll-card" data-scroll-fx={d.id}>
+								{
+									d.id === 'tide' && (
+										<div class="mlab-tide" aria-hidden="true">
+											<div class="mlab-tide__dry">
+												<p class="mlab-scroll-card__eyebrow">Scroll · {d.name}</p>
+												<h3>MS Bioengineering at Columbia</h3>
+												<p>
+													Genomics pipelines, Medicare-scale outcomes, EEG / BCI, and hardware —
+													model to bench to population data.
+												</p>
+											</div>
+											<div class="mlab-tide__wet">
+												<p class="mlab-scroll-card__eyebrow">Scroll · {d.name}</p>
+												<h3>MS Bioengineering at Columbia</h3>
+												<p>
+													Genomics pipelines, Medicare-scale outcomes, EEG / BCI, and hardware —
+													model to bench to population data.
+												</p>
+											</div>
+											<div class="mlab-tide__line" />
+										</div>
+									)
+								}
+								{
+									d.id === 'constellation' && (
+										<div class="mlab-constellation" data-constellation>
+											<svg class="mlab-constellation__svg" viewBox="0 0 320 140" aria-hidden="true">
+												<g class="mlab-constellation__edges" data-edges>
+													<line x1="28" y1="38" x2="86" y2="22" />
+													<line x1="86" y1="22" x2="148" y2="48" />
+													<line x1="148" y1="48" x2="210" y2="28" />
+													<line x1="210" y1="28" x2="268" y2="52" />
+													<line x1="86" y1="22" x2="120" y2="88" />
+													<line x1="148" y1="48" x2="190" y2="96" />
+													<line x1="210" y1="28" x2="250" y2="100" />
+												</g>
+												<g class="mlab-constellation__nodes" data-nodes>
+													<circle cx="28" cy="38" r="3.2" />
+													<circle cx="86" cy="22" r="3.8" />
+													<circle cx="148" cy="48" r="3.2" />
+													<circle cx="210" cy="28" r="3.5" />
+													<circle cx="268" cy="52" r="3.2" />
+													<circle cx="120" cy="88" r="2.8" />
+													<circle cx="190" cy="96" r="3" />
+													<circle cx="250" cy="100" r="2.8" />
+												</g>
+											</svg>
+											<div class="mlab-scroll-card__inner mlab-scroll-card__inner--bare">
+												<p class="mlab-scroll-card__eyebrow">Scroll · {d.name}</p>
+												<h3 data-constellation-title>MS Bioengineering at Columbia</h3>
+												<p>
+													Genomics pipelines, Medicare-scale outcomes, EEG / BCI, and hardware —
+													model to bench to population data.
+												</p>
+											</div>
+										</div>
+									)
+								}
+								{
+									d.id !== 'tide' && d.id !== 'constellation' && (
+										<div class="mlab-scroll-card__inner" data-shear-inner>
+											<p class="mlab-scroll-card__eyebrow">Scroll · {d.name}</p>
+											<h3>MS Bioengineering at Columbia</h3>
+											<p>
+												Genomics pipelines, Medicare-scale outcomes, EEG / BCI, and hardware —
+												model to bench to population data.
+											</p>
+										</div>
+									)
+								}
+							</article>
+							<div class="mlab-scroll-spacer" aria-hidden="true" />
+						</div>
+					</div>
+				))
+			}
+		</section>
+
+		<section class="mlab-section" aria-labelledby="mlab-hero-h">
+			<div class="mlab-section__head">
+				<h2 id="mlab-hero-h">Hero title</h2>
+				<p>Plays on open and Replay — never loops.</p>
+			</div>
+
+			<div class="mlab-tabs" role="tablist" aria-label="Hero demos" data-hero-tabs>
+				{
+					heroDemos.map((d, i) => (
+						<button
+							type="button"
+							role="tab"
+							id={`hero-tab-${d.id}`}
+							aria-selected={i === 0 ? 'true' : 'false'}
+							aria-controls={`hero-panel-${d.id}`}
+							data-hero-tab={d.id}
+						>
+							{d.name}
+						</button>
+					))
+				}
+			</div>
+
+			{
+				heroDemos.map((d, i) => (
+					<div
+						class="mlab-hero-panel"
+						id={`hero-panel-${d.id}`}
+						role="tabpanel"
+						aria-labelledby={`hero-tab-${d.id}`}
+						hidden={i !== 0}
+						data-hero-panel={d.id}
+					>
+						<p class="mlab-blurb">{d.blurb}</p>
+						<p class="mlab-ref">Why · {d.why}</p>
+						<div class="mlab-hero-stage" data-hero-stage={d.id}>
+							<button type="button" class="mlab-replay" data-hero-replay={d.id}>
+								Replay
+							</button>
+							{
+								d.id === 'stereo' ? (
+									<div class="mlab-stereo" data-hero-fx={d.id} aria-label="aditi's universe.">
+										<span class="mlab-stereo__ghost mlab-stereo__ghost--a" aria-hidden="true">
+											<span class="mlab-hero-line">{line1}</span>
+											<span class="mlab-hero-line">{line2}</span>
+										</span>
+										<span class="mlab-stereo__ghost mlab-stereo__ghost--b" aria-hidden="true">
+											<span class="mlab-hero-line">{line1}</span>
+											<span class="mlab-hero-line">{line2}</span>
+										</span>
+										<span class="mlab-stereo__solid">
+											<span class="mlab-hero-line">{line1}</span>
+											<span class="mlab-hero-line">{line2}</span>
+										</span>
+									</div>
+								) : (
+									<h3 class="mlab-hero-title" data-hero-fx={d.id} aria-label="aditi's universe.">
+										<span class="mlab-hero-line">
+											{[...line1].map((ch, idx) => (
+												<span
+													class="mlab-hero-char"
+													style={`--i:${idx}; --n:${line1.length + line2.length}; --wave:${Math.sin(idx * 1.1).toFixed(3)}`}
+												>
+													{ch === ' ' ? '\u00a0' : ch}
+												</span>
+											))}
+										</span>
+										<span class="mlab-hero-line">
+											{[...line2].map((ch, idx) => {
+												const i = idx + line1.length;
+												return (
+													<span
+														class="mlab-hero-char"
+														style={`--i:${i}; --n:${line1.length + line2.length}; --wave:${Math.sin(i * 1.1).toFixed(3)}`}
+													>
+														{ch}
+													</span>
+												);
+											})}
+										</span>
+									</h3>
+								)
+							}
+						</div>
+					</div>
+				))
+			}
+		</section>
+	</div>
+</Layout>
+
+<style is:global>
+	.mlab {
+		--mlab-fg: var(--page-fg, #f4f6ff);
+		--mlab-muted: var(--page-muted, #a8b0c8);
+		--mlab-amber: var(--color-amber, #ffaa00);
+		--mlab-cyan: #6ec8ff;
+		--mlab-panel: color-mix(in srgb, var(--page-bg, #05030c) 72%, #141a28);
+		position: relative;
+		z-index: 5;
+		max-width: 52rem;
+		margin: 0 auto;
+		padding: 2.5rem 1.25rem 6rem;
+		color: var(--mlab-fg);
+		pointer-events: auto;
+	}
+
+	.mlab-kicker {
+		margin: 0 0 0.35rem;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 0.72rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--mlab-amber);
+	}
+
+	.mlab-intro__title {
+		margin: 0 0 0.55rem;
+		font-family: var(--font-display, Georgia, serif);
+		font-size: clamp(2rem, 5vw, 2.85rem);
+		font-weight: 400;
+		letter-spacing: -0.02em;
+	}
+
+	.mlab-intro__text {
+		margin: 0;
+		max-width: 38rem;
+		color: var(--mlab-muted);
+		line-height: 1.55;
+	}
+
+	.mlab-section {
+		margin-top: 3rem;
+	}
+
+	.mlab-section__head h2 {
+		margin: 0 0 0.3rem;
+		font-family: var(--font-display, Georgia, serif);
+		font-size: 1.55rem;
+		font-weight: 400;
+	}
+
+	.mlab-section__head p {
+		margin: 0 0 1rem;
+		color: var(--mlab-muted);
+		font-size: 0.92rem;
+	}
+
+	.mlab-tabs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin-bottom: 0.85rem;
+	}
+
+	.mlab-tabs button {
+		appearance: none;
+		border: 1px solid color-mix(in srgb, var(--mlab-amber) 28%, transparent);
+		border-radius: 999px;
+		background: transparent;
+		color: var(--mlab-muted);
+		font-size: 0.78rem;
+		padding: 0.35rem 0.75rem;
+		cursor: pointer;
+		pointer-events: auto;
+	}
+
+	.mlab-tabs button[aria-selected='true'] {
+		background: color-mix(in srgb, var(--mlab-amber) 16%, transparent);
+		color: var(--mlab-fg);
+		border-color: color-mix(in srgb, var(--mlab-amber) 55%, transparent);
+	}
+
+	.mlab-blurb {
+		margin: 0 0 0.35rem;
+		color: var(--mlab-muted);
+		font-size: 0.92rem;
+		line-height: 1.5;
+	}
+
+	.mlab-ref {
+		margin: 0 0 0.85rem;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 0.68rem;
+		letter-spacing: 0.04em;
+		color: color-mix(in srgb, var(--mlab-amber) 85%, var(--mlab-muted));
+	}
+
+	.mlab-scroll-track {
+		position: relative;
+		height: min(68vh, 32rem);
+		overflow: auto;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
+		border-radius: 1rem;
+		border: 1px solid color-mix(in srgb, var(--mlab-amber) 22%, transparent);
+		background: var(--mlab-panel);
+		scroll-snap-type: y proximity;
+		pointer-events: auto;
+		touch-action: pan-y;
+		perspective: 900px;
+	}
+
+	.mlab-scroll-track::before {
+		content: 'Scroll inside ↓';
+		position: sticky;
+		top: 0.65rem;
+		z-index: 3;
+		display: block;
+		width: max-content;
+		margin: 0.65rem auto 0;
+		padding: 0.25rem 0.65rem;
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--page-bg, #05030c) 78%, transparent);
+		border: 1px solid color-mix(in srgb, var(--mlab-amber) 35%, transparent);
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 0.68rem;
+		letter-spacing: 0.06em;
+		color: var(--mlab-amber);
+		pointer-events: none;
+	}
+
+	.mlab-scroll-spacer {
+		height: 42%;
+	}
+
+	.mlab-scroll-card {
+		margin: 0 1.25rem;
+		scroll-snap-align: center;
+		transform-style: preserve-3d;
+		will-change: transform, opacity, filter, clip-path;
+	}
+
+	.mlab-scroll-card__inner {
+		padding: 1.45rem 1.3rem 1.55rem;
+		border-radius: 0.85rem;
+		border: 1px solid color-mix(in srgb, var(--mlab-fg) 12%, transparent);
+		background: color-mix(in srgb, var(--page-bg, #05030c) 58%, transparent);
+		backdrop-filter: blur(8px);
+	}
+
+	.mlab-scroll-card__inner--bare {
+		background: transparent;
+		border-color: transparent;
+		backdrop-filter: none;
+		padding-top: 0.25rem;
+	}
+
+	.mlab-scroll-card__eyebrow {
+		margin: 0 0 0.55rem;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 0.68rem;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--mlab-amber);
+	}
+
+	.mlab-scroll-card h3 {
+		margin: 0 0 0.5rem;
+		font-family: var(--font-display, Georgia, serif);
+		font-size: clamp(1.3rem, 3.2vw, 1.75rem);
+		font-weight: 400;
+	}
+
+	.mlab-scroll-card p:not(.mlab-scroll-card__eyebrow) {
+		margin: 0;
+		color: var(--mlab-muted);
+		line-height: 1.55;
+	}
+
+	/* —— Gravity well —— */
+	[data-scroll-fx='gravity'] {
+		/* p: 0 top → 0.5 center → 1 bottom. Arc in XY, settle at center. */
+		--g: calc(var(--p, 0.5) - 0.5);
+		transform: translateX(calc(var(--g) * -72px)) translateY(calc(var(--g) * var(--g) * -40px))
+			rotate(calc(var(--g) * -9deg));
+		opacity: calc(0.35 + var(--p-mid, 0) * 0.65);
+		filter: blur(calc((1 - var(--p-mid, 0)) * 2.5px));
+	}
+
+	/* —— Tide line —— */
+	.mlab-tide {
+		position: relative;
+		border-radius: 0.85rem;
+		overflow: hidden;
+		border: 1px solid color-mix(in srgb, var(--mlab-fg) 12%, transparent);
+		min-height: 10rem;
+	}
+
+	.mlab-tide__dry,
+	.mlab-tide__wet {
+		padding: 1.45rem 1.3rem 1.55rem;
+	}
+
+	.mlab-tide__dry {
+		background: color-mix(in srgb, var(--page-bg, #05030c) 70%, #1a2233);
+	}
+
+	.mlab-tide__wet {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			180deg,
+			color-mix(in srgb, var(--mlab-cyan) 22%, #0a1624) 0%,
+			color-mix(in srgb, var(--mlab-cyan) 38%, #061018) 100%
+		);
+		clip-path: inset(calc((1 - var(--p-mid, 0)) * 100%) 0 0 0);
+		color: #eaf6ff;
+	}
+
+	.mlab-tide__wet p:not(.mlab-scroll-card__eyebrow) {
+		color: color-mix(in srgb, #eaf6ff 82%, var(--mlab-cyan));
+	}
+
+	.mlab-tide__line {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: calc((1 - var(--p-mid, 0)) * 100%);
+		height: 2px;
+		background: linear-gradient(
+			90deg,
+			transparent,
+			color-mix(in srgb, var(--mlab-cyan) 80%, white),
+			transparent
+		);
+		box-shadow: 0 0 12px color-mix(in srgb, var(--mlab-cyan) 55%, transparent);
+		pointer-events: none;
+		transform: translateY(-1px);
+	}
+
+	/* —— Constellation —— */
+	.mlab-constellation {
+		position: relative;
+		padding: 1rem 0.85rem 0.35rem;
+		border-radius: 0.85rem;
+		border: 1px solid color-mix(in srgb, var(--mlab-fg) 12%, transparent);
+		background: radial-gradient(
+			ellipse 80% 70% at 50% 20%,
+			color-mix(in srgb, var(--mlab-amber) 10%, transparent),
+			color-mix(in srgb, var(--page-bg, #05030c) 70%, transparent)
+		);
+	}
+
+	.mlab-constellation__svg {
+		display: block;
+		width: 100%;
+		height: auto;
+		max-height: 7.5rem;
+	}
+
+	.mlab-constellation__nodes circle {
+		fill: var(--mlab-amber);
+		opacity: calc(0.15 + var(--p-mid, 0) * 0.85);
+		transform-box: fill-box;
+		transform-origin: center;
+		transform: scale(calc(0.35 + var(--p-mid, 0) * 0.65));
+	}
+
+	.mlab-constellation__edges line {
+		stroke: color-mix(in srgb, var(--mlab-amber) 70%, white);
+		stroke-width: 1.1;
+		stroke-linecap: round;
+		stroke-dasharray: 120;
+		stroke-dashoffset: calc(120 * (1 - var(--p-mid, 0)));
+		opacity: calc(0.15 + var(--p-mid, 0) * 0.85);
+	}
+
+	[data-scroll-fx='constellation'] [data-constellation-title] {
+		opacity: calc(0.2 + var(--p-mid, 0) * 0.8);
+		letter-spacing: calc((1 - var(--p-mid, 0)) * 0.12em);
+		transform: translateY(calc((1 - var(--p-mid, 0)) * 10px));
+	}
+
+	/* —— Shear plane —— */
+	[data-scroll-fx='shear'] {
+		--g: calc(var(--p, 0.5) - 0.5);
+		transform: rotateX(calc(var(--g) * -42deg)) rotateY(calc(var(--g) * 10deg))
+			translateZ(calc((1 - var(--p-mid, 0)) * -48px));
+		opacity: calc(0.4 + var(--p-mid, 0) * 0.6);
+	}
+
+	[data-scroll-fx='shear'] .mlab-scroll-card__inner {
+		box-shadow: 0 18px 40px color-mix(in srgb, black 45%, transparent);
+	}
+
+	/* —— Hero stage —— */
+	.mlab-hero-stage {
+		position: relative;
+		min-height: 14.5rem;
+		padding: 2.6rem 1.25rem 2.1rem;
+		border-radius: 1rem;
+		border: 1px solid color-mix(in srgb, var(--mlab-amber) 22%, transparent);
+		background: var(--mlab-panel);
+		overflow: hidden;
+		pointer-events: auto;
+	}
+
+	.mlab-replay {
+		position: absolute;
+		top: 0.85rem;
+		right: 0.85rem;
+		z-index: 4;
+		appearance: none;
+		border: 1px solid color-mix(in srgb, var(--mlab-amber) 40%, transparent);
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--page-bg, #05030c) 70%, transparent);
+		color: var(--mlab-fg);
+		font-size: 0.75rem;
+		padding: 0.3rem 0.7rem;
+		cursor: pointer;
+		pointer-events: auto;
+	}
+
+	.mlab-hero-title,
+	.mlab-stereo__solid,
+	.mlab-stereo__ghost {
+		margin: 0;
+		font-family: var(--font-title, var(--font-display, Georgia, serif));
+		font-weight: 400;
+		font-size: clamp(2.35rem, 8.5vw, 4.4rem);
+		line-height: 0.95;
+		letter-spacing: -0.06em;
+		text-transform: lowercase;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.mlab-hero-line {
+		display: block;
+		white-space: nowrap;
+	}
+
+	.mlab-hero-char {
+		display: inline-block;
+		will-change: transform, opacity, filter, clip-path;
+	}
+
+	/* Orbital dock */
+	[data-hero-fx='dock'] .mlab-hero-char {
+		opacity: 0;
+		transform: rotate(calc((var(--i) - var(--n) * 0.5) * 18deg))
+			translate(calc((var(--i) - var(--n) * 0.5) * 18px), -2.4em) scale(0.55);
+	}
+
+	[data-hero-fx='dock'].is-playing .mlab-hero-char {
+		animation: mlab-dock 920ms cubic-bezier(0.16, 1, 0.3, 1) both;
+		animation-delay: calc(var(--i) * 42ms);
+	}
+
+	@keyframes mlab-dock {
+		0% {
+			opacity: 0;
+			transform: rotate(calc((var(--i) - var(--n) * 0.5) * 18deg))
+				translate(calc((var(--i) - var(--n) * 0.5) * 18px), -2.4em) scale(0.55);
+		}
+		62% {
+			opacity: 1;
+			transform: rotate(calc((var(--i) - var(--n) * 0.5) * -4deg)) translate(0, 0.12em) scale(1.04);
+		}
+		100% {
+			opacity: 1;
+			transform: rotate(0deg) translate(0, 0) scale(1);
+		}
+	}
+
+	/* Stereo lock */
+	.mlab-stereo {
+		position: relative;
+		isolation: isolate;
+	}
+
+	.mlab-stereo__ghost,
+	.mlab-stereo__solid {
+		position: relative;
+	}
+
+	.mlab-stereo__ghost {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		mix-blend-mode: screen;
+	}
+
+	.mlab-stereo__ghost--a {
+		color: var(--mlab-amber);
+		opacity: 0;
+		transform: translate(-0.55em, 0.08em);
+	}
+
+	.mlab-stereo__ghost--b {
+		color: var(--mlab-cyan);
+		opacity: 0;
+		transform: translate(0.55em, -0.08em);
+	}
+
+	.mlab-stereo__solid {
+		color: var(--mlab-fg);
+		opacity: 0;
+	}
+
+	[data-hero-fx='stereo'].is-playing .mlab-stereo__ghost--a {
+		animation: mlab-stereo-a 1000ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+	}
+	[data-hero-fx='stereo'].is-playing .mlab-stereo__ghost--b {
+		animation: mlab-stereo-b 1000ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+	}
+	[data-hero-fx='stereo'].is-playing .mlab-stereo__solid {
+		animation: mlab-stereo-solid 1000ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+	}
+
+	@keyframes mlab-stereo-a {
+		0% {
+			opacity: 0.85;
+			transform: translate(-0.7em, 0.1em);
+		}
+		70% {
+			opacity: 0.55;
+			transform: translate(-0.08em, 0);
+		}
+		100% {
+			opacity: 0;
+			transform: translate(0, 0);
+		}
+	}
+	@keyframes mlab-stereo-b {
+		0% {
+			opacity: 0.85;
+			transform: translate(0.7em, -0.1em);
+		}
+		70% {
+			opacity: 0.55;
+			transform: translate(0.08em, 0);
+		}
+		100% {
+			opacity: 0;
+			transform: translate(0, 0);
+		}
+	}
+	@keyframes mlab-stereo-solid {
+		0%,
+		55% {
+			opacity: 0;
+		}
+		72% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 1;
+		}
+	}
+
+	/* Signal settle — --wave is precomputed sin(i) on each glyph */
+	[data-hero-fx='signal'] .mlab-hero-char {
+		opacity: 0;
+		transform: translateY(calc(var(--wave, 0) * 1.15em));
+	}
+
+	[data-hero-fx='signal'].is-playing .mlab-hero-char {
+		animation: mlab-signal 880ms cubic-bezier(0.22, 1, 0.36, 1) both;
+		animation-delay: calc(var(--i) * 38ms);
+	}
+
+	@keyframes mlab-signal {
+		0% {
+			opacity: 0;
+			transform: translateY(calc(var(--wave, 0) * 1.35em)) scaleY(1.35);
+		}
+		45% {
+			opacity: 1;
+			transform: translateY(calc(var(--wave, 0) * -0.55em)) scaleY(1.08);
+		}
+		78% {
+			transform: translateY(calc(var(--wave, 0) * 0.08em)) scaleY(0.98);
+		}
+		100% {
+			opacity: 1;
+			transform: translateY(0) scaleY(1);
+		}
+	}
+
+	/* Capillary fill */
+	[data-hero-fx='ink'] .mlab-hero-char {
+		clip-path: inset(100% 0 0 0);
+		opacity: 0.35;
+		transform: translateY(0.12em);
+	}
+
+	[data-hero-fx='ink'].is-playing .mlab-hero-char {
+		animation: mlab-ink 760ms cubic-bezier(0.33, 1, 0.4, 1) both;
+		animation-delay: calc(var(--i) * 48ms);
+	}
+
+	@keyframes mlab-ink {
+		0% {
+			clip-path: inset(100% 0 0 0);
+			opacity: 0.25;
+			transform: translateY(0.14em);
+		}
+		70% {
+			clip-path: inset(0 0 0 0);
+			opacity: 1;
+			transform: translateY(-0.03em);
+		}
+		100% {
+			clip-path: inset(0 0 0 0);
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		[data-scroll-fx],
+		[data-scroll-fx] .mlab-tide__wet,
+		[data-scroll-fx] .mlab-tide__line,
+		[data-scroll-fx] .mlab-constellation__nodes circle,
+		[data-scroll-fx] .mlab-constellation__edges line,
+		[data-scroll-fx] [data-constellation-title] {
+			transform: none !important;
+			opacity: 1 !important;
+			filter: none !important;
+			clip-path: none !important;
+			stroke-dashoffset: 0 !important;
+		}
+		[data-hero-fx] .mlab-hero-char,
+		[data-hero-fx] .mlab-stereo__ghost,
+		[data-hero-fx] .mlab-stereo__solid {
+			animation: none !important;
+			opacity: 1 !important;
+			transform: none !important;
+			filter: none !important;
+			clip-path: none !important;
+		}
+	}
+
+	html[data-theme='portfolio'] .mlab {
+		--mlab-panel: #f3f0e8;
+	}
+</style>
+
+<script>
+	function bindTabs(
+		tabSel: string,
+		panelSel: string,
+		tabAttr: 'scroll-tab' | 'hero-tab',
+		panelAttr: 'scroll-panel' | 'hero-panel',
+		onActivate?: (id: string) => void,
+	) {
+		const tabRoot = document.querySelector(tabSel);
+		if (!tabRoot) return;
+		const tabs = [...tabRoot.querySelectorAll<HTMLButtonElement>(`[data-${tabAttr}]`)];
+		const panels = [...document.querySelectorAll<HTMLElement>(`[data-${panelAttr}]`)];
+
+		function activate(id: string) {
+			for (const t of tabs) {
+				t.setAttribute('aria-selected', String(t.getAttribute(`data-${tabAttr}`) === id));
+			}
+			for (const p of panels) {
+				p.hidden = p.getAttribute(`data-${panelAttr}`) !== id;
+			}
+			onActivate?.(id);
+		}
+
+		tabRoot.addEventListener('click', (e) => {
+			const btn = (e.target as HTMLElement).closest<HTMLButtonElement>(`[data-${tabAttr}]`);
+			const id = btn?.getAttribute(`data-${tabAttr}`);
+			if (id) activate(id);
+		});
+	}
+
+	function progressInTrack(track: HTMLElement, card: HTMLElement) {
+		const tr = track.getBoundingClientRect();
+		const cr = card.getBoundingClientRect();
+		const mid = cr.top + cr.height * 0.45;
+		const start = tr.top + tr.height * 0.18;
+		const end = tr.bottom - tr.height * 0.18;
+		return Math.min(1, Math.max(0, (mid - start) / Math.max(1, end - start)));
+	}
+
+	function midWeight(p: number) {
+		return 1 - Math.min(1, Math.abs(p - 0.5) * 2);
+	}
+
+	function initScroll() {
+		const tracks = [...document.querySelectorAll<HTMLElement>('[data-scroll-track]')];
+		const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		function tick() {
+			for (const track of tracks) {
+				const panel = track.closest<HTMLElement>('[data-scroll-panel]');
+				if (panel?.hidden) continue;
+				const card = track.querySelector<HTMLElement>('[data-scroll-fx]');
+				if (!card) continue;
+				if (reduce) {
+					card.style.setProperty('--p', '0.5');
+					card.style.setProperty('--p-mid', '1');
+					continue;
+				}
+				const p = progressInTrack(track, card);
+				card.style.setProperty('--p', String(p));
+				card.style.setProperty('--p-mid', String(midWeight(p)));
+			}
+			requestAnimationFrame(tick);
+		}
+		requestAnimationFrame(tick);
+	}
+
+	function playHero(id: string) {
+		const title = document.querySelector<HTMLElement>(`[data-hero-fx="${id}"]`);
+		if (!title) return;
+		title.classList.remove('is-playing');
+		void title.offsetWidth;
+		title.classList.add('is-playing');
+	}
+
+	bindTabs('[data-scroll-tabs]', '[data-scroll-panel]', 'scroll-tab', 'scroll-panel');
+	bindTabs('[data-hero-tabs]', '[data-hero-panel]', 'hero-tab', 'hero-panel', (id) => playHero(id));
+
+	document.querySelector('[data-motion-lab]')?.addEventListener('click', (e) => {
+		const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-hero-replay]');
+		const id = btn?.getAttribute('data-hero-replay');
+		if (id) playHero(id);
+	});
+
+	initScroll();
+	const firstHero = document.querySelector<HTMLElement>('[data-hero-panel]:not([hidden])');
+	const firstId = firstHero?.getAttribute('data-hero-panel');
+	if (firstId) playHero(firstId);
+</script>
