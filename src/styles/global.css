@@ -1097,9 +1097,11 @@ html[data-coarse-pointer] .home-explore-card .explore-card-cta {
 
 /* Tight two-line stack — no space-between stretch. */
 #sun-text {
-	--hero-stereo-amber: var(--color-amber, #ffaa00);
-	--hero-stereo-cyan: #6ec8ff;
 	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: flex-start;
 	margin: 0;
 	width: 100%;
 	height: auto;
@@ -1125,31 +1127,6 @@ html[data-theme='universe'] #sun-text {
 	color: #f4f6ff;
 }
 
-#sun-text .hero-stereo-solid,
-#sun-text .hero-stereo-ghost {
-	display: flex;
-	flex-direction: column;
-	justify-content: flex-start;
-	align-items: flex-start;
-	gap: 0;
-	margin: 0;
-}
-
-#sun-text .hero-stereo-ghost {
-	position: absolute;
-	inset: 0 auto auto 0;
-	pointer-events: none;
-	mix-blend-mode: screen;
-}
-
-#sun-text .hero-stereo-ghost--a {
-	color: var(--hero-stereo-amber);
-}
-
-#sun-text .hero-stereo-ghost--b {
-	color: var(--hero-stereo-cyan);
-}
-
 #sun-text .hero-word {
 	display: block;
 	white-space: nowrap;
@@ -1162,86 +1139,6 @@ html[data-theme='universe'] #sun-text {
 
 #sun-text .hero-char {
 	display: inline-block;
-}
-
-/* Stereo lock — one-shot after splash (motion-lab → homepage test). */
-#sun-text[data-hero-entrance='stereo']:not(.is-playing):not(.is-ready) .hero-stereo-solid,
-#sun-text[data-hero-entrance='stereo']:not(.is-playing):not(.is-ready) .hero-stereo-ghost {
-	opacity: 0;
-}
-
-#sun-text[data-hero-entrance='stereo'].is-ready .hero-stereo-solid {
-	opacity: 1;
-}
-
-#sun-text[data-hero-entrance='stereo'].is-ready .hero-stereo-ghost {
-	opacity: 0;
-}
-
-#sun-text[data-hero-entrance='stereo'].is-playing .hero-stereo-ghost--a {
-	animation: hero-stereo-a 1000ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
-}
-
-#sun-text[data-hero-entrance='stereo'].is-playing .hero-stereo-ghost--b {
-	animation: hero-stereo-b 1000ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
-}
-
-#sun-text[data-hero-entrance='stereo'].is-playing .hero-stereo-solid {
-	animation: hero-stereo-solid 1000ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
-}
-
-@keyframes hero-stereo-a {
-	0% {
-		opacity: 0.85;
-		transform: translate(-0.7em, 0.1em);
-	}
-	70% {
-		opacity: 0.55;
-		transform: translate(-0.08em, 0);
-	}
-	100% {
-		opacity: 0;
-		transform: translate(0, 0);
-	}
-}
-
-@keyframes hero-stereo-b {
-	0% {
-		opacity: 0.85;
-		transform: translate(0.7em, -0.1em);
-	}
-	70% {
-		opacity: 0.55;
-		transform: translate(0.08em, 0);
-	}
-	100% {
-		opacity: 0;
-		transform: translate(0, 0);
-	}
-}
-
-@keyframes hero-stereo-solid {
-	0%,
-	55% {
-		opacity: 0;
-	}
-	72% {
-		opacity: 1;
-	}
-	100% {
-		opacity: 1;
-	}
-}
-
-@media (prefers-reduced-motion: reduce) {
-	#sun-text[data-hero-entrance='stereo'] .hero-stereo-solid {
-		opacity: 1 !important;
-		animation: none !important;
-	}
-	#sun-text[data-hero-entrance='stereo'] .hero-stereo-ghost {
-		opacity: 0 !important;
-		animation: none !important;
-	}
 }
 
 .sun-glow {

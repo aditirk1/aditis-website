@@ -1,6 +1,6 @@
 /**
- * Home hero helpers. Title uses the motion-lab "stereo lock" one-shot after splash.
- * The scroll cue fades out once the user scrolls. Beach tagline crossfades in place.
+ * Home hero helpers. Marks the hero ready after splash, fades the scroll cue,
+ * and crossfades Beach taglines in place.
  */
 import { gsap } from 'gsap';
 import { SPLASH_DONE_EVENT, SPLASH_KEY } from './splash-intro.ts';
@@ -8,33 +8,6 @@ import { subscribeScroll } from './scroll-orchestrator.ts';
 
 function markHeroReady(): void {
 	document.documentElement.setAttribute('data-hero-ready', '1');
-}
-
-function playStereoEntrance(): void {
-	const title = document.querySelector<HTMLElement>('[data-hero-entrance="stereo"]');
-	if (!title) return;
-
-	const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-	if (reduce) {
-		title.classList.remove('is-playing');
-		title.classList.add('is-ready');
-		return;
-	}
-
-	const finish = () => {
-		title.classList.add('is-ready');
-		title.removeEventListener('animationend', onEnd);
-	};
-	const onEnd = (e: AnimationEvent) => {
-		/* Solid layer is the last to resolve — lock the resting state. */
-		if ((e.target as Element | null)?.classList?.contains('hero-stereo-solid')) finish();
-	};
-
-	title.classList.remove('is-ready', 'is-playing');
-	void title.offsetWidth;
-	title.addEventListener('animationend', onEnd);
-	title.classList.add('is-playing');
-	window.setTimeout(finish, 1200);
 }
 
 function splashAlreadyFinished(): boolean {
@@ -61,7 +34,6 @@ function readTaglineItems(el: Element): string[] {
 
 function runHeroExtras(): () => void {
 	markHeroReady();
-	playStereoEntrance();
 
 	const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	const taglineEl = document.querySelector<HTMLElement>('[data-hero-tagline]');

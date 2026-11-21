@@ -30,35 +30,14 @@ const firstTagline = taglines[0] ?? '';
 		<div class="home-hero-grid" data-spatial-hero>
 			<div class="home-hero-title-col">
 				<div id="sun-wrapper">
-					{/* Stereo lock entrance (motion-lab) — ghosts + solid; measure from solid only. */}
-					<h1 id="sun-text" data-hero-title data-hero-entrance="stereo">
-						<span class="hero-stereo-ghost hero-stereo-ghost--a" aria-hidden="true">
-							{heroWords.map((chars) => (
-								<span class="hero-word">
-									{chars.map((ch) => (
-										<span class="hero-char">{ch}</span>
-									))}
-								</span>
-							))}
-						</span>
-						<span class="hero-stereo-ghost hero-stereo-ghost--b" aria-hidden="true">
-							{heroWords.map((chars) => (
-								<span class="hero-word">
-									{chars.map((ch) => (
-										<span class="hero-char">{ch}</span>
-									))}
-								</span>
-							))}
-						</span>
-						<span class="hero-stereo-solid" data-hero-measure>
-							{heroWords.map((chars) => (
-								<span class="hero-word">
-									{chars.map((ch) => (
-										<span class="hero-char">{ch}</span>
-									))}
-								</span>
-							))}
-						</span>
+					<h1 id="sun-text" data-hero-title data-hero-measure>
+						{heroWords.map((chars) => (
+							<span class="hero-word">
+								{chars.map((ch) => (
+									<span class="hero-char">{ch}</span>
+								))}
+							</span>
+						))}
 					</h1>
 				</div>
 			</div>
