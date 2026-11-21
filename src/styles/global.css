@@ -853,19 +853,21 @@ nav[aria-label='Primary'] .nav-tab[data-active='true'] {
 	}
 
 	[data-site-header] > [data-site-nav-slot] {
-		position: relative;
 		width: 100%;
 		min-width: 0;
 	}
 
+	/*
+	 * Orbit/Flow: park the theme control against the header (beside Home), not
+	 * the tab row — nav-slot must stay position:static so absolute top/right
+	 * resolve to the header, not over the pills.
+	 */
 	html:not([data-theme='portfolio']) [data-site-nav-slot] > .theme-switch {
 		position: absolute;
 		top: max(0.55rem, env(safe-area-inset-top, 0px));
 		right: 1rem;
-		z-index: 5;
-		min-height: 2.75rem;
-		display: flex;
-		align-items: center;
+		height: 2rem;
+		z-index: 2;
 	}
 
 	@media (min-width: 640px) {
