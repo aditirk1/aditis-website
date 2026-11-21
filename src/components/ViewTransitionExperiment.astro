@@ -65,8 +65,8 @@ const isProjectDetail = /^\/projects\/[^/]+\/?$/.test(Astro.url.pathname);
 			var kind = origin ? origin.kind : 'link';
 			if (mode === 'portal') return 'portal';
 			if (mode === 'wave') return 'wave';
+			/* Morph lab only: shared project-title. Themed Orbit/Flow use portal/wave like other links. */
 			if (mode === 'morph') return kind === 'project' ? 'morph' : 'fade';
-			if (kind === 'project') return 'morph';
 			if (kind === 'planet') return 'zoom';
 			return flow ? 'wave' : 'portal';
 		}

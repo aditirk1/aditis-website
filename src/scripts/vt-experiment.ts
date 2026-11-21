@@ -37,7 +37,12 @@ function onClick(e: MouseEvent) {
 	const mode = document.documentElement.dataset.vt;
 	const kind = link.classList.contains('nav-tab') ? 'tab' : label ? 'project' : 'link';
 
-	if (kind === 'project' && label && (mode === 'morph' || mode === 'themed')) {
+	/*
+	 * Shared-element name for morph lab, and Portfolio's quiet title morph.
+	 * Themed Orbit/Flow skip this — projects use the same portal/wave as tabs.
+	 */
+	const theme = document.documentElement.dataset.theme;
+	if (kind === 'project' && label && (mode === 'morph' || theme === 'portfolio')) {
 		label.style.viewTransitionName = 'project-title';
 	}
 
